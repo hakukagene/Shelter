@@ -54,9 +54,14 @@ init python:
     renpy.music.register_channel("shelter_player", mixer="voice", loop=False, stop_on_mute=False)
     renpy.music.register_channel("shelter_video", mixer="voice", loop=False, movie=True)
     def shelter_wait_image(clip):
-        if clip == "aim":
-            return "images/Maral/Maral ineeh.png"
-        return "images/Maral/Maral idle zassan.jpg"
+        # Freeze the completed clip's own framing, including its camera distance.
+        if clip not in ("intro", "answer1", "answer2", "answer3", "aim", "lower"):
+            clip = "intro"
+        return "images/Maral/frames/" + clip + ".jpg"
+
+    def shelter_movie_start(st, at):
+        # Keep the previous waiting frame while the next decoder starts.
+        return shelter_video_end(shelter_still), None
 
     def shelter_video_end(clip):
         # Terminal clips share the result background to avoid a black flash.
