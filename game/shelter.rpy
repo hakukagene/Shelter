@@ -53,7 +53,10 @@ define SHELTER_PLAYER_VOICES = {
     "admit": ("audio/Chingune/MaralOruulah.wav", 0.347, 0.879),
 }
 
+define SHELTER_NEXT_VISITOR_TIME = "23:17"
+
 define CHINBA_CLIPS = {
+    "reject": ("Chinbaa yavah.webm", 13.648),
     "intro": ("Chinbaa ehlel.webm", 15.928),
     "answer1": ("Chinbaa hariult 1.webm", 8.128),
     "answer2": ("Chinbaa hariult 2.webm", 11.048),
@@ -93,6 +96,7 @@ define CHINBA_PLAYER_VOICES = {
 }
 
 init python:
+    renpy.music.register_channel("shelter_knock", mixer="sfx", loop=False, stop_on_mute=False)
     SHELTER_VISITORS = {
         "Maral": {"clips": SHELTER_CLIPS, "questions": SHELTER_QUESTIONS,
                 "lines": SHELTER_LINES, "windows": SHELTER_SPEECH_WINDOWS,
@@ -114,7 +118,7 @@ init python:
             return "images/Chinba/frames/idle.jpg"
         allowed = ("intro", "answer1", "answer2", "answer3", "aim", "lower")
         if visitor == "Chinba":
-            allowed += ("arrival", "shoot", "admit")
+            allowed += ("arrival", "shoot", "admit", "reject")
         if clip not in allowed:
             clip = "intro"
         return "images/" + visitor + "/frames/" + clip + ".jpg"
@@ -323,6 +327,26 @@ screen shelter_result(title, description):
                 xpos 120
                 yalign 0.5
 
+# Unskippable story-time card, followed by two metallic door knocks.
+screen shelter_next_visitor_card():
+    modal True
+    add Solid("#000000")
+    text SHELTER_NEXT_VISITOR_TIME:
+        font SHELTER_FONT
+        size 76
+        color "#e8dfca"
+        align (0.5, 0.5)
+        text_align 0.5
+        at shelter_fade
+    key "dismiss" action NullAction()
+    key "skip" action NullAction()
+    key "toggle_skip" action NullAction()
+    key "rollback" action NullAction()
+    on "hide" action Stop("shelter_knock")
+    timer 2.0 action Play("shelter_knock", "audio/sfx/metal_door_knock.wav")
+    # The 1.8-second sound finishes before the next visitor fades in.
+    timer 4.0 action Return(True)
+
 label shelter_player_line(voice_key, caption=None):
     window hide
     $ _skipping = False
@@ -334,7 +358,10 @@ label shelter_player_line(voice_key, caption=None):
 label shelter_clip(clip):
     window hide
     $ _skipping = False
-    call screen shelter_playback(clip)
+    if clip == "intro" and shelter_visitor == "Maral":
+        call screen shelter_playback(clip) with Dissolve(0.8)
+    else:
+        call screen shelter_playback(clip)
     $ shelter_still = clip
     return
 
@@ -384,10 +411,9 @@ label shelter_handle_choice:
         call screen shelter_result("БУУДСАН", "Та гох дарлаа. Маралтай хийсэн энэ уулзалт дууслаа.")
     elif shelter_choice == "reject":
         call shelter_player_line("reject")
-        if shelter_visitor == "Chinba":
-            # No rejection movie was supplied: use a voiced cut to the next visitor.
-            jump shelter_next_visitor
         call shelter_clip("reject")
+        if shelter_visitor == "Chinba":
+            jump shelter_next_visitor
         call screen shelter_result("ХААЛГА ХААЛТТАЙ ҮЛДЛЭЭ", "Марал дуугүй эргэн явлаа. Та түүнийг хорогдох байранд оруулсангүй.")
     elif shelter_choice == "admit":
         call shelter_player_line("admit")
@@ -405,7 +431,9 @@ label shelter_next_visitor:
     $ renpy.music.stop(channel="shelter_player")
     $ renpy.music.stop(channel="shelter_video")
     scene black
-    with Fade(0.3, 0.2, 0.3)
-    $ renpy.pause(0.5, hard=True)
+    with Dissolve(0.5)
+    $ _skipping = False
+    call screen shelter_next_visitor_card
+    $ renpy.music.stop(channel="shelter_knock")
     $ shelter_visitor = "Maral"
     jump shelter_visit_start
