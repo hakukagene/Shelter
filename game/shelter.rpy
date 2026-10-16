@@ -110,9 +110,9 @@ screen shelter_playback(clip):
     if clip in SHELTER_LINES:
         frame:
             background Solid("#080707dd")
-            xpos 70
-            ypos 760
-            xsize 1000
+            xalign 0.5
+            ypos 710
+            xsize 1344
             padding (35, 22)
             text SHELTER_LINES[clip] style "shelter_text" size 30
     # A short startup grace avoids interpreting a not-yet-started decoder as EOF.
@@ -124,27 +124,27 @@ screen shelter_playback(clip):
 # Always visible during the encounter. Text remains native for crisp Cyrillic.
 screen shelter_actions(enabled=True, armed=False):
     hbox:
-        xpos 1100
-        ypos 790
-        spacing 8
+        xalign 0.5
+        ypos 880
+        spacing 24
         for caption, result, icon in [("Буудах" if armed else "Буу онилох", "shoot" if armed else "aim", "aim"), ("Хөөж явуулах", "reject", "reject"), ("Дотогш оруулах", "admit", "admit")]:
             button:
-                xysize (240, 240)
+                xysize (180, 180)
                 padding (0, 0)
-                background Transform("gui/shelter/actions/" + icon + ".png", xysize=(240, 240))
-                hover_background Transform("gui/shelter/actions/" + icon + ".png", xysize=(240, 240), matrixcolor=BrightnessMatrix(0.14))
-                insensitive_background Transform("gui/shelter/actions/" + icon + ".png", xysize=(240, 240), matrixcolor=SaturationMatrix(0.35))
+                background Transform("gui/shelter/actions/" + icon + ".png", xysize=(180, 180))
+                hover_background Transform("gui/shelter/actions/" + icon + ".png", xysize=(180, 180), matrixcolor=BrightnessMatrix(0.14))
+                insensitive_background Transform("gui/shelter/actions/" + icon + ".png", xysize=(180, 180), matrixcolor=SaturationMatrix(0.35))
                 focus_mask True
                 sensitive enabled
                 action Return(result)
                 text caption:
                     font SHELTER_BOLD
-                    size 25
+                    size 17
                     color "#f4dfaf"
                     hover_color "#ffffff"
                     insensitive_color "#aa9d86"
                     xalign 0.5
-                    ypos 142
+                    ypos 107
                     outlines [(1, "#000b", 0, 1)]
 
 screen shelter_questions():
@@ -156,18 +156,18 @@ screen shelter_questions():
 
 screen shelter_question_buttons():
     vbox:
-        xpos 70
-        ypos 795
+        xalign 0.5
+        ypos 655
         spacing 14
-        text "ЮУ АСУУХ ВЭ?" style "shelter_text" size 25 color "#e2bc86"
+        text "ЮУ АСУУХ ВЭ?" style "shelter_text" size 25 color "#e2bc86" xalign 0.5
         hbox:
             spacing 12
             for index, question in enumerate(SHELTER_QUESTIONS):
                 button:
                     style "shelter_button"
                     padding (16, 12)
-                    xsize 320
-                    ysize 190
+                    xsize 440
+                    ysize 170
                     sensitive index not in shelter_asked
                     action Return(index)
                     vbox:
@@ -184,8 +184,8 @@ screen shelter_decision(armed=False):
         textbutton "Буугаа буулгах":
             style "shelter_button"
             text_style "shelter_button_text"
-            xpos 70
-            ypos 900
+            xalign 0.5
+            ypos 750
             xsize 550
             ysize 92
             action Return("lower")
