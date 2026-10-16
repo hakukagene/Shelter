@@ -101,6 +101,7 @@ screen shelter_playback(clip):
     default elapsed = 0.0
     add shelter_movies[clip] xysize (1920, 1080)
     use shelter_header("ЯРИЛЦЛАГА", utilities=False)
+    use shelter_actions(enabled=False, armed=clip in ("aim", "shoot", "lower"))
     # Block click-to-dismiss and keyboard skipping while the clip plays.
     key "dismiss" action NullAction()
     key "skip" action NullAction()
@@ -109,83 +110,87 @@ screen shelter_playback(clip):
     if clip in SHELTER_LINES:
         frame:
             background Solid("#080707dd")
-            xpos 210
-            ypos 820
-            xsize 1500
+            xpos 70
+            ypos 760
+            xsize 1000
             padding (35, 22)
-            text SHELTER_LINES[clip] style "shelter_text" size 32
+            text SHELTER_LINES[clip] style "shelter_text" size 30
     # A short startup grace avoids interpreting a not-yet-started decoder as EOF.
     # Actual playback completion, rather than a fixed timer, drives progression.
     timer 0.1 repeat True action If(
         elapsed >= 0.5 and not renpy.music.get_playing(channel="shelter_video"),
         Return(True), SetScreenVariable("elapsed", elapsed + 0.1))
 
+# Always visible during the encounter. Text remains native for crisp Cyrillic.
+screen shelter_actions(enabled=True, armed=False):
+    hbox:
+        xpos 1100
+        ypos 790
+        spacing 8
+        for caption, result, icon in [("Буудах" if armed else "Буу онилох", "shoot" if armed else "aim", "aim"), ("Хөөж явуулах", "reject", "reject"), ("Дотогш оруулах", "admit", "admit")]:
+            button:
+                xysize (240, 240)
+                padding (0, 0)
+                background Transform("gui/shelter/actions/" + icon + ".png", xysize=(240, 240))
+                hover_background Transform("gui/shelter/actions/" + icon + ".png", xysize=(240, 240), matrixcolor=BrightnessMatrix(0.14))
+                insensitive_background Transform("gui/shelter/actions/" + icon + ".png", xysize=(240, 240), matrixcolor=SaturationMatrix(0.35))
+                focus_mask True
+                sensitive enabled
+                action Return(result)
+                text caption:
+                    font SHELTER_BOLD
+                    size 25
+                    color "#f4dfaf"
+                    hover_color "#ffffff"
+                    insensitive_color "#aa9d86"
+                    xalign 0.5
+                    ypos 142
+                    outlines [(1, "#000b", 0, 1)]
+
 screen shelter_questions():
     modal True
     use shelter_backdrop
-    use shelter_header("АСУУЛТ СОНГОХ")
+    use shelter_header("АСУУЛТ / ШИЙДВЭР")
+    use shelter_question_buttons
+    use shelter_actions
+
+screen shelter_question_buttons():
     vbox:
         xpos 70
-        ypos 810
-        spacing 18
-        at shelter_fade
+        ypos 795
+        spacing 14
         text "ЮУ АСУУХ ВЭ?" style "shelter_text" size 25 color "#e2bc86"
         hbox:
-            spacing 20
+            spacing 12
             for index, question in enumerate(SHELTER_QUESTIONS):
                 button:
                     style "shelter_button"
-                    xsize 580
-                    ysize 170
+                    padding (16, 12)
+                    xsize 320
+                    ysize 190
                     sensitive index not in shelter_asked
                     action Return(index)
                     vbox:
-                        spacing 12
-                        text ("АСУУСАН" if index in shelter_asked else "%02d" % (index + 1)) style "shelter_button_text" size 24 color "#e2bc86"
-                        text question style "shelter_button_text" size 30
-    # Final decisions deliberately do not appear in this phase.
+                        spacing 8
+                        text ("АСУУСАН" if index in shelter_asked else "%02d" % (index + 1)) style "shelter_button_text" size 22 color "#e2bc86"
+                        text question style "shelter_button_text" size 26
 
 screen shelter_decision(armed=False):
     modal True
     use shelter_backdrop
     use shelter_header("ШИЙДВЭР ГАРГАХ")
-    vbox:
-        xpos 1300
-        ypos 685
-        spacing 14
-        at shelter_fade
-        text "ШИЙДВЭРЭЭ СОНГОНО УУ" style "shelter_text" size 25 color "#e2bc86"
-        if armed:
-            textbutton "Буудах":
-                style "shelter_button"
-                text_style "shelter_button_text"
-                text_color "#ff7770"
-                xsize 550
-                ysize 92
-                action Return("shoot")
-            textbutton "Буугаа буулгах":
-                style "shelter_button"
-                text_style "shelter_button_text"
-                xsize 550
-                ysize 92
-                action Return("lower")
-        else:
-            for caption, result in [("Буу онилох", "aim"), ("Хөөж явуулах", "reject"), ("Дотогш оруулах", "admit")]:
-                textbutton caption:
-                    style "shelter_button"
-                    text_style "shelter_button_text"
-                    xsize 550
-                    ysize 92
-                    action Return(result)
-    if not armed and len(shelter_asked) < len(SHELTER_QUESTIONS):
-        textbutton "Дахин асуулт асуух":
+    use shelter_actions(armed=armed)
+    if armed:
+        textbutton "Буугаа буулгах":
             style "shelter_button"
             text_style "shelter_button_text"
             xpos 70
-            ypos 915
-            xsize 720
+            ypos 900
+            xsize 550
             ysize 92
-            action Return("questions")
+            action Return("lower")
+    else:
+        use shelter_question_buttons
 
 screen shelter_result(title, description):
     modal True
@@ -226,21 +231,29 @@ label shelter_encounter:
 label shelter_question_phase:
     call screen shelter_questions
     $ shelter_choice = _return
-    $ shelter_asked.append(shelter_choice)
-    call shelter_clip("answer%d" % (shelter_choice + 1))
-    jump shelter_decision_phase
+    jump shelter_handle_choice
 
 label shelter_decision_phase:
     call screen shelter_decision
     $ shelter_choice = _return
-    if shelter_choice == "questions":
-        jump shelter_question_phase
+    jump shelter_handle_choice
+
+label shelter_handle_choice:
+    if isinstance(shelter_choice, int):
+        $ shelter_asked.append(shelter_choice)
+        call shelter_clip("answer%d" % (shelter_choice + 1))
+        jump shelter_decision_phase
     elif shelter_choice == "aim":
         call shelter_clip("aim")
         call screen shelter_decision(armed=True)
-        if _return == "lower":
+        $ shelter_choice = _return
+        if shelter_choice == "lower":
             call shelter_clip("lower")
             jump shelter_decision_phase
+        elif shelter_choice in ("reject", "admit"):
+            call shelter_clip("lower")
+        jump shelter_handle_choice
+    elif shelter_choice == "shoot":
         call shelter_clip("shoot")
         call screen shelter_result("БУУДСАН", "Та гох дарлаа. Маралтай хийсэн энэ уулзалт дууслаа.")
     elif shelter_choice == "reject":
