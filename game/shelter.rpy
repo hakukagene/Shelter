@@ -95,11 +95,11 @@ define CHINBA_PLAYER_VOICES = {
 init python:
     SHELTER_VISITORS = {
         "Maral": {"clips": SHELTER_CLIPS, "questions": SHELTER_QUESTIONS,
-                  "lines": SHELTER_LINES, "windows": SHELTER_SPEECH_WINDOWS,
-                  "voices": SHELTER_PLAYER_VOICES},
+                "lines": SHELTER_LINES, "windows": SHELTER_SPEECH_WINDOWS,
+                "voices": SHELTER_PLAYER_VOICES},
         "Chinba": {"clips": CHINBA_CLIPS, "questions": CHINBA_QUESTIONS,
-                   "lines": CHINBA_LINES, "windows": CHINBA_SPEECH_WINDOWS,
-                   "voices": CHINBA_PLAYER_VOICES},
+                "lines": CHINBA_LINES, "windows": CHINBA_SPEECH_WINDOWS,
+                "voices": CHINBA_PLAYER_VOICES},
     }
 
     def shelter_data(key):
