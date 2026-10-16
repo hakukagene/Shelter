@@ -79,28 +79,12 @@ style shelter_button_text is shelter_text:
 screen shelter_backdrop():
     add shelter_video_end(shelter_still) xysize (1920, 1080)
 
-screen shelter_header(stage, utilities=True):
-    add Solid("#080707b8") xysize (1920, 76)
-    text "ХОРОГДОХ БАЙР  /  [stage]" style "shelter_text" xpos 65 ypos 22 size 26 color "#e2bc86"
-    if utilities:
-        hbox:
-            xpos 1410
-            ypos 16
-            spacing 24
-            textbutton "Хадгалах" action ShowMenu("save") text_font SHELTER_FONT text_size 26
-            textbutton "Тохиргоо" action ShowMenu("preferences") text_font SHELTER_FONT text_size 26
-    frame:
-        background Solid("#100c0cdc")
-        xalign 0.5
-        ypos 585
-        padding (28, 8)
-        text "МАРАЛ  •  28" style "shelter_text" font SHELTER_BOLD size 28
+
 
 screen shelter_playback(clip):
     modal True
     default elapsed = 0.0
     add shelter_movies[clip] xysize (1920, 1080)
-    use shelter_header("ЯРИЛЦЛАГА", utilities=False)
     use shelter_actions(enabled=False, armed=clip in ("aim", "shoot", "lower"))
     # Block click-to-dismiss and keyboard skipping while the clip plays.
     key "dismiss" action NullAction()
@@ -150,35 +134,12 @@ screen shelter_actions(enabled=True, armed=False):
 screen shelter_questions():
     modal True
     use shelter_backdrop
-    use shelter_header("АСУУЛТ / ШИЙДВЭР")
-    use shelter_question_buttons
     use shelter_actions
 
-screen shelter_question_buttons():
-    vbox:
-        xalign 0.5
-        ypos 655
-        spacing 14
-        text "ЮУ АСУУХ ВЭ?" style "shelter_text" size 25 color "#e2bc86" xalign 0.5
-        hbox:
-            spacing 12
-            for index, question in enumerate(SHELTER_QUESTIONS):
-                button:
-                    style "shelter_button"
-                    padding (16, 12)
-                    xsize 440
-                    ysize 170
-                    sensitive index not in shelter_asked
-                    action Return(index)
-                    vbox:
-                        spacing 8
-                        text ("АСУУСАН" if index in shelter_asked else "%02d" % (index + 1)) style "shelter_button_text" size 22 color "#e2bc86"
-                        text question style "shelter_button_text" size 26
 
 screen shelter_decision(armed=False):
     modal True
     use shelter_backdrop
-    use shelter_header("ШИЙДВЭР ГАРГАХ")
     use shelter_actions(armed=armed)
     if armed:
         textbutton "Буугаа буулгах":
@@ -189,8 +150,7 @@ screen shelter_decision(armed=False):
             xsize 550
             ysize 92
             action Return("lower")
-    else:
-        use shelter_question_buttons
+
 
 screen shelter_result(title, description):
     modal True
