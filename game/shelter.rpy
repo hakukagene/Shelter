@@ -309,7 +309,7 @@ screen shelter_result(title, description):
         xsize 1120
         text_align 0.5
     # Hit areas match the two physical plates in the background.
-    for caption, result, left in [("Дахин тоглох", "replay", 566), ("Үндсэн цэс", "menu", 982)]:
+    for caption, result, left in [("Дахин тоглох", "replay", 580), ("Үндсэн цэс", "menu", 1025)]:
         button:
             xpos left
             ypos 645
