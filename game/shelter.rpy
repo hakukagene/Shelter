@@ -139,37 +139,28 @@ screen shelter_actions(enabled=True, armed=False):
         xalign 0.5
         ypos 880
         spacing 24
-        if armed:
-            for caption, result in [("Буудах", "shoot"), ("Буугаа буулгах", "lower")]:
-                textbutton caption:
-                    style "shelter_button"
-                    text_style "shelter_button_text"
-                    text_size 28
-                    xysize (330, 120)
-                    sensitive enabled
-                    action Return(result)
-        else:
-            for caption, result, icon in [("Хөөх", "reject", "reject"), ("Оруулах", "admit", "admit")]:
-                button:
-                    xysize (180, 180)
-                    padding (0, 0)
-                    background Transform("gui/shelter/actions/" + icon + ".png", xysize=(180, 180))
-                    hover_background Transform("gui/shelter/actions/" + icon + ".png", xysize=(180, 180), matrixcolor=BrightnessMatrix(0.14))
-                    insensitive_background Transform("gui/shelter/actions/" + icon + ".png", xysize=(180, 180), matrixcolor=SaturationMatrix(0.35))
-                    focus_mask True
-                    sensitive enabled
-                    action Return(result)
-                    text caption:
-                        font SHELTER_BOLD
-                        size 15
-                        color "#f4dfaf"
-                        hover_color "#ffffff"
-                        insensitive_color "#aa9d86"
-                        xalign 0.5
-                        ypos 107
-                        xsize 118
-                        text_align 0.5
-                        outlines [(1, "#000b", 0, 1)]
+        $ choices = [("Буудах", "shoot", "shoot"), ("Буугаа буулгах", "lower", "lower")] if armed else [("Хөөх", "reject", "reject"), ("Оруулах", "admit", "admit")]
+        for caption, result, icon in choices:
+            button:
+                xysize (180, 180)
+                padding (0, 0)
+                background Transform("gui/shelter/actions/" + icon + ".png", xysize=(180, 180))
+                hover_background Transform("gui/shelter/actions/" + icon + ".png", xysize=(180, 180), matrixcolor=BrightnessMatrix(0.14))
+                insensitive_background Transform("gui/shelter/actions/" + icon + ".png", xysize=(180, 180), matrixcolor=SaturationMatrix(0.35))
+                focus_mask True
+                sensitive enabled
+                action Return(result)
+                text caption:
+                    font SHELTER_BOLD
+                    size 15
+                    color "#f4dfaf"
+                    hover_color "#ffffff"
+                    insensitive_color "#aa9d86"
+                    xalign 0.5
+                    ypos 107
+                    xsize 118
+                    text_align 0.5
+                    outlines [(1, "#000b", 0, 1)]
 
 # Player speaks over the waiting portrait; Maral responds only after EOF.
 screen shelter_player_speech(voice_key, caption=None):
