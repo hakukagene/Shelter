@@ -42,7 +42,16 @@ define SHELTER_SPEECH_WINDOWS = {
     "aim": (3.199, 8.260),
 }
 
+define SHELTER_PLAYER_VOICES = {
+    "question1": ("audio/Chingune/MaralAsuult1.wav", 0.620, 2.501),
+    "question2": ("audio/Chingune/MaralAsuult2.wav", 0.865, 2.699),
+    "question3": ("audio/Chingune/MaralAsuult3.wav", 0.780, 3.954),
+    "reject": ("audio/Chingune/MaralHuuh.wav", 0.395, 1.549),
+    "admit": ("audio/Chingune/MaralOruulah.wav", 0.347, 0.879),
+}
+
 init python:
+    renpy.music.register_channel("shelter_player", mixer="voice", loop=False, stop_on_mute=False)
     renpy.music.register_channel("shelter_video", mixer="voice", loop=False, movie=True)
     def shelter_wait_image(clip):
         if clip == "aim":
@@ -145,16 +154,59 @@ screen shelter_actions(enabled=True, armed=False):
                     text_align 0.5
                     outlines [(1, "#000b", 0, 1)]
 
+# Player speaks over the waiting portrait; Maral responds only after EOF.
+screen shelter_player_speech(voice_key, caption=None):
+    modal True
+    default elapsed = 0.0
+    use shelter_backdrop
+    use shelter_actions(enabled=False)
+    key "dismiss" action NullAction()
+    key "skip" action NullAction()
+    key "toggle_skip" action NullAction()
+    key "rollback" action NullAction()
+    on "hide" action Stop("shelter_player")
+    $ position = renpy.music.get_pos(channel="shelter_player")
+    $ cue = SHELTER_PLAYER_VOICES[voice_key]
+    if caption and position is not None and cue[1] <= position < cue[2]:
+        frame:
+            background Solid("#080707dd")
+            xalign 0.5
+            ypos 710
+            xsize 1344
+            padding (35, 22)
+            text caption style "shelter_text" text_align 0.5 xalign 0.5
+    timer 0.03 repeat True action If(
+        elapsed >= 0.5 and not renpy.music.get_playing(channel="shelter_player"),
+        Return(True), SetScreenVariable("elapsed", elapsed + 0.03))
+
+screen shelter_question_choices():
+    hbox:
+        xalign 0.5
+        ypos 655
+        spacing 16
+        for index, question in enumerate(SHELTER_QUESTIONS):
+            textbutton question:
+                style "shelter_button"
+                text_style "shelter_button_text"
+                text_size 26
+                text_text_align 0.5
+                xysize (440, 170)
+                sensitive index not in shelter_asked
+                action Return(index)
+
 screen shelter_questions():
     modal True
     use shelter_backdrop
     use shelter_actions
+    use shelter_question_choices
 
 
 screen shelter_decision(armed=False):
     modal True
     use shelter_backdrop
     use shelter_actions(armed=armed)
+    if not armed:
+        use shelter_question_choices
     if armed:
         textbutton "Буугаа буулгах":
             style "shelter_button"
@@ -204,6 +256,14 @@ screen shelter_result(title, description):
                 xpos 120
                 yalign 0.5
 
+label shelter_player_line(voice_key, caption=None):
+    window hide
+    $ _skipping = False
+    $ renpy.music.play(SHELTER_PLAYER_VOICES[voice_key][0], channel="shelter_player", loop=False)
+    call screen shelter_player_speech(voice_key, caption)
+    $ renpy.music.stop(channel="shelter_player")
+    return
+
 label shelter_clip(clip):
     window hide
     $ _skipping = False
@@ -231,6 +291,7 @@ label shelter_decision_phase:
 label shelter_handle_choice:
     if isinstance(shelter_choice, int):
         $ shelter_asked.append(shelter_choice)
+        call shelter_player_line("question%d" % (shelter_choice + 1), SHELTER_QUESTIONS[shelter_choice])
         call shelter_clip("answer%d" % (shelter_choice + 1))
         jump shelter_decision_phase
     elif shelter_choice == "aim":
@@ -247,9 +308,11 @@ label shelter_handle_choice:
         call shelter_clip("shoot")
         call screen shelter_result("БУУДСАН", "Та гох дарлаа. Маралтай хийсэн энэ уулзалт дууслаа.")
     elif shelter_choice == "reject":
+        call shelter_player_line("reject")
         call shelter_clip("reject")
         call screen shelter_result("ХААЛГА ХААЛТТАЙ ҮЛДЛЭЭ", "Марал дуугүй эргэн явлаа. Та түүнийг хорогдох байранд оруулсангүй.")
     elif shelter_choice == "admit":
+        call shelter_player_line("admit")
         call shelter_clip("admit")
         call screen shelter_result("ТА АЮУЛЫГ ДОТОГШ ОРУУЛЛАА", "Маралын дүр аймшигтайгаар хувирч, тэр чөтгөрийн инээдээр инээн тан руу дайрлаа.")
     if _return == "replay":
