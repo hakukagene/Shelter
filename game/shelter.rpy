@@ -93,7 +93,9 @@ style shelter_button is button:
 style shelter_button_text is shelter_text:
     hover_color "#ffd38c"
     insensitive_color "#807b73"
+    xalign 0.5
     yalign 0.5
+    text_align 0.5
 
 screen shelter_backdrop():
     add shelter_video_end(shelter_still) xysize (1920, 1080)
@@ -119,40 +121,50 @@ screen shelter_playback(clip):
             ypos 710
             xsize 1344
             padding (35, 22)
-            text SHELTER_LINES[clip] style "shelter_text" size 30
+            text SHELTER_LINES[clip] style "shelter_text" size 30 xalign 0.5 text_align 0.5
     # A short startup grace avoids interpreting a not-yet-started decoder as EOF.
     # Actual playback completion, rather than a fixed timer, drives progression.
     timer 0.03 repeat True action If(
         elapsed >= 0.5 and not renpy.music.get_playing(channel="shelter_video"),
         Return(True), SetScreenVariable("elapsed", elapsed + 0.03))
 
-# Always visible during the encounter. Text remains native for crisp Cyrillic.
+# Armed mode offers exactly two actions; aiming lives in the question row.
 screen shelter_actions(enabled=True, armed=False):
     hbox:
         xalign 0.5
         ypos 880
         spacing 24
-        for caption, result, icon in [("Буудах" if armed else "Буу онилох", "shoot" if armed else "aim", "aim"), ("Хөөх", "reject", "reject"), ("Оруулах", "admit", "admit")]:
-            button:
-                xysize (180, 180)
-                padding (0, 0)
-                background Transform("gui/shelter/actions/" + icon + ".png", xysize=(180, 180))
-                hover_background Transform("gui/shelter/actions/" + icon + ".png", xysize=(180, 180), matrixcolor=BrightnessMatrix(0.14))
-                insensitive_background Transform("gui/shelter/actions/" + icon + ".png", xysize=(180, 180), matrixcolor=SaturationMatrix(0.35))
-                focus_mask True
-                sensitive enabled
-                action Return(result)
-                text caption:
-                    font SHELTER_BOLD
-                    size 15
-                    color "#f4dfaf"
-                    hover_color "#ffffff"
-                    insensitive_color "#aa9d86"
-                    xalign 0.5
-                    ypos 107
-                    xsize 118
-                    text_align 0.5
-                    outlines [(1, "#000b", 0, 1)]
+        if armed:
+            for caption, result in [("Буудах", "shoot"), ("Буугаа буулгах", "lower")]:
+                textbutton caption:
+                    style "shelter_button"
+                    text_style "shelter_button_text"
+                    text_size 28
+                    xysize (330, 120)
+                    sensitive enabled
+                    action Return(result)
+        else:
+            for caption, result, icon in [("Хөөх", "reject", "reject"), ("Оруулах", "admit", "admit")]:
+                button:
+                    xysize (180, 180)
+                    padding (0, 0)
+                    background Transform("gui/shelter/actions/" + icon + ".png", xysize=(180, 180))
+                    hover_background Transform("gui/shelter/actions/" + icon + ".png", xysize=(180, 180), matrixcolor=BrightnessMatrix(0.14))
+                    insensitive_background Transform("gui/shelter/actions/" + icon + ".png", xysize=(180, 180), matrixcolor=SaturationMatrix(0.35))
+                    focus_mask True
+                    sensitive enabled
+                    action Return(result)
+                    text caption:
+                        font SHELTER_BOLD
+                        size 15
+                        color "#f4dfaf"
+                        hover_color "#ffffff"
+                        insensitive_color "#aa9d86"
+                        xalign 0.5
+                        ypos 107
+                        xsize 118
+                        text_align 0.5
+                        outlines [(1, "#000b", 0, 1)]
 
 # Player speaks over the waiting portrait; Maral responds only after EOF.
 screen shelter_player_speech(voice_key, caption=None):
@@ -190,9 +202,15 @@ screen shelter_question_choices():
                 text_style "shelter_button_text"
                 text_size 26
                 text_text_align 0.5
-                xysize (440, 170)
+                xysize (330, 170)
                 sensitive index not in shelter_asked
                 action Return(index)
+        textbutton "Буу онилох":
+            style "shelter_button"
+            text_style "shelter_button_text"
+            text_size 26
+            xysize (330, 170)
+            action Return("aim")
 
 screen shelter_questions():
     modal True
@@ -207,15 +225,6 @@ screen shelter_decision(armed=False):
     use shelter_actions(armed=armed)
     if not armed:
         use shelter_question_choices
-    if armed:
-        textbutton "Буугаа буулгах":
-            style "shelter_button"
-            text_style "shelter_button_text"
-            xalign 0.5
-            ypos 750
-            xsize 550
-            ysize 92
-            action Return("lower")
 
 
 # Concept 01: live text and actions over the text-free lockdown artwork.
