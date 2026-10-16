@@ -113,7 +113,9 @@ init python:
     renpy.music.register_channel("shelter_video", mixer="voice", loop=False, movie=True)
     def shelter_wait_image(clip, visitor=None):
         visitor = visitor or shelter_visitor
-        # One sharp neutral frame for every unarmed question/waiting state.
+        # Reference-matched frames extracted from the source videos (not the supplied PNGs).
+        # idle: Chinbaa hariult 3, first frame; aim: Chinbaa buuduulah, first frame.
+        # Keep the same neutral pose for every unarmed question/waiting state.
         if visitor == "Chinba" and clip in ("intro", "answer1", "answer2", "answer3", "lower"):
             return "images/Chinba/frames/idle.jpg"
         allowed = ("intro", "answer1", "answer2", "answer3", "aim", "lower")
