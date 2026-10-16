@@ -67,10 +67,10 @@ init python:
     # Movie.size does not resize fallback images; size those explicitly too.
     shelter_movies = {
         key: Movie(play="Video/Maral/" + data[0], channel="shelter_video",
-                   loop=False, size=(1920, 1080),
-                   start_image=Transform(shelter_wait_image("aim" if key in
-                       ("shoot", "lower") else "intro"), xysize=(1920, 1080)),
-                   image=shelter_video_end(key))
+                loop=False, size=(1920, 1080),
+                start_image=Transform(shelter_wait_image("aim" if key in
+                    ("shoot", "lower") else "intro"), xysize=(1920, 1080)),
+                image=shelter_video_end(key))
         for key, data in SHELTER_CLIPS.items()
     }
 
