@@ -5,6 +5,9 @@ define SHELTER_BOLD = "fonts/RobotoCondensed-Bold.ttf"
 default shelter_still = "intro"
 default shelter_asked = []
 default shelter_choice = None
+# Keep Maral as the default for saves made before the two-visitor sequence.
+default shelter_visitor = "Maral"
+default shelter_chinba_outcome = None
 
 define SHELTER_CLIPS = {
     "intro": ("Maral ehlel.webm", 12.808),
@@ -50,33 +53,89 @@ define SHELTER_PLAYER_VOICES = {
     "admit": ("audio/Chingune/MaralOruulah.wav", 0.347, 0.879),
 }
 
+define CHINBA_CLIPS = {
+    "intro": ("Chinbaa ehlel.webm", 15.928),
+    "answer1": ("Chinbaa hariult 1.webm", 8.128),
+    "answer2": ("Chinbaa hariult 2.webm", 11.048),
+    "answer3": ("Chinbaa hariult 3.webm", 3.568),
+    "aim": ("Chinbaa buu gargah.webm", 3.048),
+    "lower": ("Chinbaa buu buulgah.webm", 3.048),
+    "shoot": ("Chinbaa buuduulah.webm", 3.048),
+    "admit": ("Chinbaa oruulah.webm", 11.368),
+}
+
+define CHINBA_QUESTIONS = [
+    "Чамд юу тохиолдоо вэ?",
+    "Нүүр чинь яагаа вэ?",
+    "Үүргэвч дотрохоо харуул.",
+]
+
+define CHINBA_LINES = {
+    "intro": "Ах аа, хаалгаа нээгээрэй! Би хүргэлт хийж яваад зам дээр хүмүүс бие бие рүүгээ дайрахыг харсан. Мотоциклоо орхиод гүйж ирлээ. Утас маань ч ажиллахгүй байна.",
+    "answer1": "Хорооллын уулзвар дээр. Нэг хүн машинд мөргүүлчихээд юу ч болоогүй юм шиг босоод явсан. Дараа нь хүмүүс орилолдоод эхэлсэн.",
+    "answer2": "Нэг хүн намайг мотоциклоос татаж унагаасан. Унагаагаад араас хөөгөөд байсан. Би арай гэж мултарч ирлээ.",
+    "answer3": "Тэгээ тэг. Дотор нь захиалгын хоол, утасны цэнэглэгч л байгаа.",
+}
+
+define CHINBA_SPEECH_WINDOWS = {
+    "intro": (0.0, 15.928),
+    "answer1": (0.554, 8.128),
+    "answer2": (0.434, 11.048),
+    "answer3": (0.411, 3.568),
+}
+
+define CHINBA_PLAYER_VOICES = {
+    "question1": ("audio/Chingune/ChinbaAsuult1.wav", 0.505, 1.438),
+    "question2": ("audio/Chingune/ChinbaAsuult2.wav", 0.36, 0.503),
+    "question3": ("audio/Chingune/ChinbaAsuult3.wav", 0.567, 1.394),
+    "reject": ("audio/Chingune/ChinbaHuuh.wav", 0.765, 0.993),
+    "admit": ("audio/Chingune/ChinbaOruulah.wav", 0.383, 0.763),
+}
+
 init python:
+    SHELTER_VISITORS = {
+        "Maral": {"clips": SHELTER_CLIPS, "questions": SHELTER_QUESTIONS,
+                  "lines": SHELTER_LINES, "windows": SHELTER_SPEECH_WINDOWS,
+                  "voices": SHELTER_PLAYER_VOICES},
+        "Chinba": {"clips": CHINBA_CLIPS, "questions": CHINBA_QUESTIONS,
+                   "lines": CHINBA_LINES, "windows": CHINBA_SPEECH_WINDOWS,
+                   "voices": CHINBA_PLAYER_VOICES},
+    }
+
+    def shelter_data(key):
+        return SHELTER_VISITORS[shelter_visitor][key]
+
     renpy.music.register_channel("shelter_player", mixer="voice", loop=False, stop_on_mute=False)
     renpy.music.register_channel("shelter_video", mixer="voice", loop=False, movie=True)
-    def shelter_wait_image(clip):
-        # Freeze the completed clip's own framing, including its camera distance.
-        if clip not in ("intro", "answer1", "answer2", "answer3", "aim", "lower"):
+    def shelter_wait_image(clip, visitor=None):
+        visitor = visitor or shelter_visitor
+        allowed = ("intro", "answer1", "answer2", "answer3", "aim", "lower")
+        if visitor == "Chinba":
+            allowed += ("arrival", "shoot", "admit")
+        if clip not in allowed:
             clip = "intro"
-        return "images/Maral/frames/" + clip + ".jpg"
+        return "images/" + visitor + "/frames/" + clip + ".jpg"
 
     def shelter_movie_start(st, at):
-        # Keep the previous waiting frame while the next decoder starts.
         return shelter_video_end(shelter_still), None
 
-    def shelter_video_end(clip):
-        # Terminal clips share the result background to avoid a black flash.
-        if clip in ("shoot", "admit", "reject"):
+    def shelter_video_end(clip, visitor=None):
+        visitor = visitor or shelter_visitor
+        if visitor == "Maral" and clip in ("shoot", "admit", "reject"):
             return Transform("gui/shelter/ending/lockdown.jpg", xysize=(1920, 1080))
-        return Transform(shelter_wait_image(clip), xysize=(1920, 1080))
+        return Transform(shelter_wait_image(clip, visitor), xysize=(1920, 1080))
 
-    # Movie.size does not resize fallback images; size those explicitly too.
     shelter_movies = {
-        key: Movie(play="Video/Maral/" + data[0], channel="shelter_video",
-                loop=False, size=(1920, 1080),
-                start_image=Transform(shelter_wait_image("aim" if key in
-                    ("shoot", "lower") else "intro"), xysize=(1920, 1080)),
-                image=shelter_video_end(key))
-        for key, data in SHELTER_CLIPS.items()
+        (visitor, key): Movie(
+            play="Video/" + visitor + "/" + data[0],
+            channel="shelter_video", loop=False, size=(1920, 1080),
+            start_image=Transform(shelter_wait_image(
+                "aim" if key in ("shoot", "lower") else
+                ("arrival" if visitor == "Chinba" and key == "intro" else "intro"),
+                visitor), xysize=(1920, 1080)),
+            image=shelter_video_end(key, visitor))
+        for visitor, encounter in SHELTER_VISITORS.items()
+        for key, data in encounter["clips"].items()
     }
 
 transform shelter_fade:
@@ -110,7 +169,7 @@ screen shelter_backdrop():
 screen shelter_playback(clip):
     modal True
     default elapsed = 0.0
-    add shelter_movies[clip] xysize (1920, 1080)
+    add shelter_movies[(shelter_visitor, clip)] xysize (1920, 1080)
     use shelter_actions(enabled=False, armed=clip in ("aim", "shoot", "lower"))
     # Block click-to-dismiss and keyboard skipping while the clip plays.
     key "dismiss" action NullAction()
@@ -118,7 +177,7 @@ screen shelter_playback(clip):
     key "toggle_skip" action NullAction()
     key "rollback" action NullAction()
     $ speech_position = renpy.music.get_pos(channel="shelter_video")
-    $ speech_window = SHELTER_SPEECH_WINDOWS.get(clip)
+    $ speech_window = shelter_data("windows").get(clip)
     if speech_window and speech_position is not None and speech_window[0] <= speech_position < speech_window[1]:
         frame:
             background Solid("#080707dd")
@@ -126,7 +185,7 @@ screen shelter_playback(clip):
             ypos 710
             xsize 1344
             padding (35, 22)
-            text SHELTER_LINES[clip] style "shelter_text" size 30 xalign 0.5 text_align 0.5
+            text shelter_data("lines")[clip] style "shelter_text" size 30 xalign 0.5 text_align 0.5
     # A short startup grace avoids interpreting a not-yet-started decoder as EOF.
     # Actual playback completion, rather than a fixed timer, drives progression.
     timer 0.03 repeat True action If(
@@ -174,7 +233,7 @@ screen shelter_player_speech(voice_key, caption=None):
     key "rollback" action NullAction()
     on "hide" action Stop("shelter_player")
     $ position = renpy.music.get_pos(channel="shelter_player")
-    $ cue = SHELTER_PLAYER_VOICES[voice_key]
+    $ cue = shelter_data("voices")[voice_key]
     if caption and position is not None and cue[1] <= position < cue[2]:
         frame:
             background Solid("#080707dd")
@@ -192,7 +251,7 @@ screen shelter_question_choices():
         xalign 0.5
         ypos 655
         spacing 16
-        for index, question in enumerate(SHELTER_QUESTIONS):
+        for index, question in enumerate(shelter_data("questions")):
             textbutton question:
                 style "shelter_button"
                 text_style "shelter_button_text"
@@ -264,7 +323,7 @@ screen shelter_result(title, description):
 label shelter_player_line(voice_key, caption=None):
     window hide
     $ _skipping = False
-    $ renpy.music.play(SHELTER_PLAYER_VOICES[voice_key][0], channel="shelter_player", loop=False)
+    $ renpy.music.play(shelter_data("voices")[voice_key][0], channel="shelter_player", loop=False)
     call screen shelter_player_speech(voice_key, caption)
     $ renpy.music.stop(channel="shelter_player")
     return
@@ -278,8 +337,14 @@ label shelter_clip(clip):
 
 label shelter_encounter:
     $ quick_menu = False
+    $ shelter_visitor = "Chinba"
+    $ shelter_chinba_outcome = None
+    jump shelter_visit_start
+
+label shelter_visit_start:
     $ shelter_asked = []
-    $ shelter_still = "intro"
+    $ shelter_choice = None
+    $ shelter_still = "arrival" if shelter_visitor == "Chinba" else "intro"
     call shelter_clip("intro")
     jump shelter_question_phase
 
@@ -296,7 +361,7 @@ label shelter_decision_phase:
 label shelter_handle_choice:
     if isinstance(shelter_choice, int):
         $ shelter_asked.append(shelter_choice)
-        call shelter_player_line("question%d" % (shelter_choice + 1), SHELTER_QUESTIONS[shelter_choice])
+        call shelter_player_line("question%d" % (shelter_choice + 1), shelter_data("questions")[shelter_choice])
         call shelter_clip("answer%d" % (shelter_choice + 1))
         jump shelter_decision_phase
     elif shelter_choice == "aim":
@@ -311,15 +376,33 @@ label shelter_handle_choice:
         jump shelter_handle_choice
     elif shelter_choice == "shoot":
         call shelter_clip("shoot")
+        if shelter_visitor == "Chinba":
+            jump shelter_next_visitor
         call screen shelter_result("БУУДСАН", "Та гох дарлаа. Маралтай хийсэн энэ уулзалт дууслаа.")
     elif shelter_choice == "reject":
         call shelter_player_line("reject")
+        if shelter_visitor == "Chinba":
+            # No rejection movie was supplied: use a voiced cut to the next visitor.
+            jump shelter_next_visitor
         call shelter_clip("reject")
         call screen shelter_result("ХААЛГА ХААЛТТАЙ ҮЛДЛЭЭ", "Марал дуугүй эргэн явлаа. Та түүнийг хорогдох байранд оруулсангүй.")
     elif shelter_choice == "admit":
         call shelter_player_line("admit")
         call shelter_clip("admit")
+        if shelter_visitor == "Chinba":
+            jump shelter_next_visitor
         call screen shelter_result("ТА АЮУЛЫГ ДОТОГШ ОРУУЛЛАА", "Маралын дүр аймшигтайгаар хувирч, тэр чөтгөрийн инээдээр инээн тан руу дайрлаа.")
     if _return == "replay":
         jump shelter_encounter
     return
+
+# Every terminal Chinba choice continues to Maral without an end-game screen.
+label shelter_next_visitor:
+    $ shelter_chinba_outcome = shelter_choice
+    $ renpy.music.stop(channel="shelter_player")
+    $ renpy.music.stop(channel="shelter_video")
+    scene black
+    with Fade(0.3, 0.2, 0.3)
+    $ renpy.pause(0.5, hard=True)
+    $ shelter_visitor = "Maral"
+    jump shelter_visit_start
