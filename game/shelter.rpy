@@ -109,6 +109,9 @@ init python:
     renpy.music.register_channel("shelter_video", mixer="voice", loop=False, movie=True)
     def shelter_wait_image(clip, visitor=None):
         visitor = visitor or shelter_visitor
+        # One sharp neutral frame for every unarmed question/waiting state.
+        if visitor == "Chinba" and clip in ("intro", "answer1", "answer2", "answer3", "lower"):
+            return "images/Chinba/frames/idle.jpg"
         allowed = ("intro", "answer1", "answer2", "answer3", "aim", "lower")
         if visitor == "Chinba":
             allowed += ("arrival", "shoot", "admit")
@@ -151,12 +154,12 @@ style shelter_text is default:
 style shelter_button is button:
     background Frame("gui/shelter/idle.png", 16, 16)
     hover_background Frame("gui/shelter/hover.png", 16, 16)
-    insensitive_background Frame("gui/shelter/disabled.png", 16, 16)
+    insensitive_background Transform(Frame("gui/shelter/disabled.png", 16, 16), matrixcolor=SaturationMatrix(0.0) * BrightnessMatrix(-0.15))
     padding (24, 16)
 
 style shelter_button_text is shelter_text:
     hover_color "#ffd38c"
-    insensitive_color "#807b73"
+    insensitive_color "#777777"
     xalign 0.5
     yalign 0.5
     text_align 0.5
@@ -205,7 +208,7 @@ screen shelter_actions(enabled=True, armed=False):
                 padding (0, 0)
                 background Transform("gui/shelter/actions/" + icon + ".png", xysize=(180, 180))
                 hover_background Transform("gui/shelter/actions/" + icon + ".png", xysize=(180, 180), matrixcolor=BrightnessMatrix(0.14))
-                insensitive_background Transform("gui/shelter/actions/" + icon + ".png", xysize=(180, 180), matrixcolor=SaturationMatrix(0.35))
+                insensitive_background Transform("gui/shelter/actions/" + icon + ".png", xysize=(180, 180), matrixcolor=SaturationMatrix(0.0) * BrightnessMatrix(-0.22))
                 focus_mask True
                 sensitive enabled
                 action Return(result)
@@ -214,7 +217,7 @@ screen shelter_actions(enabled=True, armed=False):
                     size 15
                     color "#f4dfaf"
                     hover_color "#ffffff"
-                    insensitive_color "#aa9d86"
+                    insensitive_color "#777777"
                     xalign 0.5
                     ypos 107
                     xsize 118

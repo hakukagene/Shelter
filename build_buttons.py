@@ -25,33 +25,27 @@ for name,col in [('aim',(193,34,34)),('reject',(192,131,22)),('admit',(25,132,68
  for x,y in [(160,24),(296,160),(160,296),(24,160)]:
   d.ellipse((x-8,y-8,x+8,y+8),fill='#171716',outline='#999485',width=2);d.line((x-4,y+3,x+4,y-3),fill='#777267',width=2)
  cream='#f4dfaf'
- if name in ('shoot','lower'):
-  # Compact, box-shaped MAC silhouette; angled down for the lower action.
+ if name in ('aim','shoot','lower'):
+  # Makarov PM-style compact pistol: rounded slide and short curved grip.
   gun=Image.new('RGBA',(320,320));g=ImageDraw.Draw(gun)
-  g.rounded_rectangle((105,91,203,124),radius=3,fill=cream)
-  g.rectangle((203,102,228,113),fill=cream)
-  g.rectangle((125,121,146,161),fill=cream)
-  g.rectangle((128,158,143,172),fill=cream)
-  g.line((151,124,171,124,171,141,149,141),fill=cream,width=5)
-  g.line((157,124,155,133),fill=cream,width=3)
-  g.line((105,102,87,102,87,142),fill=cream,width=5)
-  g.rectangle((111,85,119,92),fill=cream)
-  g.rectangle((190,86,197,92),fill=cream)
-  g.line((117,101,187,101),fill='#32271c',width=3)
+  g.rounded_rectangle((100,91,224,116),radius=8,fill=cream)
+  g.polygon([(106,111),(177,111),(172,124),(150,131),(140,167),(111,161),(120,123),(102,121)],fill=cream)
+  g.rounded_rectangle((146,116,183,141),radius=10,outline=cream,width=5)
+  g.line((160,119,157,130),fill=cream,width=4)
+  g.rectangle((211,87,217,93),fill=cream)
+  g.rectangle((109,87,115,93),fill=cream)
+  g.polygon([(100,103),(93,111),(103,115)],fill=cream)
+  for x in [111,117,123,129]:g.line((x,96,x-3,108),fill='#32271c',width=2)
+  g.line((131,132,123,155),fill='#32271c',width=3)
   if name=='lower':
    gun=gun.rotate(-28,resample=Image.Resampling.BICUBIC,center=(160,128))
-   im.alpha_composite(gun)
-   d=ImageDraw.Draw(im)
-   d.line((218,135,218,161),fill=cream,width=5)
-   d.polygon([(208,154),(218,168),(228,154)],fill=cream)
-  else:
-   im.alpha_composite(gun)
-   d=ImageDraw.Draw(im)
-   d.polygon([(232,106),(240,95),(238,104),(250,108),(238,113),(240,121),(232,112)],fill=cream)
- elif name=='aim':
-  d.polygon([(104,93),(220,93),(220,116),(176,116),(166,130),(145,130),(133,160),(108,154),(120,116),(104,116)],fill=cream)
-  d.rounded_rectangle((143,114,178,138),radius=8,outline=cream,width=6)
-  d.line((156,115,154,126),fill=cream,width=4)
+  im.alpha_composite(gun);d=ImageDraw.Draw(im)
+  if name=='lower':
+   d.line((222,140,222,162),fill=cream,width=5)
+   d.polygon([(212,155),(222,170),(232,155)],fill=cream)
+  elif name=='shoot':
+   d.polygon([(229,101),(240,93),(237,103),(249,107),(237,112),(240,121),(229,113)],fill=cream)
+
  else:
   d.line((119,158,119,82,170,82,170,103),fill=cream,width=8)
   d.line((119,158,170,158,170,140),fill=cream,width=8)
