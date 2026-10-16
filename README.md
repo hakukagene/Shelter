@@ -41,6 +41,12 @@ no generated mockup is baked into the game.
 
 Validated with Ren'Py 8.4.1 lint and two runtime tests, covering playback,
 question gating, three answers, aim/lower/shoot, reject/admit, and replay.
-Run `renpy.sh . test shelter_flow` or `renpy.sh . test shelter_shoot` with a
-working display to repeat these checks. The project's original
-Ren'Py 8.5.x environment should also be checked when making a release build.
+These tests used Ren'Py 8.4's test language, which is incompatible with 8.5.3.
+They are archived as `tests/renpy-8.4/shelter_tests.rpy.txt` outside the game
+loader. Do not copy them into `game/` when using Ren'Py 8.5.x.
+`game/shelter_tests.rpy` is an empty compatibility placeholder so pulling this
+fix replaces previously compiled test code as well.
+
+After updating, use Launcher → Force Recompile, then Launch Project. The main
+game scripts are independent of the archived tests. Release builds should be
+validated in the exact Ren'Py version used to ship them.
