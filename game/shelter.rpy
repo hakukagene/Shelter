@@ -34,12 +34,24 @@ define SHELTER_LINES = {
 
 init python:
     renpy.music.register_channel("shelter_video", mixer="voice", loop=False, movie=True)
-    # Construct Movie displayables once, not on every screen evaluation.
+    def shelter_wait_image(clip):
+        if clip == "aim":
+            return "images/Maral/Maral ineeh.png"
+        return "images/Maral/Maral idle zassan.jpg"
+
+    def shelter_video_end(clip):
+        # Terminal clips end on the dark result panel, not a missing still.
+        if clip in ("shoot", "admit", "reject"):
+            return Solid("#080606", xysize=(1920, 1080))
+        return Transform(shelter_wait_image(clip), xysize=(1920, 1080))
+
+    # Movie.size does not resize fallback images; size those explicitly too.
     shelter_movies = {
         key: Movie(play="Video/Maral/" + data[0], channel="shelter_video",
                    loop=False, size=(1920, 1080),
-                   start_image="images/stills/" + key + "_start.jpg",
-                   image="images/stills/" + key + ".jpg")
+                   start_image=Transform(shelter_wait_image("aim" if key in
+                       ("shoot", "lower") else "intro"), xysize=(1920, 1080)),
+                   image=shelter_video_end(key))
         for key, data in SHELTER_CLIPS.items()
     }
 
@@ -65,10 +77,7 @@ style shelter_button_text is shelter_text:
     yalign 0.5
 
 screen shelter_backdrop():
-    if shelter_still in ("intro", "answer1", "answer2", "answer3", "lower"):
-        add "images/Maral idle zassan.jpg" xysize (1920, 1080)
-    else:
-        add "images/stills/[shelter_still].jpg" xysize (1920, 1080)
+    add shelter_video_end(shelter_still) xysize (1920, 1080)
 
 screen shelter_header(stage, utilities=True):
     add Solid("#080707b8") xysize (1920, 76)
@@ -90,7 +99,7 @@ screen shelter_header(stage, utilities=True):
 screen shelter_playback(clip):
     modal True
     default elapsed = 0.0
-    add shelter_movies[clip]
+    add shelter_movies[clip] xysize (1920, 1080)
     use shelter_header("ЯРИЛЦЛАГА", utilities=False)
     # Block click-to-dismiss and keyboard skipping while the clip plays.
     key "dismiss" action NullAction()
