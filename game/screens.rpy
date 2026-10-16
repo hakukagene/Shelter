@@ -782,83 +782,136 @@ style slot_button_text:
 ##
 ## https://www.renpy.org/doc/html/screen_special.html#preferences
 
+# Industrial control-panel settings; every control remains a native action.
+screen shelter_metal_button(caption, control, width=400):
+    button:
+        xysize (width, 64)
+        padding (24, 8)
+        background Frame("gui/shelter/metal/button.png", 28, 24)
+        hover_background Frame("gui/shelter/metal/selected.png", 28, 24)
+        selected_background Frame("gui/shelter/metal/selected.png", 28, 24)
+        action control
+        text caption:
+            font "fonts/RobotoCondensed-Regular.ttf"
+            size 28
+            color "#e8dfca"
+            hover_color "#ffffff"
+            selected_color "#ffffff"
+            insensitive_color "#777777"
+            align (0.5, 0.5)
+            text_align 0.5
+
+screen shelter_metal_heading(caption):
+    hbox:
+        spacing 14
+        add Solid("#bd2426") xysize (5, 28)
+        text caption font "fonts/RobotoCondensed-Bold.ttf" size 28 color "#d7cbb7"
+
+screen shelter_metal_slider(caption, setting):
+    vbox:
+        spacing 16
+        use shelter_metal_heading(caption)
+        bar:
+            style "shelter_metal_bar"
+            value Preference(setting)
+
+screen shelter_metal_check(caption, control):
+    button:
+        xysize (400, 48)
+        background None
+        hover_background Solid("#ffffff0c")
+        padding (0, 0)
+        action control
+        hbox:
+            spacing 16
+            frame:
+                xysize (32, 32)
+                padding (0, 0)
+                yalign 0.5
+                background Frame("gui/shelter/metal/selected.png" if control.get_selected() else "gui/shelter/metal/button.png", 12, 12)
+                if control.get_selected():
+                    text "✓" font "DejaVuSans.ttf" size 24 color "#f7ead3" align (0.5, 0.5)
+            text caption font "fonts/RobotoCondensed-Regular.ttf" size 27 color "#e8dfca" hover_color "#ffffff" yalign 0.5
+
 screen preferences():
-
     tag menu
+    add "gui/shelter/main_menu/bunker.png" xysize (1920, 1080)
+    add Solid("#08070744")
+    add "gui/shelter/metal/panel.jpg" xpos 238 ypos 245 xysize (1080, 780)
 
-    use game_menu(_("Preferences"), scroll="viewport"):
+    vbox:
+        xpos 24
+        ypos 285
+        spacing 14
+        if main_menu:
+            use shelter_metal_button(_("Start"), Start(), 190)
+        else:
+            use shelter_metal_button(_("History"), ShowMenu("history"), 190)
+            use shelter_metal_button(_("Save"), ShowMenu("save"), 190)
+        use shelter_metal_button(_("Load"), ShowMenu("load"), 190)
+        use shelter_metal_button(_("Settings"), ShowMenu("preferences"), 190)
+        use shelter_metal_button(_("About"), ShowMenu("about"), 190)
+        if renpy.variant("pc") or renpy.variant("web"):
+            use shelter_metal_button(_("Help"), ShowMenu("help"), 190)
+        if not main_menu:
+            if _in_replay:
+                use shelter_metal_button(_("End Replay"), EndReplay(confirm=True), 190)
+            else:
+                use shelter_metal_button(_("Main Menu"), MainMenu(), 190)
+        if renpy.variant("pc"):
+            use shelter_metal_button(_("Quit"), Quit(confirm=not main_menu), 190)
+    fixed:
+        xpos 24
+        ypos 945
+        xysize (190, 64)
+        use shelter_metal_button(_("Back"), Return(), 190)
 
-        vbox:
+    text _("SETTINGS") xpos 292 ypos 279 font "fonts/RobotoCondensed-Bold.ttf" size 64 color "#e8dfca"
+    add Solid("#716458") xpos 292 ypos 365 xysize (968, 2)
+    add Solid("#716458") xpos 776 ypos 405 xysize (1, 558)
 
-            hbox:
-                box_wrap True
+    vbox:
+        xpos 292
+        ypos 402
+        spacing 18
+        use shelter_metal_heading(_("DISPLAY"))
+        if renpy.variant("pc") or renpy.variant("web"):
+            use shelter_metal_button(_("Window"), Preference("display", "window"))
+            use shelter_metal_button(_("Fullscreen"), Preference("display", "fullscreen"))
+        null height 40
+        use shelter_metal_slider(_("TEXT SPEED"), "text speed")
+        null height 35
+        use shelter_metal_slider(_("AUTO-FORWARD TIME"), "auto-forward time")
 
-                if renpy.variant("pc") or renpy.variant("web"):
+    vbox:
+        xpos 820
+        ypos 402
+        spacing 10
+        use shelter_metal_heading(_("SKIP"))
+        use shelter_metal_check(_("Unseen Text"), Preference("skip", "toggle"))
+        use shelter_metal_check(_("After Choices"), Preference("after choices", "toggle"))
+        use shelter_metal_check(_("Transitions"), InvertSelected(Preference("transitions", "toggle")))
+        null height 14
+        if config.has_music:
+            use shelter_metal_slider(_("MUSIC VOLUME"), "music volume")
+        if config.has_sound:
+            use shelter_metal_slider(_("SOUND VOLUME"), "sound volume")
+        if config.has_voice:
+            use shelter_metal_slider(_("VOICE VOLUME"), "voice volume")
+        if config.has_music or config.has_sound or config.has_voice:
+            use shelter_metal_check(_("Mute All"), Preference("all mute", "toggle"))
 
-                    vbox:
-                        style_prefix "radio"
-                        label _("Display")
-                        use shelter_menu_link(_("Window"), Preference("display", "window"))
-                        use shelter_menu_link(_("Fullscreen"), Preference("display", "fullscreen"))
+    key "game_menu" action Return()
 
-                vbox:
-                    style_prefix "check"
-                    label _("Skip")
-                    use shelter_menu_link(_("Unseen Text"), Preference("skip", "toggle"))
-                    use shelter_menu_link(_("After Choices"), Preference("after choices", "toggle"))
-                    use shelter_menu_link(_("Transitions"), InvertSelected(Preference("transitions", "toggle")))
-
-                ## Additional vboxes of type "radio_pref" or "check_pref" can be
-                ## added here, to add additional creator-defined preferences.
-
-            null height (4 * gui.pref_spacing)
-
-            hbox:
-                style_prefix "slider"
-                box_wrap True
-
-                vbox:
-
-                    label _("Text Speed")
-
-                    bar value Preference("text speed")
-
-                    label _("Auto-Forward Time")
-
-                    bar value Preference("auto-forward time")
-
-                vbox:
-
-                    if config.has_music:
-                        label _("Music Volume")
-
-                        hbox:
-                            bar value Preference("music volume")
-
-                    if config.has_sound:
-
-                        label _("Sound Volume")
-
-                        hbox:
-                            bar value Preference("sound volume")
-
-                            if config.sample_sound:
-                                use shelter_menu_link(_("Test"), Play("sound", config.sample_sound))
-
-
-                    if config.has_voice:
-                        label _("Voice Volume")
-
-                        hbox:
-                            bar value Preference("voice volume")
-
-                            if config.sample_voice:
-                                use shelter_menu_link(_("Test"), Play("voice", config.sample_voice))
-
-                    if config.has_music or config.has_sound or config.has_voice:
-                        null height gui.pref_spacing
-
-                        use shelter_menu_link(_("Mute All"), Preference("all mute", "toggle"))
+style shelter_metal_bar is bar:
+    xsize 400
+    ysize 38
+    left_bar Solid("#a52024")
+    right_bar Solid("#0b0909")
+    thumb "gui/shelter/metal/thumb.png"
+    thumb_shadow None
+    left_gutter 13
+    right_gutter 13
 
 
 style pref_label is gui_label
