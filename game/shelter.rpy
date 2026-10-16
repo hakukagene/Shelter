@@ -40,9 +40,9 @@ init python:
         return "images/Maral/Maral idle zassan.jpg"
 
     def shelter_video_end(clip):
-        # Terminal clips end on the dark result panel, not a missing still.
+        # Terminal clips share the result background to avoid a black flash.
         if clip in ("shoot", "admit", "reject"):
-            return Solid("#080606", xysize=(1920, 1080))
+            return Transform("gui/shelter/ending/lockdown.jpg", xysize=(1920, 1080))
         return Transform(shelter_wait_image(clip), xysize=(1920, 1080))
 
     # Movie.size does not resize fallback images; size those explicitly too.
@@ -152,27 +152,43 @@ screen shelter_decision(armed=False):
             action Return("lower")
 
 
+# Concept 01: live text and actions over the text-free lockdown artwork.
 screen shelter_result(title, description):
     modal True
-    use shelter_backdrop
-    add Solid("#080606cb")
-    vbox:
+    add "gui/shelter/ending/lockdown.jpg" xysize (1920, 1080)
+    text title:
+        style "shelter_text"
+        font SHELTER_BOLD
+        size 54
         xalign 0.5
-        yalign 0.5
-        spacing 28
-        xsize 1100
-        text title style "shelter_text" font SHELTER_BOLD size 60 xalign 0.5
-        text description style "shelter_text" text_align 0.5 xalign 0.5 size 34
-        textbutton "Дахин тоглох":
-            style "shelter_button"
-            text_style "shelter_button_text"
-            xalign 0.5
-            action Return("replay")
-        textbutton "Үндсэн цэс":
-            style "shelter_button"
-            text_style "shelter_button_text"
-            xalign 0.5
-            action Return("menu")
+        ypos 393
+        xsize 1160
+        text_align 0.5
+    text description:
+        style "shelter_text"
+        size 32
+        xalign 0.5
+        ypos 493
+        xsize 1120
+        text_align 0.5
+    # Hit areas match the two physical plates in the background.
+    for caption, result, left in [("Дахин тоглох", "replay", 566), ("Үндсэн цэс", "menu", 982)]:
+        button:
+            xpos left
+            ypos 645
+            xysize (384, 145)
+            padding (0, 0)
+            background None
+            hover_background Solid("#ffd6a01c")
+            action Return(result)
+            text caption:
+                font SHELTER_FONT
+                size 34
+                color "#f2e9d9"
+                hover_color "#ffffff"
+                outlines [(1, "#0009", 0, 1)]
+                xpos 120
+                yalign 0.5
 
 label shelter_clip(clip):
     window hide
