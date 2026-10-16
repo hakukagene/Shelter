@@ -9,6 +9,18 @@ default shelter_choice = None
 default shelter_visitor = "Maral"
 default shelter_chinba_outcome = None
 
+# Append unique IDs and civilian classifications as new visitors are added.
+define SHELTER_TOTAL_VISITORS = 70
+define SHELTER_CIVILIAN_TARGET = 40
+define SHELTER_MAX_CIVILIAN_DEATHS = 3
+define SHELTER_VISITOR_ORDER = ("Chinba", "Maral")
+define SHELTER_CIVILIANS = {"Chinba": True, "Maral": False}
+default shelter_outcomes = {}
+default shelter_admitted = 0
+default shelter_civilians_saved = 0
+default shelter_civilians_killed = 0
+default shelter_visitors_seen = 0
+
 define SHELTER_CLIPS = {
     "intro": ("Maral ehlel.webm", 12.808),
     "answer1": ("Maral hariult1.webm", 6.168),
@@ -105,6 +117,33 @@ init python:
                 "lines": CHINBA_LINES, "windows": CHINBA_SPEECH_WINDOWS,
                 "voices": CHINBA_PLAYER_VOICES},
     }
+
+    def shelter_record_outcome(visitor, choice):
+        # Copy-on-write supports saves/rollback; one outcome per visitor.
+        global shelter_outcomes, shelter_admitted, shelter_civilians_saved
+        global shelter_civilians_killed, shelter_visitors_seen
+        if visitor in shelter_outcomes:
+            return
+        if choice not in ("admit", "reject", "shoot"):
+            raise ValueError("Not a final decision: " + str(choice))
+        civilian = SHELTER_CIVILIANS[visitor]
+        shelter_outcomes = dict(shelter_outcomes, **{visitor: choice})
+        shelter_visitors_seen += 1
+        if choice == "admit":
+            shelter_admitted += 1
+            if civilian:
+                shelter_civilians_saved += 1
+        elif choice == "shoot" and civilian:
+            shelter_civilians_killed += 1
+
+    def shelter_campaign_status():
+        if shelter_civilians_killed > SHELTER_MAX_CIVILIAN_DEATHS:
+            return "casualties"
+        if shelter_civilians_saved >= SHELTER_CIVILIAN_TARGET:
+            return "win"
+        if shelter_visitors_seen >= SHELTER_TOTAL_VISITORS:
+            return "shortfall"
+        return "continue"
 
     def shelter_data(key):
         return SHELTER_VISITORS[shelter_visitor][key]
@@ -337,9 +376,17 @@ screen shelter_next_visitor_card():
         font SHELTER_FONT
         size 76
         color "#e8dfca"
-        align (0.5, 0.5)
+        align (0.5, 0.35)
         text_align 0.5
         at shelter_fade
+    vbox:
+        xalign 0.5
+        ypos 510
+        spacing 18
+        text "Оруулсан хүн: [shelter_admitted]" style "shelter_text" size 40 xalign 0.5
+        text "Аврагдсан энгийн иргэн: [shelter_civilians_saved] / [SHELTER_CIVILIAN_TARGET]" style "shelter_text" xalign 0.5
+        text "Алагдсан энгийн иргэн: [shelter_civilians_killed] / [SHELTER_MAX_CIVILIAN_DEATHS]" style "shelter_text" color "#c65959" xalign 0.5
+        text "Шалгасан хүн: [shelter_visitors_seen] / [SHELTER_TOTAL_VISITORS]" style "shelter_text" size 26 color "#999999" xalign 0.5
     key "dismiss" action NullAction()
     key "skip" action NullAction()
     key "toggle_skip" action NullAction()
@@ -369,8 +416,13 @@ label shelter_clip(clip):
 
 label shelter_encounter:
     $ quick_menu = False
-    $ shelter_visitor = "Chinba"
+    $ shelter_visitor = SHELTER_VISITOR_ORDER[0]
     $ shelter_chinba_outcome = None
+    $ shelter_outcomes = {}
+    $ shelter_admitted = 0
+    $ shelter_civilians_saved = 0
+    $ shelter_civilians_killed = 0
+    $ shelter_visitors_seen = 0
     jump shelter_visit_start
 
 label shelter_visit_start:
@@ -408,28 +460,40 @@ label shelter_handle_choice:
         jump shelter_handle_choice
     elif shelter_choice == "shoot":
         call shelter_clip("shoot")
-        if shelter_visitor == "Chinba":
-            jump shelter_next_visitor
-        call screen shelter_result("БУУДСАН", "Та гох дарлаа. Маралтай хийсэн энэ уулзалт дууслаа.")
+        jump shelter_resolve_visitor
     elif shelter_choice == "reject":
         call shelter_player_line("reject")
         call shelter_clip("reject")
-        if shelter_visitor == "Chinba":
-            jump shelter_next_visitor
-        call screen shelter_result("ХААЛГА ХААЛТТАЙ ҮЛДЛЭЭ", "Марал дуугүй эргэн явлаа. Та түүнийг хорогдох байранд оруулсангүй.")
+        jump shelter_resolve_visitor
     elif shelter_choice == "admit":
         call shelter_player_line("admit")
         call shelter_clip("admit")
-        if shelter_visitor == "Chinba":
-            jump shelter_next_visitor
+        jump shelter_resolve_visitor
+    jump shelter_decision_phase
+
+label shelter_resolve_visitor:
+    $ shelter_record_outcome(shelter_visitor, shelter_choice)
+    if shelter_visitor == "Chinba":
+        $ shelter_chinba_outcome = shelter_choice
+    $ shelter_status = shelter_campaign_status()
+    if shelter_status == "casualties":
+        call screen shelter_result("ТА ХОЖИГДЛОО", "Та [shelter_civilians_killed] энгийн иргэнийг алсан. Зөвшөөрөгдөх дээд хэмжээ 3.")
+    elif shelter_visitor == "Maral" and shelter_choice == "admit":
         call screen shelter_result("ТА АЮУЛЫГ ДОТОГШ ОРУУЛЛАА", "Маралын дүр аймшигтайгаар хувирч, тэр чөтгөрийн инээдээр инээн тан руу дайрлаа.")
+    elif shelter_status == "win":
+        call screen shelter_result("ТА ХОЖЛОО", "Та [SHELTER_CIVILIAN_TARGET] энгийн иргэнийг хорогдох байранд оруулж аварлаа.")
+    elif shelter_status == "shortfall":
+        call screen shelter_result("ТА ХОЖИГДЛОО", "70 хүнийг шалгаж дууслаа. Та [shelter_civilians_saved] / [SHELTER_CIVILIAN_TARGET] энгийн иргэнийг аварсан.")
+    elif SHELTER_VISITOR_ORDER.index(shelter_visitor) + 1 < len(SHELTER_VISITOR_ORDER):
+        jump shelter_next_visitor
+    else:
+        # The available two-visitor preview is not a complete campaign victory.
+        call screen shelter_result("ТУРШИЛТЫН ХЭСЭГ ДУУСЛАА", "Оруулсан: [shelter_admitted] • Аврагдсан: [shelter_civilians_saved]/40 • Алагдсан: [shelter_civilians_killed]/3. Үлдсэн дүрүүд хараахан нэмэгдээгүй.")
     if _return == "replay":
         jump shelter_encounter
     return
 
-# Every terminal Chinba choice continues to Maral without an end-game screen.
 label shelter_next_visitor:
-    $ shelter_chinba_outcome = shelter_choice
     $ renpy.music.stop(channel="shelter_player")
     $ renpy.music.stop(channel="shelter_video")
     scene black
@@ -437,5 +501,5 @@ label shelter_next_visitor:
     $ _skipping = False
     call screen shelter_next_visitor_card
     $ renpy.music.stop(channel="shelter_knock")
-    $ shelter_visitor = "Maral"
+    $ shelter_visitor = SHELTER_VISITOR_ORDER[SHELTER_VISITOR_ORDER.index(shelter_visitor) + 1]
     jump shelter_visit_start
