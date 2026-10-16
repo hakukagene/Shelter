@@ -351,30 +351,50 @@ style navigation_button_text:
 ## https://www.renpy.org/doc/html/screen_special.html#main-menu
 
 screen main_menu():
-
-    ## This ensures that any other menu screen is replaced.
     tag menu
+    default shelter_menu_focus = "start"
 
-    add gui.main_menu_background
+    add "gui/shelter/main_menu/bunker.png" xysize (1920, 1080)
 
-    ## This empty frame darkens the main menu.
-    frame:
-        style "main_menu_frame"
-
-    ## The use statement includes another screen inside this one. The actual
-    ## contents of the main menu are in the navigation screen.
-    use navigation
-
-    if gui.show_name:
-
-        vbox:
-            style "main_menu_vbox"
-
-            text "[config.name!t]":
-                style "main_menu_title"
-
-            text "[config.version]":
-                style "main_menu_version"
+    # Align the menu with the centre of the red БАЙР lettering in the artwork.
+    $ latest_save = renpy.newest_slot()
+    vbox:
+        xcenter 1540
+        ypos 440
+        spacing 10
+        for caption, menu_key, menu_action in [
+            ("Эхлэх", "start", Start()),
+            ("Үргэлжлүүлэх", "continue", FileLoad(latest_save, slot=True) if latest_save else NullAction()),
+            ("Тохиргоо", "settings", ShowMenu("preferences")),
+            ("Гарах", "quit", Quit(confirm=True))]:
+            button:
+                xysize (460, 82)
+                padding (0, 0)
+                background None
+                hover_background Solid("#09070655")
+                sensitive menu_key != "continue" or latest_save is not None
+                hovered SetScreenVariable("shelter_menu_focus", menu_key)
+                action menu_action
+                text caption:
+                    font "fonts/RobotoCondensed-Regular.ttf"
+                    size 44
+                    color "#e8dfca"
+                    hover_color "#ffffff"
+                    insensitive_color "#77736b"
+                    outlines [(2, "#000c", 0, 2)]
+                    align (0.5, 0.5)
+                    text_align 0.5
+                if shelter_menu_focus == menu_key:
+                    text "›":
+                        font "fonts/RobotoCondensed-Bold.ttf"
+                        size 52
+                        color "#d91c25"
+                        xpos 12
+                        yalign 0.5
+                    add Solid("#b61c25"):
+                        xalign 0.5
+                        ypos 79
+                        xysize (330, 2)
 
 
 style main_menu_frame is empty
