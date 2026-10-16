@@ -1,6 +1,6 @@
 # Shelter — Хорогдох байр
 
-Ren'Py video encounter using runtime WebM copies of the updated `game/Video/Maral/*.mp4` footage.
+Ren'Py video encounter using the supplied `game/Video/Maral/*.webm` footage.
 
 ## Play
 
@@ -20,8 +20,8 @@ Maral's encounter. The game uses a 1920×1080 logical canvas; the original
 6. The encounter ends with a replay/main-menu choice.
 
 Rejection and admission play their new departure/admission videos before the
-result screen. MP4 sources (H.264/AAC) are preserved; the game plays VP9/Opus
-WebM conversions from `game/Video/Maral/runtime/` for desktop Ren'Py support.
+result screen. The game plays the supplied VP9/Opus WebM files directly from
+`game/Video/Maral/`. Admission uses `Maral oruulah B huvilbar.webm`.
 The supplied corrected idle image is used between neutral dialogue clips.
 Chinbaa is not implemented because his video assets are not present.
 Dialogue text follows the supplied story; it is not a word-timed transcription.

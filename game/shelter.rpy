@@ -1,4 +1,4 @@
-# Video-driven encounter. Runtime WebM files are derived from the MP4 sources.
+# Video-driven encounter using the supplied VP9/Opus WebM assets.
 define SHELTER_FONT = "fonts/RobotoCondensed-Regular.ttf"
 define SHELTER_BOLD = "fonts/RobotoCondensed-Bold.ttf"
 
@@ -14,7 +14,7 @@ define SHELTER_CLIPS = {
     "aim": ("Maral buu gargah.webm", 11.568),
     "lower": ("Maral buudahaa bolih.webm", 3.048),
     "shoot": ("Maral buudah.webm", 8.048),
-    "admit": ("Maral oruulah.webm", 6.048),
+    "admit": ("Maral oruulah B huvilbar.webm", 6.048),
     "reject": ("Maral yavah.webm", 5.008),
 }
 
@@ -36,7 +36,7 @@ init python:
     renpy.music.register_channel("shelter_video", mixer="voice", loop=False, movie=True)
     # Construct Movie displayables once, not on every screen evaluation.
     shelter_movies = {
-        key: Movie(play="Video/Maral/runtime/" + data[0], channel="shelter_video",
+        key: Movie(play="Video/Maral/" + data[0], channel="shelter_video",
                    loop=False, size=(1920, 1080),
                    start_image="images/stills/" + key + "_start.jpg",
                    image="images/stills/" + key + ".jpg")
