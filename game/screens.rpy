@@ -287,6 +287,36 @@ style quick_button_text:
 ## This screen is included in the main and game menus, and provides navigation
 ## to other menus, and to start the game.
 
+screen shelter_menu_link(caption, menu_action, width=310):
+    default focused = False
+    button:
+        xysize (width, 58)
+        padding (0, 0)
+        background None
+        hover_background Solid("#09070655")
+        action menu_action
+        hovered SetScreenVariable("focused", True)
+        unhovered SetScreenVariable("focused", False)
+        text caption:
+            xpos 30
+            xsize width - 42
+            font "fonts/RobotoCondensed-Regular.ttf"
+            size 30
+            color "#e8dfca"
+            hover_color "#ffffff"
+            selected_color "#ffffff"
+            insensitive_color "#777777"
+            outlines [(1, "#000c", 0, 1)]
+            yalign 0.5
+        if focused or menu_action.get_selected():
+            text "›":
+                font "fonts/RobotoCondensed-Bold.ttf"
+                size 38
+                color "#d91c25"
+                xpos 0
+                yalign 0.5
+            add Solid("#b61c25") xpos 30 ypos 55 xysize (width - 42, 2)
+
 screen navigation():
 
     vbox:
@@ -299,38 +329,38 @@ screen navigation():
 
         if main_menu:
 
-            textbutton _("Start") action Start()
+            use shelter_menu_link(_("Start"), Start())
 
         else:
 
-            textbutton _("History") action ShowMenu("history")
+            use shelter_menu_link(_("History"), ShowMenu("history"))
 
-            textbutton _("Save") action ShowMenu("save")
+            use shelter_menu_link(_("Save"), ShowMenu("save"))
 
-        textbutton _("Load") action ShowMenu("load")
+        use shelter_menu_link(_("Load"), ShowMenu("load"))
 
-        textbutton _("Preferences") action ShowMenu("preferences")
+        use shelter_menu_link(_("Preferences"), ShowMenu("preferences"))
 
         if _in_replay:
 
-            textbutton _("End Replay") action EndReplay(confirm=True)
+            use shelter_menu_link(_("End Replay"), EndReplay(confirm=True))
 
         elif not main_menu:
 
-            textbutton _("Main Menu") action MainMenu()
+            use shelter_menu_link(_("Main Menu"), MainMenu())
 
-        textbutton _("About") action ShowMenu("about")
+        use shelter_menu_link(_("About"), ShowMenu("about"))
 
         if renpy.variant("pc") or (renpy.variant("web") and not renpy.variant("mobile")):
 
             ## Help isn't necessary or relevant to mobile devices.
-            textbutton _("Help") action ShowMenu("help")
+            use shelter_menu_link(_("Help"), ShowMenu("help"))
 
         if renpy.variant("pc"):
 
             ## The quit button is banned on iOS and unnecessary on Android and
             ## Web.
-            textbutton _("Quit") action Quit(confirm=not main_menu)
+            use shelter_menu_link(_("Quit"), Quit(confirm=not main_menu))
 
 
 style navigation_button is gui_button
@@ -494,10 +524,12 @@ screen game_menu(title, scroll=None, yinitial=0.0, spacing=0):
 
     use navigation
 
-    textbutton _("Return"):
-        style "return_button"
-
-        action Return()
+    fixed:
+        xpos gui.navigation_xpos
+        yalign 1.0
+        yoffset -30
+        xysize (310, 58)
+        use shelter_menu_link(_("Return"), Return())
 
     label title
 
@@ -547,8 +579,9 @@ style game_menu_label:
     ysize 180
 
 style game_menu_label_text:
+    font "fonts/RobotoCondensed-Regular.ttf"
     size 75
-    color gui.accent_color
+    color "#e8dfca"
     yalign 0.5
 
 style return_button:
@@ -765,15 +798,15 @@ screen preferences():
                     vbox:
                         style_prefix "radio"
                         label _("Display")
-                        textbutton _("Window") action Preference("display", "window")
-                        textbutton _("Fullscreen") action Preference("display", "fullscreen")
+                        use shelter_menu_link(_("Window"), Preference("display", "window"))
+                        use shelter_menu_link(_("Fullscreen"), Preference("display", "fullscreen"))
 
                 vbox:
                     style_prefix "check"
                     label _("Skip")
-                    textbutton _("Unseen Text") action Preference("skip", "toggle")
-                    textbutton _("After Choices") action Preference("after choices", "toggle")
-                    textbutton _("Transitions") action InvertSelected(Preference("transitions", "toggle"))
+                    use shelter_menu_link(_("Unseen Text"), Preference("skip", "toggle"))
+                    use shelter_menu_link(_("After Choices"), Preference("after choices", "toggle"))
+                    use shelter_menu_link(_("Transitions"), InvertSelected(Preference("transitions", "toggle")))
 
                 ## Additional vboxes of type "radio_pref" or "check_pref" can be
                 ## added here, to add additional creator-defined preferences.
@@ -810,7 +843,7 @@ screen preferences():
                             bar value Preference("sound volume")
 
                             if config.sample_sound:
-                                textbutton _("Test") action Play("sound", config.sample_sound)
+                                use shelter_menu_link(_("Test"), Play("sound", config.sample_sound))
 
 
                     if config.has_voice:
@@ -820,14 +853,12 @@ screen preferences():
                             bar value Preference("voice volume")
 
                             if config.sample_voice:
-                                textbutton _("Test") action Play("voice", config.sample_voice)
+                                use shelter_menu_link(_("Test"), Play("voice", config.sample_voice))
 
                     if config.has_music or config.has_sound or config.has_voice:
                         null height gui.pref_spacing
 
-                        textbutton _("Mute All"):
-                            action Preference("all mute", "toggle")
-                            style "mute_all_button"
+                        use shelter_menu_link(_("Mute All"), Preference("all mute", "toggle"))
 
 
 style pref_label is gui_label
@@ -861,6 +892,9 @@ style pref_label:
     bottom_margin 3
 
 style pref_label_text:
+    font "fonts/RobotoCondensed-Regular.ttf"
+    color "#e8dfca"
+    outlines [(1, "#000c", 0, 1)]
     yalign 1.0
 
 style pref_vbox:
@@ -888,6 +922,12 @@ style check_button_text:
 
 style slider_slider:
     xsize 525
+    ysize 24
+    left_bar Solid("#9e2028")
+    right_bar Solid("#262222")
+    thumb Solid("#e8dfca", xsize=10, ysize=24)
+    hover_thumb Solid("#ffffff", xsize=10, ysize=24)
+    thumb_shadow None
 
 style slider_button:
     properties gui.button_properties("slider_button")
