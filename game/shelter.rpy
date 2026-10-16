@@ -1,4 +1,4 @@
-# Video-driven encounter. All timings are read from the committed WebM assets.
+# Video-driven encounter. Runtime WebM files are derived from the MP4 sources.
 define SHELTER_FONT = "fonts/RobotoCondensed-Regular.ttf"
 define SHELTER_BOLD = "fonts/RobotoCondensed-Bold.ttf"
 
@@ -7,13 +7,15 @@ default shelter_asked = []
 default shelter_choice = None
 
 define SHELTER_CLIPS = {
-    "intro": ("Maral ehlel.webm", 9.768),
+    "intro": ("Maral ehlel.webm", 12.808),
     "answer1": ("Maral hariult1.webm", 6.168),
     "answer2": ("Maral hariult2.webm", 5.928),
     "answer3": ("Maral hariult3.webm", 6.168),
     "aim": ("Maral buu gargah.webm", 11.568),
     "lower": ("Maral buudahaa bolih.webm", 3.048),
     "shoot": ("Maral buudah.webm", 8.048),
+    "admit": ("Maral oruulah.webm", 6.048),
+    "reject": ("Maral yavah.webm", 5.008),
 }
 
 define SHELTER_QUESTIONS = [
@@ -34,7 +36,7 @@ init python:
     renpy.music.register_channel("shelter_video", mixer="voice", loop=False, movie=True)
     # Construct Movie displayables once, not on every screen evaluation.
     shelter_movies = {
-        key: Movie(play="Video/Maral/" + data[0], channel="shelter_video",
+        key: Movie(play="Video/Maral/runtime/" + data[0], channel="shelter_video",
                    loop=False, size=(1920, 1080),
                    start_image="images/stills/" + key + "_start.jpg",
                    image="images/stills/" + key + ".jpg")
@@ -63,7 +65,10 @@ style shelter_button_text is shelter_text:
     yalign 0.5
 
 screen shelter_backdrop():
-    add "images/stills/[shelter_still].jpg" xysize (1920, 1080)
+    if shelter_still in ("intro", "answer1", "answer2", "answer3", "lower"):
+        add "images/Maral idle zassan.jpg" xysize (1920, 1080)
+    else:
+        add "images/stills/[shelter_still].jpg" xysize (1920, 1080)
 
 screen shelter_header(stage, utilities=True):
     add Solid("#080707b8") xysize (1920, 76)
@@ -112,18 +117,23 @@ screen shelter_questions():
     use shelter_header("АСУУЛТ СОНГОХ")
     vbox:
         xpos 70
-        ypos 675
-        spacing 12
+        ypos 810
+        spacing 18
         at shelter_fade
         text "ЮУ АСУУХ ВЭ?" style "shelter_text" size 25 color "#e2bc86"
-        for index, question in enumerate(SHELTER_QUESTIONS):
-            button:
-                style "shelter_button"
-                xsize 720
-                yminimum 92
-                sensitive index not in shelter_asked
-                action Return(index)
-                text ("Асуусан: " if index in shelter_asked else "%02d  " % (index + 1)) + question style "shelter_button_text" size 28
+        hbox:
+            spacing 20
+            for index, question in enumerate(SHELTER_QUESTIONS):
+                button:
+                    style "shelter_button"
+                    xsize 580
+                    ysize 170
+                    sensitive index not in shelter_asked
+                    action Return(index)
+                    vbox:
+                        spacing 12
+                        text ("АСУУСАН" if index in shelter_asked else "%02d" % (index + 1)) style "shelter_button_text" size 24 color "#e2bc86"
+                        text question style "shelter_button_text" size 30
     # Final decisions deliberately do not appear in this phase.
 
 screen shelter_decision(armed=False):
@@ -225,8 +235,10 @@ label shelter_decision_phase:
         call shelter_clip("shoot")
         call screen shelter_result("БУУДСАН", "Та гох дарлаа. Маралтай хийсэн энэ уулзалт дууслаа.")
     elif shelter_choice == "reject":
+        call shelter_clip("reject")
         call screen shelter_result("ХААЛГА ХААЛТТАЙ ҮЛДЛЭЭ", "Марал дуугүй эргэн явлаа. Та түүнийг хорогдох байранд оруулсангүй.")
     elif shelter_choice == "admit":
+        call shelter_clip("admit")
         call screen shelter_result("ТА АЮУЛЫГ ДОТОГШ ОРУУЛЛАА", "Маралын дүр аймшигтайгаар хувирч, тэр чөтгөрийн инээдээр инээн тан руу дайрлаа.")
     if _return == "replay":
         jump shelter_encounter

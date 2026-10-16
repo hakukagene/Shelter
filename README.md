@@ -1,6 +1,6 @@
 # Shelter — Хорогдох байр
 
-Ren'Py video encounter using the original `game/Video/Maral/*.webm` footage.
+Ren'Py video encounter using runtime WebM copies of the updated `game/Video/Maral/*.mp4` footage.
 
 ## Play
 
@@ -11,7 +11,7 @@ Maral's encounter. The game uses a 1920×1080 logical canvas; the original
 ## Encounter flow
 
 1. Maral's introduction plays with Mongolian story text. Clicking does not skip it.
-2. Questions appear at the lower left. No final decisions appear yet.
+2. Three equal-width question cards appear horizontally across the bottom. No final decisions appear yet.
 3. Choose a question; its matching answer video plays.
 4. Decisions appear at the lower right: aim, reject, or admit. You may return to
    the remaining questions. Asked questions are marked and disabled.
@@ -19,9 +19,11 @@ Maral's encounter. The game uses a 1920×1080 logical canvas; the original
    returns to the decision phase. Shooting plays the existing shooting clip.
 6. The encounter ends with a replay/main-menu choice.
 
-Rejection and admission currently have **text-only outcomes** based on the
-supplied story: the repository has no corresponding departure/admission/attack
-clips. Chinbaa is not implemented because his video assets are not present.
+Rejection and admission play their new departure/admission videos before the
+result screen. MP4 sources (H.264/AAC) are preserved; the game plays VP9/Opus
+WebM conversions from `game/Video/Maral/runtime/` for desktop Ren'Py support.
+The supplied corrected idle image is used between neutral dialogue clips.
+Chinbaa is not implemented because his video assets are not present.
 Dialogue text follows the supplied story; it is not a word-timed transcription.
 
 ## Implementation
