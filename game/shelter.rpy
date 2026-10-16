@@ -32,6 +32,16 @@ define SHELTER_LINES = {
     "aim": "Чи намайг буудаж болно. Гэхдээ эхлээд яагаад гэдгээ өөрөөсөө асуугаарай.",
 }
 
+# Cue windows measured from the bundled audio; times use the decoder clock.
+# Keep these separate so dialogue edits do not require changing screen logic.
+define SHELTER_SPEECH_WINDOWS = {
+    "intro": (0.0, 12.49),
+    "answer1": (0.568, 5.716),
+    "answer2": (0.691, 5.597),
+    "answer3": (0.568, 5.716),
+    "aim": (3.199, 8.260),
+}
+
 init python:
     renpy.music.register_channel("shelter_video", mixer="voice", loop=False, movie=True)
     def shelter_wait_image(clip):
@@ -91,7 +101,9 @@ screen shelter_playback(clip):
     key "skip" action NullAction()
     key "toggle_skip" action NullAction()
     key "rollback" action NullAction()
-    if clip in SHELTER_LINES:
+    $ speech_position = renpy.music.get_pos(channel="shelter_video")
+    $ speech_window = SHELTER_SPEECH_WINDOWS.get(clip)
+    if speech_window and speech_position is not None and speech_window[0] <= speech_position < speech_window[1]:
         frame:
             background Solid("#080707dd")
             xalign 0.5
@@ -101,9 +113,9 @@ screen shelter_playback(clip):
             text SHELTER_LINES[clip] style "shelter_text" size 30
     # A short startup grace avoids interpreting a not-yet-started decoder as EOF.
     # Actual playback completion, rather than a fixed timer, drives progression.
-    timer 0.1 repeat True action If(
+    timer 0.03 repeat True action If(
         elapsed >= 0.5 and not renpy.music.get_playing(channel="shelter_video"),
-        Return(True), SetScreenVariable("elapsed", elapsed + 0.1))
+        Return(True), SetScreenVariable("elapsed", elapsed + 0.03))
 
 # Always visible during the encounter. Text remains native for crisp Cyrillic.
 screen shelter_actions(enabled=True, armed=False):
@@ -111,7 +123,7 @@ screen shelter_actions(enabled=True, armed=False):
         xalign 0.5
         ypos 880
         spacing 24
-        for caption, result, icon in [("Буудах" if armed else "Буу онилох", "shoot" if armed else "aim", "aim"), ("Хөөж явуулах", "reject", "reject"), ("Дотогш оруулах", "admit", "admit")]:
+        for caption, result, icon in [("Буудах" if armed else "Буу онилох", "shoot" if armed else "aim", "aim"), ("Хөөх", "reject", "reject"), ("Оруулах", "admit", "admit")]:
             button:
                 xysize (180, 180)
                 padding (0, 0)
@@ -123,12 +135,14 @@ screen shelter_actions(enabled=True, armed=False):
                 action Return(result)
                 text caption:
                     font SHELTER_BOLD
-                    size 17
+                    size 15
                     color "#f4dfaf"
                     hover_color "#ffffff"
                     insensitive_color "#aa9d86"
                     xalign 0.5
                     ypos 107
+                    xsize 118
+                    text_align 0.5
                     outlines [(1, "#000b", 0, 1)]
 
 screen shelter_questions():
