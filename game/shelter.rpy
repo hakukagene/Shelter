@@ -10,11 +10,15 @@ default shelter_visitor = "Maral"
 default shelter_chinba_outcome = None
 
 # Append unique IDs and civilian classifications as new visitors are added.
-define SHELTER_TOTAL_VISITORS = 70
+define SHELTER_CIVILIAN_COUNT = 43
+define SHELTER_MONSTER_COUNT = 30
+define SHELTER_TOTAL_VISITORS = SHELTER_CIVILIAN_COUNT + SHELTER_MONSTER_COUNT
 define SHELTER_CIVILIAN_TARGET = 40
 define SHELTER_MAX_CIVILIAN_DEATHS = 3
-define SHELTER_VISITOR_ORDER = ("Chinba", "Maral")
-define SHELTER_CIVILIANS = {"Chinba": True, "Maral": False}
+define SHELTER_VISITOR_ORDER = ("Chinba", "Maral", "Swat")
+define SHELTER_CIVILIANS = {"Chinba": True, "Maral": False, "Swat": True}
+# Armor stops the bullet: Orgil leaves alive after being shot.
+define SHELTER_NONLETHAL_SHOOT = ("Swat",)
 default shelter_outcomes = {}
 default shelter_admitted = 0
 default shelter_civilians_saved = 0
@@ -107,9 +111,32 @@ define CHINBA_PLAYER_VOICES = {
     "admit": ("audio/Chingune/ChinbaOruulah.wav", 0.383, 0.763),
 }
 
+
+define SWAT_CLIPS = {'intro': ('swat ehlel.webm', 17.928), 'answer1': ('swat hariult 1.webm', 14.728), 'answer2': ('swat hariult 2.webm', 11.464), 'answer3': ('swat hariult 3.webm', 14.728), 'aim': ('swat buu gargah.webm', 7.304), 'lower': ('swat buugaa buulgah.webm', 3.058), 'shoot': ('swat buuduulav.webm', 14.493), 'reject': ('swat hoogdov.webm', 12.936), 'admit': ('swat oroh.webm', 8.05)}
+# Оргил — Энгийн хүн 2, from the updated author script.
+define SWAT_QUESTIONS = [
+    "Та үнэмлэхээ үзүүлээч",
+    "Танай салааныхан яг хаана, яаж амь үрэгдсэн юм бэ?",
+    "Хувцас чинь цус болсон байна. Чи шархадсан юм уу?",
+]
+define SWAT_LINES = {
+    "intro": "Сайн байна уу? Хорогдох байр мөн үү? Бидэнд ойролцоох хорогдох байр луу ухрах тушаал ирсэн. Радио холбоо тасраад, салааныхантайгаа буцаж холбогдож чадсангүй. Манай салааныхан бүгд үхсэн. Би л ганцаараа амьд үлдлээ. Энэ гадуур чинь хаа сайгүй мангасууд байна. Хурдан хаалгаа нээгээрэй.",
+    "answer1": "Юун үнэмлэх вэ? Тулааны үеэр цүнх, үнэмлэхээ алдсан. Би тусгай салааны ахлах түрүүч Оргил байна. Хувцас, тэмдгийг минь хар л даа. Одоо бичиг баримт нэхэж зогсох цаг мөн үү? Алив хурдлаач!",
+    "answer2": "Хорооллын уулзварын цаана зам хаагдаад бид хүмүүсийг машинаас нь гаргаж байсан. Гэнэт л энгийн иргэд гэж бодож байсан хүмүүс маань бидэн рүү дайрсан. Сум ч тэднийг зогсоож чадсангүй. Би л зугтаж амжлаа.",
+    "answer3": "Миний цус биш ээ. Би шархадсан нөхрөө үүрч явсан юм. Даан ч тэр амь үрэгдчихсэн. Чи хаалгаа хурдан нээхгүй бол би ч бас амь үрэгдэх гээд байна. Алив хурдлаач!",
+    "aim": "Оролдоод үз л дээ! Чи намайг ингэж айлгаж чадна гэж бодоо юу?",
+    "shoot": "Өө алдгийн байна. За яахав чи харамсана аа.",
+    "reject": "Юу яриад байна аа. Чи намайг эндээс хөөж чадна гэж бодоо юу?",
+    "admit": "Уучлаарай, жаахан түрэмгий аашилчихлаа. Саяхан нөхдөө алдаад уураа барьж дийлсэнгүй. Би энд хэрэгтэй хүн байхыг хичээнэ. Намайг оронгуут хурдан хаалгаа хаагаарай.",
+}
+
+define SWAT_SPEECH_WINDOWS = {'intro': (0, 17.037), 'answer1': (1.015, 14.279), 'answer2': (0.817, 10.859), 'answer3': (1.536, 14.279), 'aim': (0, 6.65), 'shoot': (0, 14.48), 'reject': (0.555, 12.92), 'admit': (2.424, 7.83)}
+
 init python:
     renpy.music.register_channel("shelter_knock", mixer="sfx", loop=False, stop_on_mute=False)
     SHELTER_VISITORS = {
+        "Swat": {"clips": SWAT_CLIPS, "questions": SWAT_QUESTIONS,
+                "lines": SWAT_LINES, "windows": SWAT_SPEECH_WINDOWS, "voices": {}},
         "Maral": {"clips": SHELTER_CLIPS, "questions": SHELTER_QUESTIONS,
                 "lines": SHELTER_LINES, "windows": SHELTER_SPEECH_WINDOWS,
                 "voices": SHELTER_PLAYER_VOICES},
@@ -133,7 +160,7 @@ init python:
             shelter_admitted += 1
             if civilian:
                 shelter_civilians_saved += 1
-        elif choice == "shoot" and civilian:
+        elif choice == "shoot" and civilian and visitor not in SHELTER_NONLETHAL_SHOOT:
             shelter_civilians_killed += 1
 
     def shelter_campaign_status():
@@ -152,6 +179,10 @@ init python:
     renpy.music.register_channel("shelter_video", mixer="voice", loop=False, movie=True)
     def shelter_wait_image(clip, visitor=None):
         visitor = visitor or shelter_visitor
+        if visitor == "Swat":
+            if clip in ("intro", "answer1", "answer2", "answer3", "lower"):
+                clip = "idle"
+            return "images/Swat/frames/" + clip + ".jpg"
         # Reference-matched frames extracted from the source videos (not the supplied PNGs).
         # idle: Chinbaa hariult 3, first frame; aim: Chinbaa buuduulah, first frame.
         # Keep the same neutral pose for every unarmed question/waiting state.
@@ -179,7 +210,7 @@ init python:
             channel="shelter_video", loop=False, size=(1920, 1080),
             start_image=Transform(shelter_wait_image(
                 "aim" if key in ("shoot", "lower") else
-                ("arrival" if visitor == "Chinba" and key == "intro" else "intro"),
+                ("arrival" if visitor in ("Chinba", "Swat") and key == "intro" else "intro"),
                 visitor), xysize=(1920, 1080)),
             image=shelter_video_end(key, visitor))
         for visitor, encounter in SHELTER_VISITORS.items()
@@ -230,10 +261,10 @@ screen shelter_playback(clip):
         frame:
             background Solid("#080707dd")
             xalign 0.5
-            ypos 710
+            ypos (630 if shelter_visitor == "Swat" else 710)
             xsize 1344
             padding (35, 22)
-            text shelter_data("lines")[clip] style "shelter_text" size 30 xalign 0.5 text_align 0.5
+            text shelter_data("lines")[clip] style "shelter_text" size (26 if shelter_visitor == "Swat" else 30) xalign 0.5 text_align 0.5
     # A short startup grace avoids interpreting a not-yet-started decoder as EOF.
     # Actual playback completion, rather than a fixed timer, drives progression.
     timer 0.03 repeat True action If(
@@ -397,6 +428,9 @@ screen shelter_next_visitor_card():
     timer 4.0 action Return(True)
 
 label shelter_player_line(voice_key, caption=None):
+    # New characters may have response video audio before player voice is supplied.
+    if voice_key not in shelter_data("voices"):
+        return
     window hide
     $ _skipping = False
     $ renpy.music.play(shelter_data("voices")[voice_key][0], channel="shelter_player", loop=False)
@@ -407,7 +441,7 @@ label shelter_player_line(voice_key, caption=None):
 label shelter_clip(clip):
     window hide
     $ _skipping = False
-    if clip == "intro" and shelter_visitor == "Maral":
+    if clip == "intro" and shelter_visitor != "Chinba":
         call screen shelter_playback(clip) with Dissolve(0.8)
     else:
         call screen shelter_playback(clip)
@@ -428,7 +462,7 @@ label shelter_encounter:
 label shelter_visit_start:
     $ shelter_asked = []
     $ shelter_choice = None
-    $ shelter_still = "arrival" if shelter_visitor == "Chinba" else "intro"
+    $ shelter_still = "arrival" if shelter_visitor in ("Chinba", "Swat") else "intro"
     call shelter_clip("intro")
     jump shelter_question_phase
 
@@ -483,11 +517,11 @@ label shelter_resolve_visitor:
     elif shelter_status == "win":
         call screen shelter_result("ТА ХОЖЛОО", "Та [SHELTER_CIVILIAN_TARGET] энгийн иргэнийг хорогдох байранд оруулж аварлаа.")
     elif shelter_status == "shortfall":
-        call screen shelter_result("ТА ХОЖИГДЛОО", "70 хүнийг шалгаж дууслаа. Та [shelter_civilians_saved] / [SHELTER_CIVILIAN_TARGET] энгийн иргэнийг аварсан.")
+        call screen shelter_result("ТА ХОЖИГДЛОО", "[SHELTER_TOTAL_VISITORS] хүнийг шалгаж дууслаа. Та [shelter_civilians_saved] / [SHELTER_CIVILIAN_TARGET] энгийн иргэнийг аварсан.")
     elif SHELTER_VISITOR_ORDER.index(shelter_visitor) + 1 < len(SHELTER_VISITOR_ORDER):
         jump shelter_next_visitor
     else:
-        # The available two-visitor preview is not a complete campaign victory.
+        # The available visitor preview is not a complete campaign victory.
         call screen shelter_result("ТУРШИЛТЫН ХЭСЭГ ДУУСЛАА", "Оруулсан: [shelter_admitted] • Аврагдсан: [shelter_civilians_saved]/40 • Алагдсан: [shelter_civilians_killed]/3. Үлдсэн дүрүүд хараахан нэмэгдээгүй.")
     if _return == "replay":
         jump shelter_encounter
