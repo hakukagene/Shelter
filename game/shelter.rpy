@@ -134,7 +134,7 @@ define SWAT_SPEECH_WINDOWS = {'intro': (0, 17.037), 'answer1': (1.015, 14.279), 
 
 
 # Баяр — Энгийн хүн 9; fourth playable encounter.
-define BAYRA_CLIPS = {'arrival': ('arrival.webm', 3.049), 'intro': ('intro.webm', 12.253), 'answer1': ('answer1.webm', 37.597), 'answer2': ('answer2.webm', 16.349), 'answer3': ('answer3.webm', 23.709), 'aim': ('aim.webm', 3.042), 'lower': ('lower.webm', 3.042), 'shoot': ('shoot.webm', 3.049), 'reject': ('reject.webm', 7.368), 'admit': ('admit.webm', 4.744), 'enter': ('enter.webm', 7.043)}
+define BAYRA_CLIPS = {'arrival': ('arrival.webm', 3.049), 'intro': ('intro.webm', 12.253), 'answer1': ('answer1.webm', 37.597), 'answer2': ('answer2.webm', 16.349), 'answer3': ('answer3.webm', 23.709), 'aim': ('aim.webm', 3.042), 'lower': ('lower.webm', 3.042), 'shoot': ('shoot.webm', 3.049), 'reject': ('reject.webm', 7.368), 'admit': ('admit.webm', 4.744), 'enter': ('enter.webm', 7.043), 'leave': ('leave.webm', 3.042)}
 define BAYRA_QUESTIONS = [
     "Та хэн бэ?",
     "Та энэ хорогдох байрыг хаанаас мэдэж ирэв?",
@@ -229,6 +229,8 @@ init python:
         return Transform(shelter_wait_image(clip, visitor), xysize=(1920, 1080))
 
     def shelter_movie_start_image(visitor, clip):
+        if visitor == "Bayra" and clip == "leave":
+            return shelter_wait_image("reject", visitor)
         if visitor == "Bayra" and clip == "arrival":
             return "images/Bayra/frames/arrival_start.jpg"
         return shelter_wait_image(
@@ -528,6 +530,8 @@ label shelter_handle_choice:
     elif shelter_choice == "reject":
         call shelter_player_line("reject")
         call shelter_clip("reject")
+        if shelter_visitor == "Bayra":
+            call shelter_clip("leave")
         jump shelter_resolve_visitor
     elif shelter_choice == "admit":
         call shelter_player_line("admit")
