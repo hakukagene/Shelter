@@ -196,7 +196,11 @@ init python:
         return SHELTER_VISITORS[shelter_visitor][key]
 
     renpy.music.register_channel("shelter_player", mixer="voice", loop=False, stop_on_mute=False)
-    renpy.music.register_channel("shelter_video", mixer="voice", loop=False, movie=True)
+    # Muting dialogue must silence the soundtrack, not stop/skip the movie.
+    # Movie channels must not pre-buffer the next file like audio-only channels.
+    renpy.music.register_channel(
+        "shelter_video", mixer="voice", loop=False, movie=True,
+        stop_on_mute=False, buffer_queue=False)
     def shelter_wait_image(clip, visitor=None):
         visitor = visitor or shelter_visitor
         if visitor == "Bayra":
