@@ -15,8 +15,8 @@ define SHELTER_MONSTER_COUNT = 30
 define SHELTER_TOTAL_VISITORS = SHELTER_CIVILIAN_COUNT + SHELTER_MONSTER_COUNT
 define SHELTER_CIVILIAN_TARGET = 40
 define SHELTER_MAX_CIVILIAN_DEATHS = 3
-define SHELTER_VISITOR_ORDER = ("Chinba", "Maral", "Swat")
-define SHELTER_CIVILIANS = {"Chinba": True, "Maral": False, "Swat": True}
+define SHELTER_VISITOR_ORDER = ("Chinba", "Maral", "Swat", "Bayra")
+define SHELTER_CIVILIANS = {"Chinba": True, "Maral": False, "Swat": True, "Bayra": True}
 # Armor stops the bullet: Orgil leaves alive after being shot.
 define SHELTER_NONLETHAL_SHOOT = ("Swat",)
 default shelter_outcomes = {}
@@ -132,9 +132,29 @@ define SWAT_LINES = {
 
 define SWAT_SPEECH_WINDOWS = {'intro': (0, 17.037), 'answer1': (1.015, 14.279), 'answer2': (0.817, 10.859), 'answer3': (1.536, 14.279), 'aim': (0, 6.65), 'shoot': (0, 14.48), 'reject': (0.555, 12.92), 'admit': (2.424, 7.83)}
 
+
+# Баяр — Энгийн хүн 9; fourth playable encounter.
+define BAYRA_CLIPS = {'arrival': ('arrival.webm', 3.049), 'intro': ('intro.webm', 12.253), 'answer1': ('answer1.webm', 37.597), 'answer2': ('answer2.webm', 16.349), 'answer3': ('answer3.webm', 23.709), 'aim': ('aim.webm', 3.042), 'lower': ('lower.webm', 3.042), 'shoot': ('shoot.webm', 3.049), 'reject': ('reject.webm', 7.368), 'admit': ('admit.webm', 4.744), 'enter': ('enter.webm', 7.043)}
+define BAYRA_QUESTIONS = [
+    "Та хэн бэ?",
+    "Та энэ хорогдох байрыг хаанаас мэдэж ирэв?",
+    "Наад цүнхэн доторхоо харуулаач",
+]
+define BAYRA_LINES = {
+    "intro": "За ашгүй дээ. Хаалгаа нээгээрэй. Энд удаан байж чадахгүй нь... Хаалгаа яагаад нээхгүй байна аа. Намайг оруулахгүй юм уу?",
+    "answer1": "Чи намайг нэг л дутуу үнэлээд байна даа. Монтек корпорацийг мэднэ биз дээ. Би Монтек-ийн ерөнхий захирал Баяр гэж хүн байна аа. Найзууд маань намайг баян Баяраа гэж дууддаг л даа. Чи тэгж дуудаж болно шүү. Би сая жолоочтойгоо өөрийн хорогдох байр луугаа давхиж яваад осолд орчихлоо. Чамд хэд хэрэгтэйгээ л хэлчих. 20 саяыг өгвөл болох уу? За за 30 саяыг өгье. Хөөе 30 сая шүү дээ. Мэдрэл муутай хүнтэй таарчихгүй байгаа даа.",
+    "answer2": "Мэдэлгүй яахав. Мөнгө байхад ямар ч мэдээллийг авч болдог юм. Уг нь надад Шарга морьтод хувийн хорогдох байр байгаа л даа. Даанч одоо тийшээ явахаасаа өнгөрөөд байна. Нисдэг тэрэг маань ирсэнгүй.",
+    "answer3": "За тэгж ярихгүй шүү. Энд үнэтэй цайтай зүйлс байгаа. Ёстой Туулын мөсийг долоох шахам байж цуглуулсан зүйлс. Чам шиг гуйлгачин... За за хаалгаа хурдлаач. Надад энд мөнгө байна, чи хэдийг хүсэж байна? Би хүссэн мөнгийг чинь өгье.",
+    "reject": "Өө заяа нь хаясан юм бэ? Дүү ч том алдаа гаргалаа даа. Одоо яая гэхэв.",
+    "admit": "Тийм байлгүй дээ. Мөнгөнд дургүй хүн гэж байдаггүй юм.",
+}
+define BAYRA_SPEECH_WINDOWS = {'intro': (1.337, 10.722), 'answer1': (1.088, 36.428), 'answer2': (1.891, 15.372), 'answer3': (1.002, 21.495), 'reject': (1.069, 6.512), 'admit': (0.459, 3.977)}
+
 init python:
     renpy.music.register_channel("shelter_knock", mixer="sfx", loop=False, stop_on_mute=False)
     SHELTER_VISITORS = {
+        "Bayra": {"clips": BAYRA_CLIPS, "questions": BAYRA_QUESTIONS,
+                  "lines": BAYRA_LINES, "windows": BAYRA_SPEECH_WINDOWS, "voices": {}},
         "Swat": {"clips": SWAT_CLIPS, "questions": SWAT_QUESTIONS,
                 "lines": SWAT_LINES, "windows": SWAT_SPEECH_WINDOWS, "voices": {}},
         "Maral": {"clips": SHELTER_CLIPS, "questions": SHELTER_QUESTIONS,
@@ -179,6 +199,10 @@ init python:
     renpy.music.register_channel("shelter_video", mixer="voice", loop=False, movie=True)
     def shelter_wait_image(clip, visitor=None):
         visitor = visitor or shelter_visitor
+        if visitor == "Bayra":
+            if clip in ("intro", "answer1", "answer2", "answer3", "lower", "arrival", "admit"):
+                clip = "idle"
+            return "images/Bayra/frames/" + clip + ".jpg"
         if visitor == "Swat":
             if clip in ("intro", "answer1", "answer2", "answer3", "lower"):
                 clip = "idle"
@@ -204,14 +228,18 @@ init python:
             return Transform("gui/shelter/ending/lockdown.jpg", xysize=(1920, 1080))
         return Transform(shelter_wait_image(clip, visitor), xysize=(1920, 1080))
 
+    def shelter_movie_start_image(visitor, clip):
+        if visitor == "Bayra" and clip == "arrival":
+            return "images/Bayra/frames/arrival_start.jpg"
+        return shelter_wait_image(
+            "aim" if clip in ("shoot", "lower") else
+            ("arrival" if visitor in ("Chinba", "Swat") and clip == "intro" else "intro"), visitor)
+
     shelter_movies = {
         (visitor, key): Movie(
             play="Video/" + visitor + "/" + data[0],
             channel="shelter_video", loop=False, size=(1920, 1080),
-            start_image=Transform(shelter_wait_image(
-                "aim" if key in ("shoot", "lower") else
-                ("arrival" if visitor in ("Chinba", "Swat") and key == "intro" else "intro"),
-                visitor), xysize=(1920, 1080)),
+            start_image=Transform(shelter_movie_start_image(visitor, key), xysize=(1920, 1080)),
             image=shelter_video_end(key, visitor))
         for visitor, encounter in SHELTER_VISITORS.items()
         for key, data in encounter["clips"].items()
@@ -261,10 +289,10 @@ screen shelter_playback(clip):
         frame:
             background Solid("#080707dd")
             xalign 0.5
-            ypos (630 if shelter_visitor == "Swat" else 710)
+            ypos (580 if shelter_visitor == "Bayra" else 630 if shelter_visitor == "Swat" else 710)
             xsize 1344
             padding (35, 22)
-            text shelter_data("lines")[clip] style "shelter_text" size (26 if shelter_visitor == "Swat" else 30) xalign 0.5 text_align 0.5
+            text shelter_data("lines")[clip] style "shelter_text" size (24 if shelter_visitor == "Bayra" else 26 if shelter_visitor == "Swat" else 30) xalign 0.5 text_align 0.5
     # A short startup grace avoids interpreting a not-yet-started decoder as EOF.
     # Actual playback completion, rather than a fixed timer, drives progression.
     timer 0.03 repeat True action If(
@@ -441,7 +469,7 @@ label shelter_player_line(voice_key, caption=None):
 label shelter_clip(clip):
     window hide
     $ _skipping = False
-    if clip == "intro" and shelter_visitor != "Chinba":
+    if (clip == "intro" and shelter_visitor in ("Maral", "Swat")) or (clip == "arrival" and shelter_visitor == "Bayra"):
         call screen shelter_playback(clip) with Dissolve(0.8)
     else:
         call screen shelter_playback(clip)
@@ -463,6 +491,8 @@ label shelter_visit_start:
     $ shelter_asked = []
     $ shelter_choice = None
     $ shelter_still = "arrival" if shelter_visitor in ("Chinba", "Swat") else "intro"
+    if shelter_visitor == "Bayra":
+        call shelter_clip("arrival")
     call shelter_clip("intro")
     jump shelter_question_phase
 
@@ -502,6 +532,8 @@ label shelter_handle_choice:
     elif shelter_choice == "admit":
         call shelter_player_line("admit")
         call shelter_clip("admit")
+        if shelter_visitor == "Bayra":
+            call shelter_clip("enter")
         jump shelter_resolve_visitor
     jump shelter_decision_phase
 
