@@ -24,3 +24,12 @@
 /dialogue.tab
 /dialogue.txt
 /strings.json
+
+# Local Android toolchain, packages, and private signing keys.
+/.android-build/
+/dist/
+/tmp/
+/*.keystore
+/.web-site/
+/.web-build/
+/.audio-originals/

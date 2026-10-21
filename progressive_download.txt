@@ -1,0 +1,9 @@
+# Keep menu graphics and short player speech available before play begins.
+- image game/gui/**
+- image game/images/**.jpg
++ image game/images/**
++ music game/audio/Audio/menu1.mp3
++ music game/audio/Audio/menu2.mp3
++ music game/audio/Audio/shuum.mp3
+- music game/audio/**
+- voice game/audio/**

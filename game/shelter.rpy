@@ -154,7 +154,7 @@ init python:
     renpy.music.register_channel("shelter_knock", mixer="sfx", loop=False, stop_on_mute=False)
     SHELTER_VISITORS = {
         "Bayra": {"clips": BAYRA_CLIPS, "questions": BAYRA_QUESTIONS,
-                  "lines": BAYRA_LINES, "windows": BAYRA_SPEECH_WINDOWS, "voices": {}},
+                "lines": BAYRA_LINES, "windows": BAYRA_SPEECH_WINDOWS, "voices": {}},
         "Swat": {"clips": SWAT_CLIPS, "questions": SWAT_QUESTIONS,
                 "lines": SWAT_LINES, "windows": SWAT_SPEECH_WINDOWS, "voices": {}},
         "Maral": {"clips": SHELTER_CLIPS, "questions": SHELTER_QUESTIONS,
@@ -203,6 +203,10 @@ init python:
         stop_on_mute=False, buffer_queue=False)
     def shelter_wait_image(clip, visitor=None):
         visitor = visitor or shelter_visitor
+        # Maral's answer1 still is a close-up. Keep the doorway framing fixed
+        # between questions, including old saves that stopped on that answer.
+        if visitor == "Maral" and clip in ("intro", "answer1", "answer2", "answer3", "lower"):
+            return "images/Maral/frames/intro.jpg"
         if visitor == "Bayra":
             if clip in ("intro", "answer1", "answer2", "answer3", "lower", "arrival", "admit"):
                 clip = "idle"
@@ -368,7 +372,7 @@ screen shelter_question_choices():
             textbutton question:
                 style "shelter_button"
                 text_style "shelter_button_text"
-                text_size 26
+                text_size (30 if renpy.variant("web") else 26)
                 text_text_align 0.5
                 xysize (330, 170)
                 sensitive index not in shelter_asked
@@ -376,7 +380,7 @@ screen shelter_question_choices():
         textbutton "Буу онилох":
             style "shelter_button"
             text_style "shelter_button_text"
-            text_size 26
+            text_size (30 if renpy.variant("web") else 26)
             xysize (330, 170)
             action Return("aim")
 
@@ -398,6 +402,7 @@ screen shelter_decision(armed=False):
 # Concept 01: live text and actions over the text-free lockdown artwork.
 screen shelter_result(title, description):
     modal True
+    on "show" action Play("music", "<volume 0.50>audio/Audio/menu2.mp3", loop=True, fadeout=0.6, fadein=0.8)
     add "gui/shelter/ending/lockdown.jpg" xysize (1920, 1080)
     text title:
         style "shelter_text"
@@ -433,7 +438,7 @@ screen shelter_result(title, description):
                 xpos 120
                 yalign 0.5
 
-# Unskippable story-time card, followed by two metallic door knocks.
+# Unskippable story-time card, followed by the supplied metal-door recording.
 screen shelter_next_visitor_card():
     modal True
     add Solid("#000000")
@@ -457,9 +462,9 @@ screen shelter_next_visitor_card():
     key "toggle_skip" action NullAction()
     key "rollback" action NullAction()
     on "hide" action Stop("shelter_knock")
-    timer 2.0 action Play("shelter_knock", "audio/sfx/metal_door_knock.wav")
-    # The 1.8-second sound finishes before the next visitor fades in.
-    timer 4.0 action Return(True)
+    timer 2.0 action Play("shelter_knock", "audio/Audio/ES_Doors, Knock, Metal Door, Knock With Fist - Epidemic Sound.mp3", loop=False)
+    # Allow the full 5.93-second recording to finish before the visitor fades in.
+    timer 8.1 action Return(True)
 
 label shelter_player_line(voice_key, caption=None):
     # New characters may have response video audio before player voice is supplied.
@@ -475,7 +480,11 @@ label shelter_player_line(voice_key, caption=None):
 label shelter_clip(clip):
     window hide
     $ _skipping = False
-    if (clip == "intro" and shelter_visitor in ("Maral", "Swat")) or (clip == "arrival" and shelter_visitor == "Bayra"):
+    if renpy.emscripten:
+        $ shelter_web_begin("Video/" + shelter_visitor + "/" + shelter_data("clips")[clip][0], shelter_web_clip_cues(clip), poster=shelter_movie_start_image(shelter_visitor, clip), armed=clip in ("aim", "shoot", "lower"))
+        call screen shelter_web_wait
+        $ shelter_web_close()
+    elif (clip == "intro" and shelter_visitor in ("Maral", "Swat")) or (clip == "arrival" and shelter_visitor == "Bayra"):
         call screen shelter_playback(clip) with Dissolve(0.8)
     else:
         call screen shelter_playback(clip)
@@ -483,6 +492,7 @@ label shelter_clip(clip):
     return
 
 label shelter_encounter:
+    play music "<volume 0.18>audio/Audio/shuum.mp3" fadeout 0.6 fadein 1.0
     $ quick_menu = False
     $ shelter_visitor = SHELTER_VISITOR_ORDER[0]
     $ shelter_chinba_outcome = None

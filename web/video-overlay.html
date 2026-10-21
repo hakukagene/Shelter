@@ -1,0 +1,19 @@
+<div id="shelter-video" hidden>
+  <div id="video-stage">
+    <video id="story-video" playsinline webkit-playsinline preload="metadata" disablepictureinpicture></video>
+    <div id="video-caption" hidden><span id="caption-speaker"></span><span id="caption-words"></span></div>
+    <div id="video-actions" aria-hidden="true"></div>
+    <div id="video-loading" role="status">Ачаалж байна…</div>
+    <div id="video-prompt" hidden>
+      <p id="video-message"></p>
+      <button id="video-resume" class="metal" type="button">Үргэлжлүүлэх</button>
+    </div>
+    <div id="video-controls">
+      <button id="video-pause" class="metal" type="button" aria-label="Түр зогсоох">Ⅱ</button>
+      <button id="video-mute" class="metal" type="button" aria-pressed="false">Дуутай</button>
+      <button id="video-skip" class="metal" type="button">Алгасах ››</button>
+    </div>
+  </div>
+</div>
+<div id="rotate-hint"><span aria-hidden="true">↻</span>Утсаа хөндлөн эргүүлж тоглоорой.</div>
+<script src="shelter-video.js"></script>

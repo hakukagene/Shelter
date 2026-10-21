@@ -395,8 +395,8 @@ screen main_menu():
         for caption, menu_key, menu_action in [
             ("Эхлэх", "start", Start()),
             ("Үргэлжлүүлэх", "continue", FileLoad(latest_save, slot=True) if latest_save else NullAction()),
-            ("Тохиргоо", "settings", ShowMenu("preferences")),
-            ("Гарах", "quit", Quit(confirm=True))]:
+            ("Тохиргоо", "settings", ShowMenu("preferences"))] + ([] if renpy.variant("web") else [
+            ("Гарах", "quit", Quit(confirm=True))]):
             button:
                 xysize (460, 82)
                 padding (0, 0)

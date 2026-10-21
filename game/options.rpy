@@ -62,7 +62,7 @@ define config.has_voice = True
 ## the player is at the main menu. This file will continue playing into the
 ## game, until it is stopped or another file is played.
 
-# define config.main_menu_music = "main-menu-theme.ogg"
+define config.main_menu_music = "<volume 0.50>audio/Audio/menu1.mp3"
 
 
 ## Transitions #################################################################
@@ -183,6 +183,16 @@ init python:
     build.classify('**/.**', None)
     build.classify('**/#**', None)
     build.classify('**/thumbs.db', None)
+    build.classify('tmp/**', None)
+    build.classify('dist/**', None)
+    build.classify('tools/**', None)
+    build.classify('tests/**', None)
+    build.classify('web/**', None)
+    build.classify('**.keystore', None)
+    build.classify('game/intro_tests.rpy', None)
+    build.classify('game/intro_tests.rpyc', None)
+    # The desktop game uses the VP9/Opus derivative; retain the MP4 as source.
+    build.classify('game/Video/Introvideo/Intro.mp4', None)
 
     ## To archive files, classify them as 'archive'.
 
