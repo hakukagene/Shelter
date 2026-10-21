@@ -1,0 +1,29 @@
+{
+  "Bayra": {
+    "clips": {
+      "intro": "Ehlel.mp4",
+      "answer1": "Bayar hariult 1 zassan.mp4",
+      "answer2": "Bayar Hariult 2 zassan.mp4",
+      "answer3": "Bayar Hariult 3 zassan.mp4",
+      "aim": "Bayar Buu gargaj ireh.mp4",
+      "lower": "Bayar Buu Buulgah.mp4",
+      "shoot": "Bayar Buudah.mp4",
+      "admit": "Bayar Oruulah.mp4",
+      "reject": "Bayar Yavuulah.mp4"
+    },
+    "frames": {"arrival_start": ["intro", 0], "idle": ["answer1", 0.08], "aim": ["lower", 0], "shoot": ["shoot", "end"], "admit": ["admit", "end"], "reject": ["reject", "end"]}
+  },
+  "anu": {
+    "clips": {
+      "intro": "Anu ehlel.mp4",
+      "answer1": "Anu hariult1.mp4",
+      "answer2": "Anu hariult2.mp4",
+      "answer3": "Anu hariult3.mp4",
+      "aim": "Anu buu tulgah.mp4",
+      "lower": "Anu buu buulgah.mp4",
+      "shoot": "Anu buuduulah.mp4",
+      "reject": "Anu yavah.mp4"
+    },
+    "frames": {"arrival_start": ["intro", 0], "idle": ["answer1", 0.08], "aim": ["lower", 0], "shoot": ["shoot", "end"], "reject": ["reject", "end"]}
+  }
+}

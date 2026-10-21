@@ -1,0 +1,36 @@
+name: Build encounter playback media
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - tools/encounter_media.json
+      - tools/prepare_encounter_media.py
+      - .github/workflows/encounter-media.yml
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  media:
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
+      - name: Install FFmpeg and load source videos
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg
+          git lfs install --local
+          git lfs pull --include='game/Video/Bayra/*.mp4,game/Video/anu/*.mp4'
+      - name: Convert playback videos and extract stills
+        run: python3 tools/prepare_encounter_media.py
+      - name: Commit playback assets through Git LFS
+        run: |
+          git add -- game/Video/Bayra/*.webm game/Video/anu/*.webm game/images/Bayra/frames/*.jpg game/images/anu/frames/*.jpg
+          if git diff --cached --quiet; then exit 0; fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Build Bayra and Anu playback assets'
+          git push origin HEAD
