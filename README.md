@@ -134,27 +134,49 @@ Re-align the SRT if the video's edit or narration timing changes.
 
 ## Encounter flow
 
-1. Maral's introduction plays with Mongolian story text. Clicking does not skip it.
-2. Three equal-width question cards appear horizontally across the bottom. No final decisions appear yet.
-3. Choose a question; its matching answer video plays.
-4. Decisions appear at the lower right: aim, reject, or admit. You may return to
-   the remaining questions. Asked questions are marked and disabled.
-5. Aiming plays its own clip, then offers shoot or lower the weapon. Lowering
-   returns to the decision phase. Shooting plays the existing shooting clip.
-6. The encounter ends with a replay/main-menu choice.
+The playable order is Chinba → Maral → Swat (Orgil) → Bayra → Anu.
+Each visitor has three questions plus an aim button. Asked questions are disabled;
+aiming offers shoot or lower. Unarmed players can admit or reject the visitor.
+A black clock/count screen and metal door knock separate visitors.
 
-Rejection and admission play their new departure/admission videos before the
-result screen. The game plays the supplied VP9/Opus WebM files directly from
-`game/Video/Maral/`. Admission uses `Maral oruulah B huvilbar.webm`.
-The supplied corrected idle image is used between neutral dialogue clips.
-Chinbaa is not implemented because his video assets are not present.
-Dialogue text follows the supplied story; it is not a word-timed transcription.
+Bayra's updated footage combines arrival with introduction, entry with admission,
+and departure with rejection. These clips play once, without the old extra segments.
+His three supplied question recordings play before their matching answers.
+
+Anu follows the updated story's monster encounter. Rejecting or shooting her ends
+the available preview without a civilian death. Admitting her loses the game.
+No Anu admission video was supplied: her supplied smiling still appears briefly,
+then the monster-ending result screen. This can be replaced when that clip arrives.
+Her player question voice recordings are also not supplied yet.
+
+The campaign counters retain 43 civilians, 30 monsters, a target of 40 rescued
+civilians and a maximum of three civilian deaths. Five visitors are playable;
+finishing them is a preview ending, not a campaign win.
+
+Neutral waiting and armed frames are extracted from the corresponding videos.
+Dialogue captions use measured speech windows on the video decoder clock.
+
+### Rebuilding the updated encounter media
+
+The source-to-playback map is `tools/encounter_media.json`. With FFmpeg, Python
+and Git LFS installed, run from the repository root:
+
+```text
+git lfs pull
+python tools/prepare_encounter_media.py
+```
+
+This builds Bayra and Anu VP9/Opus WebMs and stable JPEG frames, preserving source
+resolution and audio. Commit the derivatives through Git LFS before pushing.
+The **Build encounter playback media** GitHub Actions workflow can also build and
+commit them on the selected branch. Run it manually through Actions after
+updating the source clips or conversion manifest.
 
 ## Implementation
 
 - `game/shelter.rpy`: stages, clip map, story text and UI.
 - `game/script.rpy`: entry point.
-- `game/images/stills`: first/last frames extracted from the original videos,
+- `game/images/<visitor>/frames`: stills extracted from the original videos,
   providing startup and choice-screen images without looping spoken dialogue.
 - `game/gui/shelter`: scalable outlined button backgrounds.
 - `game/fonts`: Roboto Condensed regular/bold (Cyrillic extended), with OFL license.
@@ -164,6 +186,16 @@ short startup grace period. Menus and choices use real Ren'Py controls and text;
 no generated mockup is baked into the game.
 
 ## Validation
+
+Bayra/Anu regression scenarios are in `game/encounter_tests.rpy` (Ren'Py 8.5):
+
+```text
+renpy.exe <project-path> test shelter_updated_encounters --savedir <project-path>/tmp/encounter-saves
+```
+
+They cover Bayra's question voices/answers and aim/lower, reject/admit transitions
+to Anu, Anu's three answers and aim/lower/shoot, and her admission loss/counters.
+
 
 The opening has native Ren'Py **8.5.3** tests in `game/intro_tests.rpy`:
 Start → film, caption display, accidental-click/Space/Tab protection, metal

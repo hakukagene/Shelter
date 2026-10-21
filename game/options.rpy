@@ -191,8 +191,12 @@ init python:
     build.classify('**.keystore', None)
     build.classify('game/intro_tests.rpy', None)
     build.classify('game/intro_tests.rpyc', None)
+    build.classify('game/encounter_tests.rpy', None)
+    build.classify('game/encounter_tests.rpyc', None)
     # The desktop game uses the VP9/Opus derivative; retain the MP4 as source.
     build.classify('game/Video/Introvideo/Intro.mp4', None)
+    build.classify('game/Video/Bayra/*.mp4', None)
+    build.classify('game/Video/anu/*.mp4', None)
 
     ## To archive files, classify them as 'archive'.
 

@@ -1,17 +1,10 @@
 name: Build encounter playback media
 on:
-  pull_request:
-    types: [opened, synchronize, reopened]
-    paths:
-      - tools/encounter_media.json
-      - tools/prepare_encounter_media.py
-      - .github/workflows/encounter-media.yml
   workflow_dispatch:
 permissions:
   contents: write
 jobs:
   media:
-    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
