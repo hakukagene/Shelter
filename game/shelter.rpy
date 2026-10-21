@@ -15,8 +15,8 @@ define SHELTER_MONSTER_COUNT = 30
 define SHELTER_TOTAL_VISITORS = SHELTER_CIVILIAN_COUNT + SHELTER_MONSTER_COUNT
 define SHELTER_CIVILIAN_TARGET = 40
 define SHELTER_MAX_CIVILIAN_DEATHS = 3
-define SHELTER_VISITOR_ORDER = ("Chinba", "Maral", "Swat", "Bayra")
-define SHELTER_CIVILIANS = {"Chinba": True, "Maral": False, "Swat": True, "Bayra": True}
+define SHELTER_VISITOR_ORDER = ("Chinba", "Maral", "Swat", "Bayra", "anu")
+define SHELTER_CIVILIANS = {"Chinba": True, "Maral": False, "Swat": True, "Bayra": True, "anu": False}
 # Armor stops the bullet: Orgil leaves alive after being shot.
 define SHELTER_NONLETHAL_SHOOT = ("Swat",)
 default shelter_outcomes = {}
@@ -134,7 +134,7 @@ define SWAT_SPEECH_WINDOWS = {'intro': (0, 17.037), 'answer1': (1.015, 14.279), 
 
 
 # Баяр — Энгийн хүн 9; fourth playable encounter.
-define BAYRA_CLIPS = {'arrival': ('arrival.webm', 3.049), 'intro': ('intro.webm', 12.253), 'answer1': ('answer1.webm', 37.597), 'answer2': ('answer2.webm', 16.349), 'answer3': ('answer3.webm', 23.709), 'aim': ('aim.webm', 3.042), 'lower': ('lower.webm', 3.042), 'shoot': ('shoot.webm', 3.049), 'reject': ('reject.webm', 7.368), 'admit': ('admit.webm', 4.744), 'enter': ('enter.webm', 7.043), 'leave': ('leave.webm', 3.042)}
+define BAYRA_CLIPS = {'intro': ('intro.webm', 15.182), 'answer1': ('answer1.webm', 36.436), 'answer2': ('answer2.webm', 14.181), 'answer3': ('answer3.webm', 19.219), 'aim': ('aim.webm', 13.18), 'lower': ('lower.webm', 4.271), 'shoot': ('shoot.webm', 3.737), 'admit': ('admit.webm', 10.377), 'reject': ('reject.webm', 10.143)}
 define BAYRA_QUESTIONS = [
     "Та хэн бэ?",
     "Та энэ хорогдох байрыг хаанаас мэдэж ирэв?",
@@ -145,16 +145,57 @@ define BAYRA_LINES = {
     "answer1": "Чи намайг нэг л дутуу үнэлээд байна даа. Монтек корпорацийг мэднэ биз дээ. Би Монтек-ийн ерөнхий захирал Баяр гэж хүн байна аа. Найзууд маань намайг баян Баяраа гэж дууддаг л даа. Чи тэгж дуудаж болно шүү. Би сая жолоочтойгоо өөрийн хорогдох байр луугаа давхиж яваад осолд орчихлоо. Чамд хэд хэрэгтэйгээ л хэлчих. 20 саяыг өгвөл болох уу? За за 30 саяыг өгье. Хөөе 30 сая шүү дээ. Мэдрэл муутай хүнтэй таарчихгүй байгаа даа.",
     "answer2": "Мэдэлгүй яахав. Мөнгө байхад ямар ч мэдээллийг авч болдог юм. Уг нь надад Шарга морьтод хувийн хорогдох байр байгаа л даа. Даанч одоо тийшээ явахаасаа өнгөрөөд байна. Нисдэг тэрэг маань ирсэнгүй.",
     "answer3": "За тэгж ярихгүй шүү. Энд үнэтэй цайтай зүйлс байгаа. Ёстой Туулын мөсийг долоох шахам байж цуглуулсан зүйлс. Чам шиг гуйлгачин... За за хаалгаа хурдлаач. Надад энд мөнгө байна, чи хэдийг хүсэж байна? Би хүссэн мөнгийг чинь өгье.",
+    "aim": "Хүүе хүүе. Би чамайг баян болгож чадна шүү дээ. Алив ер нь даргатай чинь уулзъя. Даргыгаа дуудаадах аа.",
     "reject": "Өө заяа нь хаясан юм бэ? Дүү ч том алдаа гаргалаа даа. Одоо яая гэхэв.",
     "admit": "Тийм байлгүй дээ. Мөнгөнд дургүй хүн гэж байдаггүй юм.",
 }
-define BAYRA_SPEECH_WINDOWS = {'intro': (1.337, 10.722), 'answer1': (1.088, 36.428), 'answer2': (1.891, 15.372), 'answer3': (1.002, 21.495), 'reject': (1.069, 6.512), 'admit': (0.459, 3.977)}
+define BAYRA_SPEECH_WINDOWS = {'intro': (3.219, 12.612), 'answer1': (0.332, 35.687), 'answer2': (0.236, 13.726), 'answer3': (0.359, 18.307), 'aim': (2.224, 10.117), 'reject': (0.878, 6.335), 'admit': (0.468, 4.005)}
+
+
+# Player questions supplied for Bayra; windows measured from each recording.
+define BAYRA_PLAYER_VOICES = {
+    "question1": ("audio/Bayra/asuult1.wav", 0.151, 0.628),
+    "question2": ("audio/Bayra/asuult2.wav", 0.191, 2.004),
+    "question3": ("audio/Bayra/asuult3.wav", 0.171, 1.571),
+}
+
+# Ану — Чөтгөр 2; fifth encounter. Folder spelling matches the uploaded assets.
+define ANU_CLIPS = {
+    "intro": ("intro.webm", 17.000),
+    "answer1": ("answer1.webm", 16.000),
+    "answer2": ("answer2.webm", 19.800),
+    "answer3": ("answer3.webm", 11.560),
+    "aim": ("aim.webm", 10.560),
+    "lower": ("lower.webm", 3.040),
+    "shoot": ("shoot.webm", 6.040),
+    "reject": ("reject.webm", 19.520),
+}
+define ANU_QUESTIONS = [
+    "Ээжийг чинь хамгийн сүүлд хаана харсан бэ?",
+    "Замд чинь том хүн тааралдаагүй гэж үү?",
+    "Чи энэ зургийг зурсан уу?",
+]
+define ANU_LINES = {
+    "intro": "Ах аа... хаалгаа нээгээч. Би ээжийгээ олохгүй байна. Ээж маань танайд байж магадгүй. Би энд ганцаараа баймааргүй байна.",
+    "answer1": "Ээж намайг энд ирнэ гэдгийг мэдэж байгаа. Тэр хаалганы цаанаас намайг дуудаад байна. Та сонсохгүй байна уу? Тэр яг одоо миний нэрийг дуудаж байна.",
+    "answer2": "Тааралдсан. Тэд намайг ганцааранг минь орхисон. Та ч бас намайг орхих уу? Наад дотор чинь хүүхэд байгаа юу?",
+    "answer3": "Тийм. Энэ хаалгыг би зүүдэндээ харсан. Гэхдээ яг юуны хаалга гэдгийг би мэдэхгүй байна. Харин та мэдэх үү?",
+    "aim": "Ах аа, би ээж дээрээ очмоор байна. Намайг оруулчих л даа.",
+    "reject": "Та намайг буцаагаад дуудаж магадгүй шүү.",
+}
+define ANU_SPEECH_WINDOWS = {
+    "intro": (3.798, 16.319), "answer1": (1.070, 14.665),
+    "answer2": (1.547, 18.508), "answer3": (0.750, 10.865),
+    "aim": (4.478, 9.787), "reject": (3.960, 6.053),
+}
 
 init python:
     renpy.music.register_channel("shelter_knock", mixer="sfx", loop=False, stop_on_mute=False)
     SHELTER_VISITORS = {
+        "anu": {"clips": ANU_CLIPS, "questions": ANU_QUESTIONS,
+                "lines": ANU_LINES, "windows": ANU_SPEECH_WINDOWS, "voices": {}},
         "Bayra": {"clips": BAYRA_CLIPS, "questions": BAYRA_QUESTIONS,
-                "lines": BAYRA_LINES, "windows": BAYRA_SPEECH_WINDOWS, "voices": {}},
+                "lines": BAYRA_LINES, "windows": BAYRA_SPEECH_WINDOWS, "voices": BAYRA_PLAYER_VOICES},
         "Swat": {"clips": SWAT_CLIPS, "questions": SWAT_QUESTIONS,
                 "lines": SWAT_LINES, "windows": SWAT_SPEECH_WINDOWS, "voices": {}},
         "Maral": {"clips": SHELTER_CLIPS, "questions": SHELTER_QUESTIONS,
@@ -207,10 +248,14 @@ init python:
         # between questions, including old saves that stopped on that answer.
         if visitor == "Maral" and clip in ("intro", "answer1", "answer2", "answer3", "lower"):
             return "images/Maral/frames/intro.jpg"
-        if visitor == "Bayra":
-            if clip in ("intro", "answer1", "answer2", "answer3", "lower", "arrival", "admit"):
+        if visitor in ("Bayra", "anu"):
+            if clip in ("intro", "answer1", "answer2", "answer3", "lower"):
                 clip = "idle"
-            return "images/Bayra/frames/" + clip + ".jpg"
+            # Old Bayra saves can still contain split-clip still names.
+            clip = {"arrival": "arrival_start", "enter": "admit", "leave": "reject"}.get(clip, clip)
+            if visitor == "anu" and clip == "admit":
+                return "images/anu/Anu ineeh.png"
+            return "images/" + visitor + "/frames/" + clip + ".jpg"
         if visitor == "Swat":
             if clip in ("intro", "answer1", "answer2", "answer3", "lower"):
                 clip = "idle"
@@ -237,10 +282,8 @@ init python:
         return Transform(shelter_wait_image(clip, visitor), xysize=(1920, 1080))
 
     def shelter_movie_start_image(visitor, clip):
-        if visitor == "Bayra" and clip == "leave":
-            return shelter_wait_image("reject", visitor)
-        if visitor == "Bayra" and clip == "arrival":
-            return "images/Bayra/frames/arrival_start.jpg"
+        if visitor in ("Bayra", "anu") and clip == "intro":
+            return "images/" + visitor + "/frames/arrival_start.jpg"
         return shelter_wait_image(
             "aim" if clip in ("shoot", "lower") else
             ("arrival" if visitor in ("Chinba", "Swat") and clip == "intro" else "intro"), visitor)
@@ -399,6 +442,15 @@ screen shelter_decision(armed=False):
         use shelter_question_choices
 
 
+screen shelter_anu_admission():
+    modal True
+    add "images/anu/Anu ineeh.png" xysize (1920, 1080)
+    key "dismiss" action NullAction()
+    key "skip" action NullAction()
+    key "toggle_skip" action NullAction()
+    key "rollback" action NullAction()
+    timer 1.2 action Return(True)
+
 # Concept 01: live text and actions over the text-free lockdown artwork.
 screen shelter_result(title, description):
     modal True
@@ -484,7 +536,7 @@ label shelter_clip(clip):
         $ shelter_web_begin("Video/" + shelter_visitor + "/" + shelter_data("clips")[clip][0], shelter_web_clip_cues(clip), poster=shelter_movie_start_image(shelter_visitor, clip), armed=clip in ("aim", "shoot", "lower"))
         call screen shelter_web_wait
         $ shelter_web_close()
-    elif (clip == "intro" and shelter_visitor in ("Maral", "Swat")) or (clip == "arrival" and shelter_visitor == "Bayra"):
+    elif clip == "intro" and shelter_visitor in ("Maral", "Swat", "Bayra", "anu"):
         call screen shelter_playback(clip) with Dissolve(0.8)
     else:
         call screen shelter_playback(clip)
@@ -507,8 +559,6 @@ label shelter_visit_start:
     $ shelter_asked = []
     $ shelter_choice = None
     $ shelter_still = "arrival" if shelter_visitor in ("Chinba", "Swat") else "intro"
-    if shelter_visitor == "Bayra":
-        call shelter_clip("arrival")
     call shelter_clip("intro")
     jump shelter_question_phase
 
@@ -544,14 +594,16 @@ label shelter_handle_choice:
     elif shelter_choice == "reject":
         call shelter_player_line("reject")
         call shelter_clip("reject")
-        if shelter_visitor == "Bayra":
-            call shelter_clip("leave")
         jump shelter_resolve_visitor
     elif shelter_choice == "admit":
         call shelter_player_line("admit")
-        call shelter_clip("admit")
-        if shelter_visitor == "Bayra":
-            call shelter_clip("enter")
+        if "admit" in shelter_data("clips"):
+            call shelter_clip("admit")
+        elif shelter_visitor == "anu":
+            # No admission movie was supplied. Use the supplied smile still,
+            # then the scripted monster ending instead of loading a missing file.
+            $ shelter_still = "admit"
+            call screen shelter_anu_admission with Dissolve(0.25)
         jump shelter_resolve_visitor
     jump shelter_decision_phase
 
@@ -562,8 +614,9 @@ label shelter_resolve_visitor:
     $ shelter_status = shelter_campaign_status()
     if shelter_status == "casualties":
         call screen shelter_result("ТА ХОЖИГДЛОО", "Та [shelter_civilians_killed] энгийн иргэнийг алсан. Зөвшөөрөгдөх дээд хэмжээ 3.")
-    elif shelter_visitor == "Maral" and shelter_choice == "admit":
-        call screen shelter_result("ТА АЮУЛЫГ ДОТОГШ ОРУУЛЛАА", "Маралын дүр аймшигтайгаар хувирч, тэр чөтгөрийн инээдээр инээн тан руу дайрлаа.")
+    elif shelter_visitor in ("Maral", "anu") and shelter_choice == "admit":
+        $ shelter_monster_ending = "Ану чөтгөр болон хувирч, тан руу дайрлаа." if shelter_visitor == "anu" else "Маралын дүр аймшигтайгаар хувирч, тэр чөтгөрийн инээдээр инээн тан руу дайрлаа."
+        call screen shelter_result("ТА АЮУЛЫГ ДОТОГШ ОРУУЛЛАА", shelter_monster_ending)
     elif shelter_status == "win":
         call screen shelter_result("ТА ХОЖЛОО", "Та [SHELTER_CIVILIAN_TARGET] энгийн иргэнийг хорогдох байранд оруулж аварлаа.")
     elif shelter_status == "shortfall":
