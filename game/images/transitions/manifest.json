@@ -404,5 +404,68 @@
     "end_time": null,
     "start_sha256": "628911599d55616e6c440570f75a078a2519a508b94158148b1a4198638bc831",
     "end_sha256": "40963e3366c3cf30dc2e83a38851d170935040d3fc9522cff6fea6837376da5e"
+  },
+  "ganba/intro": {
+    "source": "Video/ganba/Ehlel.webm",
+    "source_sha256": "c4abf6b51441bfe8f9d71c3e29029916765ea204b82ed02f86d065f2bbb4ec74",
+    "end_time": null,
+    "start_sha256": "5920dab3835819211df0de10e6e0d1a059269ae53b526565567aef511a91db69",
+    "end_sha256": "15c194b16bdc09a8aa69b8aa4085f3907ddb388a0e4daa2f10b28cf56ea89049"
+  },
+  "ganba/answer1": {
+    "source": "Video/ganba/Ganbaa Hariult 1.webm",
+    "source_sha256": "4b8272279cd6baed72e31be7a9c86e4bb39731ead63f44411e870832d770497d",
+    "end_time": null,
+    "start_sha256": "c44098a1e7e2b5bc74cf564c11abcceffa5d6ac0864e6474c783e87e200757dc",
+    "end_sha256": "12f3499267d28b5dbddd862f6665eeb58fb9336133422b26293d5bea770c1b7f"
+  },
+  "ganba/answer2": {
+    "source": "Video/ganba/Ganbaa Hariult 2.webm",
+    "source_sha256": "ba2a905cca55bbf10373eb6a302896fb0fc4b872fdee15c22561b3bf8d7453e0",
+    "end_time": null,
+    "start_sha256": "c3477f02ea5a1730b73cf1ac370802a8bf7cb83d06cb790ef483250761c1d128",
+    "end_sha256": "6c7c2ee4db2edb133ae8679695976172dbddd7d644be12fa2dce88e6c76692dc"
+  },
+  "ganba/answer3": {
+    "source": "Video/ganba/Ganbaa Hariult 3.webm",
+    "source_sha256": "73dd57933a626064a45383e3d2513c6a3b71255fe1668d188361c177f0b4261e",
+    "end_time": null,
+    "start_sha256": "c3477f02ea5a1730b73cf1ac370802a8bf7cb83d06cb790ef483250761c1d128",
+    "end_sha256": "600c6782aa8f5962fd49b1c53ab9e915392cad76191e29d3dc594cca179242e1"
+  },
+  "ganba/aim": {
+    "source": "Video/ganba/Ganbaa Buu Gargaj ireed yarih.webm",
+    "source_sha256": "09b0e422f59f088f324ffb34bfd9c87b9253f546fe2c5448185eb1e4242be7ed",
+    "end_time": null,
+    "start_sha256": "5d51a227282f43b185d23ffc76ebdc271b2ed12e165aa251c99bd63dc24de221",
+    "end_sha256": "fda5da7b4982ef4273cebe2b0413fb54f790d66d8cc179699cd6b6d178f64cc8"
+  },
+  "ganba/lower": {
+    "source": "Video/ganba/Ganbaa Buugaa buulgah.webm",
+    "source_sha256": "24de8c24dd2e26ffa76b794c55766b14f14a21b38ccc7d9493574c6869c6b038",
+    "end_time": null,
+    "start_sha256": "7e0a1c98a9ccdb29ba7441f2e3cdc44bba930ed2715df0a89cdbbdb864aeb3f0",
+    "end_sha256": "6928c9befd11d5834861e229e2eee582be69655ec25b22af2424e43e3ba6ef5c"
+  },
+  "ganba/shoot": {
+    "source": "Video/ganba/Buudah.webm",
+    "source_sha256": "893ab9f63fa5f6840192354072eff7b0341ddf9e1b8e29a9b584167fce4183be",
+    "end_time": null,
+    "start_sha256": "7e0a1c98a9ccdb29ba7441f2e3cdc44bba930ed2715df0a89cdbbdb864aeb3f0",
+    "end_sha256": "a594f28aa9719a0fde9bc13b3e4b4f5950e2999fff6b982ee1cfb5d2e035ab0b"
+  },
+  "ganba/admit": {
+    "source": "Video/ganba/Ganbaa Oruulah.webm",
+    "source_sha256": "1b9482b292c438e73b1c7d30492873715b02495a430f8810e10e1a1f95239598",
+    "end_time": null,
+    "start_sha256": "c3477f02ea5a1730b73cf1ac370802a8bf7cb83d06cb790ef483250761c1d128",
+    "end_sha256": "8eb24c07b728e2408832aa049004e039205819517b71c1dec0e7365adc372bc3"
+  },
+  "ganba/reject": {
+    "source": "Video/ganba/Ganbaa Yavuulah.webm",
+    "source_sha256": "ba9450dde23daa177df3e050199b3571572b4e007a20fb5c54b99489338cf1cc",
+    "end_time": null,
+    "start_sha256": "c3477f02ea5a1730b73cf1ac370802a8bf7cb83d06cb790ef483250761c1d128",
+    "end_sha256": "e870b590bfd736ae6c65c6f9b7f0b2e9e159a8d6ba7239fb19638b58cf3ea624"
   }
 }

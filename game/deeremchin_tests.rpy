@@ -122,20 +122,20 @@ testsuite shelter_deeremchin_checks:
         assert eval ((renpy.get_screen("shelter_result").scope["title"] == "ТА АЮУЛЫГ ДОТОГШ ОРУУЛЛАА") == (choice == "admit"))
 
     testcase civilian_death_boundary:
-        parameter existing_deaths = [2, 3]
+        parameter existing_deaths = [1, 2]
         run SetVariable("shelter_civilians_killed", existing_deaths)
         run Show("_shelter_test_driver", target="_shelter_test_deeremchin_armed")
         keysym "K_F10"
         pause until screen "shelter_decision" timeout 5
         click "Эрэгтэйг буудах"
-        if eval (existing_deaths == 3):
+        if eval (existing_deaths == 2):
             pause until screen "shelter_result" timeout 10
-            assert eval (shelter_civilians_killed == 4 and shelter_campaign_status() == "casualties")
+            assert eval (shelter_civilians_killed == 3 and shelter_campaign_status() == "casualties")
             assert eval (shelter_deeremchin_outcomes == {"man": "shoot"} and shelter_admitted == 0)
             assert eval (renpy.get_screen("shelter_result").scope["title"] == "ТА ХОЖИГДЛОО")
         else:
             pause until eval (shelter_still == "shoot_man") timeout 10
             pause until screen "shelter_decision" timeout 5
-            assert eval (shelter_civilians_killed == 3 and shelter_campaign_status() == "continue")
+            assert eval (shelter_civilians_killed == 2 and shelter_campaign_status() == "continue")
             assert "Хөөх"
             assert "Оруулах"

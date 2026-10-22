@@ -61,6 +61,7 @@ def main():
         shutil.copy2(ROOT / "game/gui/shelter/metal" / filename, ui / filename)
     for name in ("shoot", "lower", "reject", "admit"):
         shutil.copy2(ROOT / "game/gui/shelter/actions" / (name + ".png"), ui)
+    shutil.copy2(ROOT / "game/gui/shelter/protocol/rules.svg", ui)
     for filename in ("RobotoCondensed-Regular.ttf", "RobotoCondensed-Bold.ttf"):
         shutil.copy2(ROOT / "game/fonts" / filename, ui)
     # Posters must be HTTP assets even when their Ren'Py counterparts are bundled.

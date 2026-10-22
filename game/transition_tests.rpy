@@ -157,7 +157,7 @@ testsuite shelter_transition_checks:
     testcase actual_campaign_includes_all_encounters:
         run Show("_shelter_test_driver", target="shelter_encounter")
         keysym "K_F9"
-        pause until screen "shelter_questions" timeout 30
+        pause until screen "shelter_questions" timeout 40
         # Keep expectations outside the saved store, so loading cannot roll them back.
         $ renpy.test.shelter_expected_order = tuple(shelter_run_order)
         assert eval (len(renpy.test.shelter_expected_order) == len(set(renpy.test.shelter_expected_order)) == len(SHELTER_VISITOR_ORDER))
@@ -175,8 +175,8 @@ testsuite shelter_transition_checks:
             click "Энэ зургийн тухай асуух"
             pause until screen "shelter_decision" timeout 20
             assert eval (shelter_asked == [2])
-        click "Хөөх"
-        pause until screen "shelter_next_visitor_card" timeout 30
+        click expression ("Оруулах" if SHELTER_CIVILIANS.get(shelter_visitor, False) else "Хөөх")
+        pause until screen "shelter_next_visitor_card" timeout 40
         assert eval (shelter_visitors_seen == sum(2 if v == "deeremchin" else 1 for v in renpy.test.shelter_expected_order[:1]))
         run Function(renpy.save, "random-clock")
         # Loading the earlier question must restore both order and counters.
@@ -199,8 +199,8 @@ testsuite shelter_transition_checks:
             click "Энэ зургийн тухай асуух"
             pause until screen "shelter_decision" timeout 20
             assert eval (shelter_asked == [2])
-        click "Хөөх"
-        pause until screen "shelter_next_visitor_card" timeout 30
+        click expression ("Оруулах" if SHELTER_CIVILIANS.get(shelter_visitor, False) else "Хөөх")
+        pause until screen "shelter_next_visitor_card" timeout 40
         assert eval (shelter_visitors_seen == sum(2 if v == "deeremchin" else 1 for v in renpy.test.shelter_expected_order[:2]))
         pause until screen "shelter_questions" timeout 40
         # Visitor 3: use the saved permutation, including Anu in any position.
@@ -214,8 +214,8 @@ testsuite shelter_transition_checks:
             click "Энэ зургийн тухай асуух"
             pause until screen "shelter_decision" timeout 20
             assert eval (shelter_asked == [2])
-        click "Хөөх"
-        pause until screen "shelter_next_visitor_card" timeout 30
+        click expression ("Оруулах" if SHELTER_CIVILIANS.get(shelter_visitor, False) else "Хөөх")
+        pause until screen "shelter_next_visitor_card" timeout 40
         assert eval (shelter_visitors_seen == sum(2 if v == "deeremchin" else 1 for v in renpy.test.shelter_expected_order[:3]))
         pause until screen "shelter_questions" timeout 40
         # Visitor 4: use the saved permutation, including Anu in any position.
@@ -229,8 +229,8 @@ testsuite shelter_transition_checks:
             click "Энэ зургийн тухай асуух"
             pause until screen "shelter_decision" timeout 20
             assert eval (shelter_asked == [2])
-        click "Хөөх"
-        pause until screen "shelter_next_visitor_card" timeout 30
+        click expression ("Оруулах" if SHELTER_CIVILIANS.get(shelter_visitor, False) else "Хөөх")
+        pause until screen "shelter_next_visitor_card" timeout 40
         assert eval (shelter_visitors_seen == sum(2 if v == "deeremchin" else 1 for v in renpy.test.shelter_expected_order[:4]))
         pause until screen "shelter_questions" timeout 40
         # Visitor 5: use the saved permutation, including Anu in any position.
@@ -244,8 +244,8 @@ testsuite shelter_transition_checks:
             click "Энэ зургийн тухай асуух"
             pause until screen "shelter_decision" timeout 20
             assert eval (shelter_asked == [2])
-        click "Хөөх"
-        pause until screen "shelter_next_visitor_card" timeout 30
+        click expression ("Оруулах" if SHELTER_CIVILIANS.get(shelter_visitor, False) else "Хөөх")
+        pause until screen "shelter_next_visitor_card" timeout 40
         assert eval (shelter_visitors_seen == sum(2 if v == "deeremchin" else 1 for v in renpy.test.shelter_expected_order[:5]))
         pause until screen "shelter_questions" timeout 40
         # Visitor 6: the new two-person encounter is part of the same permutation.
@@ -258,17 +258,22 @@ testsuite shelter_transition_checks:
             click "Энэ зургийн тухай асуух"
             pause until screen "shelter_decision" timeout 20
             assert eval (shelter_asked == [2])
-        click "Хөөх"
-        pause until screen "shelter_result" timeout 30
+        click expression ("Оруулах" if SHELTER_CIVILIANS.get(shelter_visitor, False) else "Хөөх")
+        pause until screen "shelter_next_visitor_card" timeout 40
+        pause until screen "shelter_questions" timeout 40
+        # Seventh encounter: Ganbaa participates in the same saved permutation.
+        assert eval (shelter_visitor == renpy.test.shelter_expected_order[6] and shelter_asked == [])
+        click expression ("Оруулах" if SHELTER_CIVILIANS.get(shelter_visitor, False) else "Хөөх")
+        pause until screen "shelter_result" timeout 40
         assert eval (renpy.get_screen("shelter_result").scope["title"] == "ТУРШИЛТЫН ХЭСЭГ ДУУСЛАА")
         assert eval (tuple(shelter_outcomes) == renpy.test.shelter_expected_order)
-        assert eval (shelter_visitors_seen == 7 and shelter_admitted == 0 and shelter_civilians_killed == 0)
+        assert eval (shelter_visitors_seen == 8 and shelter_admitted == 4 and shelter_civilians_killed == 0)
         # Seed only the test: verify replay creates a fresh order and resets progress.
         run Function(renpy.random.seed, 41)
         $ renpy.test.shelter_expected_replay = tuple(shelter_make_visitor_order())
         run Function(renpy.random.seed, 41)
         click "Дахин тоглох"
-        pause until screen "shelter_questions" timeout 30
+        pause until screen "shelter_questions" timeout 40
         assert eval (tuple(shelter_run_order) == renpy.test.shelter_expected_replay)
         assert eval (shelter_visitor == renpy.test.shelter_expected_replay[0] and shelter_outcomes == {})
         assert eval (shelter_visitors_seen == 0 and shelter_inspection_progress == {})

@@ -16,6 +16,8 @@
   const resume = document.getElementById("video-resume");
   const actions = document.getElementById("video-actions");
   const loading = document.getElementById("video-loading");
+  const guide = document.getElementById("video-guide");
+  let guideOpen = false, guideRequested = false, guideWasPaused = false;
   let active = false, sequence = 0, spec = null, frame = 0, cueIndex = -2;
   let errored = false;
   let download = null, objectUrl = null;
@@ -106,7 +108,7 @@
   }
 
   async function play() {
-    if (!active || api.finished) return;
+    if (!active || api.finished || guideOpen) return;
     const current = sequence;
     prompt.hidden = true;
     if (errored) {
@@ -132,6 +134,7 @@
 
   function updateCaption() {
     if (!active || api.finished) return;
+    if (guideOpen) { frame = requestAnimationFrame(updateCaption); return; }
     const time = video.currentTime;
     if (spec.endTime && time >= spec.endTime) {
       finish();
@@ -180,6 +183,7 @@
     start(options) {
       sequence++;
       releaseVideo();
+      guideOpen = guideRequested = false;
       active = true;
       api.finished = false;
       spec = options;
@@ -194,6 +198,7 @@
       prompt.hidden = true;
       loading.hidden = false;
       skip.hidden = !options.intro;
+      guide.hidden = options.intro;
       actions.hidden = options.intro;
       actions.replaceChildren();
       if (!options.intro) {
@@ -222,9 +227,23 @@
       updateCaption();
       loadClip();
     },
+    takeGuideRequest() {
+      const requested = guideRequested;
+      guideRequested = false;
+      return requested;
+    },
+    resumeFromGuide() {
+      if (!guideOpen) return;
+      guideOpen = guideRequested = false;
+      if (!active || api.finished) return;
+      root.hidden = false;
+      fit();
+      if (!guideWasPaused) play();
+    },
     close() {
       const closing = ++sequence;
       active = false;
+      guideOpen = guideRequested = false;
       cancelAnimationFrame(frame);
       // Ren'Py has just drawn its handoff screen. Let that canvas reach the
       // compositor before uncovering it; never reveal the previous visitor.
@@ -237,6 +256,13 @@
   };
 
   skip.addEventListener("click", () => { if (spec?.intro) finish(); });
+  guide.addEventListener("click", () => {
+    if (!active || api.finished || spec?.intro || guideOpen) return;
+    guideWasPaused = video.paused;
+    guideOpen = guideRequested = true;
+    video.pause();
+    root.hidden = true;
+  });
   resume.addEventListener("click", play);
   pause.addEventListener("click", () => {
     if (video.paused) play();
