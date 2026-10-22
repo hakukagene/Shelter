@@ -73,6 +73,21 @@ try {
     }
     throw new Error("Video did not begin playing");
   };
+  const get = expression => evaluate(`renpy_get(${JSON.stringify(expression)})`);
+  const movie = async clip => {
+    const source = await get(`"Video/" + shelter_visitor + "/" + shelter_data("clips")[${JSON.stringify(clip)}][0]`);
+    const suffix = encodeURI(source.replace(/\.webm$/i, ".mp4"));
+    await until(`!document.getElementById('shelter-video').hidden && document.getElementById('story-video').dataset.source.endsWith(${JSON.stringify(suffix)})`);
+  };
+  const firstVisitor = async () => {
+    await until('renpy_get("bool(shelter_run_order) and not shelter_outcomes and shelter_visitor == shelter_run_order[0]")');
+    const order = await get("list(shelter_run_order)");
+    const roster = await get("list(SHELTER_VISITOR_ORDER)");
+    assert.deepEqual([...order].sort(), [...roster].sort());
+    assert.equal(new Set(order).size, roster.length);
+    await movie("intro");
+    return order;
+  };
   const music = expected => until(`renpy_get("renpy.music.get_playing()").then(value => ${JSON.stringify(expected)} === null ? value === null : (value || "").includes(${JSON.stringify(expected)}))`);
   const screen = name => until(`renpy_get("bool(renpy.get_screen('${name}'))")`);
   const finishClip = async () => {
@@ -116,64 +131,73 @@ try {
   await button("#video-resume");
   await until(`document.getElementById('story-video').currentTime > ${paused + .2}`);
   await button("#video-skip");
-  await until("document.getElementById('story-video').dataset.source.includes('Chinbaa%20ehlel.mp4')");
+  const order = await firstVisitor();
   await playback(1);
   await music("shuum.mp3");
   await until('renpy_get("(renpy.music.get_pos() or 0) > .2")');
   await screenshot("03-visitor");
-  console.log("PASS: Start, inline intro, subtitle, pause/resume, skip, first visitor.");
-  await until("document.getElementById('shelter-video').hidden", 25000);
-  await sleep(500);
-  await screenshot("04-questions");
-  await gameClick(441, 740);
-  await until("document.getElementById('story-video').dataset.source.includes('hariult%201.mp4')", 15000);
-  await playback(1);
-  await screenshot("05-answer");
-  console.log("PASS: visitor completion, question/player speech, answer movie.");
-  await until("document.getElementById('shelter-video').hidden", 15000);
-  await gameClick(1479, 740);
-  await until("document.getElementById('story-video').dataset.source.includes('buu%20gargah.mp4')");
-  await playback();
-  await until("document.getElementById('shelter-video').hidden", 10000);
-  await gameClick(1062, 970);
-  await until("document.getElementById('story-video').dataset.source.includes('buu%20buulgah.mp4')");
-  await playback();
-  await until("document.getElementById('shelter-video').hidden", 10000);
-  console.log("PASS: aim and lower-weapon choices.");
-  await screen("shelter_decision");
-  await gameClick(858, 970);
-  await until("document.getElementById('story-video').dataset.source.includes('Chinbaa%20yavah.mp4')");
-  await finishClip();
-  await screen("shelter_next_visitor_card");
-  await until(`renpy_get("renpy.music.get_playing(channel='shelter_knock')").then(value => (value || '').includes('ES_Doors'))`);
-  await until(`renpy_get("(renpy.music.get_pos(channel='shelter_knock') or 0) > 5.5")`, 10000);
-  assert(await evaluate(`renpy_get("bool(renpy.get_screen('shelter_next_visitor_card'))")`));
-  await until("document.getElementById('story-video').dataset.source.includes('Maral/')");
+  console.log("PASS: Start, inline intro, subtitle, pause/resume, skip, random first visitor.", order);
   await finishClip();
   await screen("shelter_questions");
-  await screenshot("07-maral-before-question");
-  const maralBackdrop = await evaluate('renpy_get("shelter_wait_image(shelter_still)")');
-  await gameClick(441, 740);
-  await until("!document.getElementById('shelter-video').hidden");
-  await finishClip();
-  await screen("shelter_decision");
-  assert.equal(await evaluate('renpy_get("shelter_visitor")'), "Maral");
-  assert.equal(await evaluate('renpy_get("shelter_still")'), "answer1");
-  assert.equal(await evaluate('renpy_get("shelter_wait_image(shelter_still)")'), maralBackdrop,
-    "Maral's first answer must preserve the doorway framing");
-  await screenshot("08-maral-after-question");
-  console.log("PASS: Maral's first answer preserves the original frame scale.");
-  await gameClick(1062, 970);
-  await until("!document.getElementById('shelter-video').hidden");
-  await finishClip();
+  await screenshot("04-questions");
+  // Follow the actual shuffled order. Maral's admission still ends the run,
+  // regardless of which position she occupies.
+  for (const [index, visitor] of order.entries()) {
+    assert.equal(await get("shelter_visitor"), visitor);
+    assert.equal(await get("shelter_visitors_seen"), index);
+    if (index === 0 || visitor === "Maral") {
+      const backdrop = await get("shelter_wait_image(shelter_still)");
+      await gameClick(441, 740);
+      await movie("answer1");
+      await playback(1);
+      await screenshot(`05-${visitor}-answer`);
+      await finishClip();
+      await screen("shelter_decision");
+      assert.equal(await get("shelter_still"), "answer1");
+      if (visitor === "Maral") {
+        assert.equal(await get("shelter_wait_image(shelter_still)"), backdrop,
+          "Maral's first answer must preserve the doorway framing");
+        await screenshot("08-maral-after-question");
+      }
+    }
+    if (index === 0) {
+      await gameClick(1479, 740);
+      await movie("aim");
+      await finishClip();
+      await screen("shelter_decision");
+      await gameClick(1062, 970);
+      await movie("lower");
+      await finishClip();
+      await screen("shelter_decision");
+      console.log("PASS: question/player speech, answer, aim and lower-weapon choices.");
+    }
+    if (visitor === "Maral") {
+      await gameClick(1062, 970);
+      await movie("admit");
+      await finishClip();
+      break;
+    }
+    await gameClick(858, 970);
+    await movie("reject");
+    await finishClip();
+    await screen("shelter_next_visitor_card");
+    await until(`renpy_get("renpy.music.get_playing(channel='shelter_knock')").then(value => (value || '').includes('ES_Doors'))`);
+    await until(`renpy_get("(renpy.music.get_pos(channel='shelter_knock') or 0) > 5.5")`, 10000);
+    assert(await get("bool(renpy.get_screen('shelter_next_visitor_card'))"));
+    await until(`renpy_get("shelter_visitor").then(value => value === ${JSON.stringify(order[index + 1])})`);
+    await movie("intro");
+    await finishClip();
+    await screen("shelter_questions");
+  }
   await screen("shelter_result");
   await music("menu2.mp3");
   await screenshot("06-result");
   await gameClick(772, 718);
-  await until("document.getElementById('story-video').dataset.source.includes('Chinbaa%20ehlel.mp4')");
+  await firstVisitor();
+  assert.equal(await get("shelter_visitors_seen"), 0);
   await playback();
   await music("shuum.mp3");
-  console.log("PASS: full new door knock, next visitor, ending music and replay music.");
+  console.log("PASS: shuffled progression, Maral framing, ending music and shuffled replay.");
   // Return to the menu and exercise natural video EOF without a 100-second wait.
   await send("Page.navigate", { url: process.argv[2] || "http://127.0.0.1:8044" });
   await until("typeof window.renpy_get === 'function' && !document.getElementById('presplash')", 90000);
@@ -183,7 +207,7 @@ try {
   await playback();
   await until("document.getElementById('story-video').duration > 99");
   await evaluate("document.getElementById('story-video').currentTime = 99.5");
-  await until("document.getElementById('story-video').dataset.source.includes('Chinbaa%20ehlel.mp4')");
+  await firstVisitor();
   console.log("PASS: intro EOF also advances to the first visitor.");
   assert.deepEqual(errors, [], "Browser runtime exceptions");
   console.log("Screenshots:", output);

@@ -32,7 +32,8 @@ testsuite shelter_intro_flow:
         assert not screen "shelter_intro_playback"
         pause until eval (renpy.music.get_playing(channel="shelter_intro_video") is None) timeout 2
         assert eval (renpy.music.get_playing(channel="shelter_intro_video") is None)
-        assert eval (shelter_visitor == "Chinba")
+        assert eval (shelter_visitor == shelter_run_order[0])
+        assert eval (len(shelter_run_order) == len(set(shelter_run_order)) == len(SHELTER_VISITOR_ORDER))
         assert eval (not _skipping)
         assert eval ("shuum.mp3" in (renpy.music.get_playing() or ""))
         run Show("shelter_result", title="ТЕСТ", description="")
@@ -70,7 +71,7 @@ testsuite shelter_intro_flow:
         assert not screen "shelter_intro_playback"
         pause until eval (renpy.music.get_playing(channel="shelter_intro_video") is None) timeout 2
         assert eval (renpy.music.get_playing(channel="shelter_intro_video") is None)
-        assert eval (shelter_visitor == "Chinba")
+        assert eval (shelter_visitor == shelter_run_order[0])
         pause until screen "shelter_questions" timeout 25
 
 testsuite shelter_maral_framing:
