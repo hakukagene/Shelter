@@ -1,5 +1,5 @@
 # Character belongings are evidence to examine, never an automatic verdict.
-# Assets are alpha atlases; Crop keeps each object separate at runtime.
+# Assets use alpha atlases or standalone cutouts; each prop stays separate.
 default shelter_inspection_progress = {}
 
 init python:
@@ -13,7 +13,7 @@ init python:
         "charger": ("items.png", (540, 90, 505, 415)),
         "schedule": ("items.png", (1050, 10, 480, 500)),
         "notebook": ("items.png", (25, 535, 440, 455)),
-        "drawing": ("items.png", (475, 550, 605, 440)),
+        "drawing": ("anu-notebook.webp", None),
         "rabbit": ("items.png", (1090, 510, 440, 505)),
     }
     SHELTER_INSPECTION_ITEMS = {
@@ -67,7 +67,8 @@ init python:
 
     def shelter_inspection_sprite(name):
         filename, rect = SHELTER_INSPECTION_SPRITES[name]
-        return Crop(rect, "images/inspection/" + filename)
+        image = "images/inspection/" + filename
+        return Crop(rect, image) if rect is not None else image
 
     def shelter_inspection_done(visitor, item):
         return item in shelter_inspection_progress.get(visitor, ())

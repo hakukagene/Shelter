@@ -194,6 +194,12 @@ matched to the supplied character appearance and updated script. Their runtime
 crop rectangles, per-visitor inventory, and interactions live in
 `game/inspection.rpy`; extend its data tables when future visitors arrive.
 
+Anu's open notebook uses `game/images/inspection/anu-notebook.webp`, a standalone
+transparent prop made from the supplied `game/images/anu/zurag.jpg`. The drawing
+is blended across the aged pages and center fold, including its red lock arrow
+and handwritten “Түгжээ”. The closed notebook and other atlas objects are unchanged.
+The source and generation prompt are documented in `tools/art/anu-notebook.md`.
+
 The campaign counters retain 43 civilians, 30 monsters, a target of 40 rescued
 civilians and a maximum of three civilian deaths. Five visitors are playable;
 finishing them is a preview ending, not a campaign win.
