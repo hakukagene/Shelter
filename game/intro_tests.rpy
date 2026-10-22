@@ -28,6 +28,8 @@ testsuite shelter_intro_flow:
         move "Алгасах"
         screenshot "../../tmp/intro-tests/skip-hover.png"
         click "Алгасах"
+        pause until screen "shelter_protocol" timeout 10
+        click id "protocol_close"
         pause until screen "shelter_playback" timeout 10
         assert not screen "shelter_intro_playback"
         pause until eval (renpy.music.get_playing(channel="shelter_intro_video") is None) timeout 2
@@ -50,6 +52,8 @@ testsuite shelter_intro_flow:
         pause until eval ((renpy.music.get_pos(channel="shelter_intro_video") or 0) > 2.0) timeout 15
         assert id "intro_subtitle"
         keysym "K_ESCAPE"
+        pause until screen "shelter_protocol" timeout 10
+        click id "protocol_close"
         pause until screen "shelter_playback" timeout 10
         pause until eval (renpy.music.get_playing(channel="shelter_intro_video") is None) timeout 2
         assert eval (renpy.music.get_playing(channel="shelter_intro_video") is None)
@@ -60,6 +64,8 @@ testsuite shelter_intro_flow:
         pause 0.5
         assert eval ((renpy.music.get_pos(channel="shelter_intro_video") or 0) < 2.0)
         keysym "K_ESCAPE"
+        pause until screen "shelter_protocol" timeout 10
+        click id "protocol_close"
         pause until screen "shelter_playback" timeout 10
 
     testcase full_playback:
@@ -67,12 +73,14 @@ testsuite shelter_intro_flow:
         pause until screen "shelter_intro_playback" timeout 10
         pause until eval ((renpy.music.get_pos(channel="shelter_intro_video") or 0) > 75.0) timeout 90
         screenshot "../../tmp/intro-tests/radio.png"
-        pause until screen "shelter_playback" timeout 40
+        pause until screen "shelter_protocol" timeout 40
+        click id "protocol_close"
+        pause until screen "shelter_playback" timeout 10
         assert not screen "shelter_intro_playback"
         pause until eval (renpy.music.get_playing(channel="shelter_intro_video") is None) timeout 2
         assert eval (renpy.music.get_playing(channel="shelter_intro_video") is None)
         assert eval (shelter_visitor == shelter_run_order[0])
-        pause until screen "shelter_questions" timeout 25
+        pause until screen "shelter_questions" timeout 40
 
 testsuite shelter_maral_framing:
     teardown:
@@ -80,7 +88,7 @@ testsuite shelter_maral_framing:
 
     testcase questions_and_lower:
         run Start("shelter_visit_start")
-        pause until screen "shelter_questions" timeout 25
+        pause until screen "shelter_questions" timeout 40
         assert eval (shelter_visitor == "Maral")
         screenshot "../../tmp/frame-tests/before.png"
         click "Чи ямар тайван байна аа. Айхгүй байгаа юм уу?"

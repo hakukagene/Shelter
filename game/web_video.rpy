@@ -20,6 +20,12 @@ init python:
             "window.ShelterVideo.start(" + shelter_web_json.dumps(payload) + ")")
 
     def shelter_web_tick():
+        if renpy.get_screen("shelter_protocol"):
+            return
+        if renpy.emscripten.run_script_int("window.ShelterVideo.takeGuideRequest() ? 1 : 0"):
+            renpy.show_screen("shelter_protocol")
+            renpy.restart_interaction()
+            return
         if renpy.emscripten.run_script_int("window.ShelterVideo.finished ? 1 : 0"):
             renpy.end_interaction(True)
 

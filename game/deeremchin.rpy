@@ -127,7 +127,7 @@ label shelter_deeremchin_handle_choice:
         call shelter_clip(shelter_choice)
         $ shelter_record_deeremchin_person(shelter_choice.split("_")[1], "shoot")
         if shelter_campaign_status() == "casualties":
-            # The fourth civilian death ends the game immediately.
+            # The third civilian mistake ends the game immediately.
             jump shelter_resolve_visitor
         jump shelter_decision_phase
     elif shelter_choice in ("admit", "reject"):

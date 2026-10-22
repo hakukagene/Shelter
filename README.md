@@ -107,8 +107,8 @@ Gameplay loops `shuum.mp3` at 18% so speech remains audible. Starting or
 replaying switches tracks with a fade; the opening film stops menu music.
 The Music slider adjusts these backgrounds; Voice adjusts dialogue.
 
-Visitor transitions play `door.wav`
-once on the sound-effects channel. The transition waits for the full 5.93-second
+Visitor transitions play `game/audio/Audio/door .wav`
+once on the sound-effects channel. The transition waits for the full 2.20-second
 recording; this short effect is bundled in the web edition to avoid download delays.
 
 The ten `game/audio/Chingune/*.wav` clips are matched to approximately
@@ -201,7 +201,8 @@ and handwritten “Түгжээ”. The closed notebook and other atlas objects 
 The source and generation prompt are documented in `tools/art/anu-notebook.md`.
 
 The campaign counters retain 43 civilians, 30 monsters, a target of 40 rescued
-civilians and a maximum of three civilian deaths. Five visitors are playable;
+civilians and at most two civilian mistakes (killing or rejecting). The third
+mistake ends the run. Seven encounters containing eight people are playable;
 finishing them is a preview ending, not a campaign win.
 
 Between visitors, `game/intermission.rpy` uses the selected guard's ledger artwork
@@ -375,3 +376,27 @@ fix replaces previously compiled test code as well.
 After updating, use Launcher → Force Recompile, then Launch Project. The main
 game scripts are independent of the archived tests. Release builds should be
 validated in the exact Ren'Py version used to ship them.
+
+## Protocol and midpoint continuation
+
+The approved classified-dossier instructions appear after the intro (including
+when it is skipped). A document icon at the top right opens them again during
+questions, inspection and response videos. Opening the guide pauses the current
+voice/video; closing it resumes the same position, including the HTML player.
+
+The main menu shows **Үргэлжлүүлэх** only when the dedicated
+`shelter-midpoint-v1` save exists with valid checkpoint metadata. After rescuing
+the twentieth civilian, the game saves once per run at a stable interaction
+between visitors. Continue restores the saved random order, outcomes, counters,
+clock and inspection progress, then proceeds to the next visitor. Newer manual
+saves do not replace this destination. A new game keeps the old checkpoint until
+its own twentieth rescue replaces it.
+
+Only five civilians are currently supplied (including the man in the pair), so
+the current content preview cannot naturally reach twenty. The checkpoint is
+implemented and integration-tested with a nineteen-rescue fixture; production
+does not repeat or fabricate visitors to unlock it.
+
+Ganbaa is the seventh encounter: all nine supplied clips, questions, civilian
+classification, bag inspection, aiming/lowering and three endings are connected.
+See `tools/art/protocol-and-ganba.md` for asset provenance and validation.

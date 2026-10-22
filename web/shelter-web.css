@@ -36,3 +36,8 @@ body{height:100vh;height:100dvh}
  #rotate-hint{display:flex;position:fixed;inset:0;z-index:50;background:#100c0cf5;align-items:center;justify-content:center;text-align:center;padding:32px;box-sizing:border-box;flex-direction:column;gap:18px;font-size:24px}
  #rotate-hint span{font-size:52px;color:#bd9e72}
 }
+/* Same icon/position as the native encounter overlay. */
+#video-guide { position: absolute; left: 1816px; top: 24px; width: 76px; height: 76px; min-height: 76px; box-sizing: border-box; padding: 9px; border: 0; background: url("shelter-ui/button.png") center/100% 100%; }
+#video-guide:hover,#video-guide:focus-visible { background-image: url("shelter-ui/selected.png"); }
+#video-guide img { width: 58px; height: 58px; }
+#shelter-video:not(.intro) #video-controls { right: 130px; }

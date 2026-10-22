@@ -387,14 +387,14 @@ screen main_menu():
     add "gui/shelter/main_menu/bunker.png" xysize (1920, 1080)
 
     # Align the menu with the centre of the red БАЙР lettering in the artwork.
-    $ latest_save = renpy.newest_slot()
+    $ midpoint_available = shelter_has_checkpoint()
     vbox:
         xcenter 1540
         ypos 440
         spacing 10
         for caption, menu_key, menu_action in [
-            ("Эхлэх", "start", Start()),
-            ("Үргэлжлүүлэх", "continue", FileLoad(latest_save, slot=True) if latest_save else NullAction()),
+            ("Эхлэх", "start", Start())] + ([
+            ("Үргэлжлүүлэх", "continue", FileLoad(SHELTER_CHECKPOINT_SLOT, slot=True))] if midpoint_available else []) + [
             ("Тохиргоо", "settings", ShowMenu("preferences"))] + ([] if renpy.variant("web") else [
             ("Гарах", "quit", Quit(confirm=True))]):
             button:
@@ -402,7 +402,6 @@ screen main_menu():
                 padding (0, 0)
                 background None
                 hover_background Solid("#09070655")
-                sensitive menu_key != "continue" or latest_save is not None
                 hovered SetScreenVariable("shelter_menu_focus", menu_key)
                 action menu_action
                 text caption:

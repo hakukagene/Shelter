@@ -17,11 +17,12 @@ define SHELTER_CIVILIAN_COUNT = 43
 define SHELTER_MONSTER_COUNT = 30
 define SHELTER_TOTAL_VISITORS = SHELTER_CIVILIAN_COUNT + SHELTER_MONSTER_COUNT
 define SHELTER_CIVILIAN_TARGET = 40
-define SHELTER_MAX_CIVILIAN_DEATHS = 3
+define SHELTER_MAX_CIVILIAN_DEATHS = 2
+define SHELTER_MAX_CIVILIAN_MISTAKES = 2
 # Available roster, also the original sequence for saves predating random order.
-define SHELTER_VISITOR_ORDER = ("Chinba", "Maral", "Swat", "Bayra", "anu", "deeremchin")
+define SHELTER_VISITOR_ORDER = ("Chinba", "Maral", "Swat", "Bayra", "anu", "deeremchin", "ganba")
 default shelter_run_order = None
-define SHELTER_CIVILIANS = {"Chinba": True, "Maral": False, "Swat": True, "Bayra": True, "anu": False}
+define SHELTER_CIVILIANS = {"Chinba": True, "Maral": False, "Swat": True, "Bayra": True, "anu": False, "ganba": True}
 # Armor stops the bullet: Orgil leaves alive after being shot.
 define SHELTER_NONLETHAL_SHOOT = ("Swat",)
 default shelter_outcomes = {}
@@ -200,6 +201,8 @@ define ANU_SPEECH_WINDOWS = {
 init python:
     renpy.music.register_channel("shelter_knock", mixer="sfx", loop=False, stop_on_mute=False)
     SHELTER_VISITORS = {
+        "ganba": {"clips": GANBA_CLIPS, "questions": GANBA_QUESTIONS,
+                "lines": GANBA_LINES, "windows": GANBA_SPEECH_WINDOWS, "voices": {}},
         "deeremchin": {"clips": DEEREMCHIN_CLIPS, "questions": DEEREMCHIN_QUESTIONS,
                 "lines": DEEREMCHIN_LINES, "windows": DEEREMCHIN_SPEECH_WINDOWS,
                 "voices": DEEREMCHIN_PLAYER_VOICES},
@@ -273,8 +276,17 @@ init python:
         elif choice == "shoot" and civilian and visitor not in SHELTER_NONLETHAL_SHOOT:
             shelter_civilians_killed += 1
 
+    def shelter_civilian_mistakes():
+        # Fatal shots are already counted, including the man in the pair.
+        # Rejecting a civilian (or forcing armored Orgil to leave) also loses one.
+        rejected = sum(SHELTER_CIVILIANS.get(visitor, False) and
+            (choice == "reject" or (choice == "shoot" and visitor in SHELTER_NONLETHAL_SHOOT))
+            for visitor, choice in shelter_outcomes.items())
+        rejected += shelter_deeremchin_outcomes.get("man") in ("reject", "lost")
+        return shelter_civilians_killed + rejected
+
     def shelter_campaign_status():
-        if shelter_civilians_killed > SHELTER_MAX_CIVILIAN_DEATHS:
+        if shelter_civilian_mistakes() > SHELTER_MAX_CIVILIAN_MISTAKES:
             return "casualties"
         if shelter_civilians_saved >= SHELTER_CIVILIAN_TARGET:
             return "win"
@@ -293,6 +305,10 @@ init python:
         stop_on_mute=False, buffer_queue=False)
     def shelter_wait_image(clip, visitor=None):
         visitor = visitor or shelter_visitor
+        if visitor == "ganba":
+            if clip in ("intro", "answer1", "answer2", "answer3", "lower"):
+                return shelter_movie_frame(visitor, "answer1", "start")
+            return shelter_movie_frame(visitor, clip, "end")
         if visitor == "deeremchin":
             # Match the actual video framing; never reintroduce a shot person.
             if clip in ("aim", "shoot_man", "shoot_woman") or shelter_clip_is_terminal(clip):
@@ -409,15 +425,16 @@ screen shelter_playback(clip):
         frame:
             background Solid("#080707dd")
             xalign 0.5
-            ypos (580 if shelter_visitor == "Bayra" else 630 if shelter_visitor == "Swat" else 710)
+            ypos (580 if shelter_visitor in ("Bayra", "ganba") else 630 if shelter_visitor == "Swat" else 710)
             xsize 1344
             padding (35, 22)
-            text shelter_data("lines")[clip] style "shelter_text" size (24 if shelter_visitor == "Bayra" else 26 if shelter_visitor == "Swat" else 30) xalign 0.5 text_align 0.5
+            text shelter_data("lines")[clip] style "shelter_text" size (24 if shelter_visitor == "Bayra" else 26 if shelter_visitor in ("Swat", "ganba") else 30) xalign 0.5 text_align 0.5
     # A short startup grace avoids interpreting a not-yet-started decoder as EOF.
     # Actual playback completion, rather than a fixed timer, drives progression.
-    timer 0.03 repeat True action If(
+    timer 0.03 repeat True action If(renpy.get_screen("shelter_protocol"), NullAction(), If(
         elapsed >= 0.5 and not renpy.music.get_playing(channel="shelter_video"),
-        Return(True), SetScreenVariable("elapsed", elapsed + 0.03))
+        Return(True), SetScreenVariable("elapsed", elapsed + 0.03)))
+    use shelter_protocol_button
 
 # Both native and HTML playback land on the same decoded end frame first.
 # Then only conversational/armed clips blend to their stable waiting pose.
@@ -488,9 +505,10 @@ screen shelter_player_speech(voice_key, caption=None):
             xsize 1344
             padding (35, 22)
             text caption style "shelter_text" text_align 0.5 xalign 0.5
-    timer 0.03 repeat True action If(
+    timer 0.03 repeat True action If(renpy.get_screen("shelter_protocol"), NullAction(), If(
         elapsed >= 0.5 and not renpy.music.get_playing(channel="shelter_player"),
-        Return(True), SetScreenVariable("elapsed", elapsed + 0.03))
+        Return(True), SetScreenVariable("elapsed", elapsed + 0.03)))
+    use shelter_protocol_button
 
 screen shelter_question_choices():
     hbox:
@@ -519,6 +537,7 @@ screen shelter_questions():
     use shelter_backdrop
     use shelter_actions
     use shelter_question_choices
+    use shelter_protocol_button
 
 
 screen shelter_decision(armed=False):
@@ -527,6 +546,7 @@ screen shelter_decision(armed=False):
     use shelter_actions(armed=armed)
     if not armed and shelter_can_ask_questions():
         use shelter_question_choices
+    use shelter_protocol_button
 
 
 screen shelter_anu_admission():
@@ -580,9 +600,9 @@ screen shelter_next_visitor_card():
     key "toggle_skip" action NullAction()
     key "rollback" action NullAction()
     on "hide" action Stop("shelter_knock")
-    timer 2.0 action Play("shelter_knock", "audio/Audio/door.wav", loop=False)
-    # Allow the full 5.93-second recording to finish before the visitor fades in.
-    timer 8.1 action Return(True)
+    timer 2.0 action Play("shelter_knock", "audio/Audio/door .wav", loop=False)
+    # Allow the full supplied 2.20-second knock before the visitor fades in.
+    timer 4.5 action Return(True)
 
 label shelter_player_line(voice_key, caption=None):
     # New characters may have response video audio before player voice is supplied.
@@ -636,6 +656,8 @@ label shelter_encounter:
     $ shelter_story_minutes = SHELTER_CLOCK_START
     $ shelter_inspection_progress = {}
     $ shelter_inspection_requests = []
+    $ shelter_checkpoint_created = False
+    $ shelter_checkpoint_written = False
     jump shelter_visit_start
 
 label shelter_visit_start:
@@ -694,8 +716,11 @@ label shelter_resolve_visitor:
     if shelter_visitor == "Chinba":
         $ shelter_chinba_outcome = shelter_choice
     $ shelter_status = shelter_campaign_status()
+    if shelter_status == "continue" and not shelter_admitted_monster():
+        call shelter_save_midpoint from _call_shelter_save_midpoint
     if shelter_status == "casualties":
-        call screen shelter_result("ТА ХОЖИГДЛОО", "Та [shelter_civilians_killed] энгийн иргэнийг алсан. Зөвшөөрөгдөх дээд хэмжээ 3.")
+        $ shelter_mistakes = shelter_civilian_mistakes()
+        call screen shelter_result("ТА ХОЖИГДЛОО", "Та [shelter_mistakes] энгийн хүнийг хөнөөсөн эсвэл хөөж явуулсан. Зөвшөөрөгдөх алдааны дээд хэмжээ 2.")
     elif shelter_admitted_monster():
         $ shelter_monster_ending = "Эмэгтэй чөтгөр болон хувирч, тан руу дайрлаа." if shelter_visitor == "deeremchin" else "Ану чөтгөр болон хувирч, тан руу дайрлаа." if shelter_visitor == "anu" else "Маралын дүр аймшигтайгаар хувирч, тэр чөтгөрийн инээдээр инээн тан руу дайрлаа."
         call screen shelter_result("ТА АЮУЛЫГ ДОТОГШ ОРУУЛЛАА", shelter_monster_ending)
@@ -707,7 +732,8 @@ label shelter_resolve_visitor:
         jump shelter_next_visitor
     else:
         # The available visitor preview is not a complete campaign victory.
-        call screen shelter_result("ТУРШИЛТЫН ХЭСЭГ ДУУСЛАА", "Оруулсан: [shelter_admitted] • Аврагдсан: [shelter_civilians_saved]/40 • Алагдсан: [shelter_civilians_killed]/3. Үлдсэн дүрүүд хараахан нэмэгдээгүй.")
+        $ shelter_mistakes = shelter_civilian_mistakes()
+        call screen shelter_result("ТУРШИЛТЫН ХЭСЭГ ДУУСЛАА", "Оруулсан: [shelter_admitted] • Аврагдсан: [shelter_civilians_saved]/40 • Алдаа: [shelter_mistakes]/2. Үлдсэн дүрүүд хараахан нэмэгдээгүй.")
     if _return == "replay":
         jump shelter_encounter
     return

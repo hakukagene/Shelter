@@ -63,6 +63,26 @@ const options = { src: "test.mp4", cues: [], volume: 1, muted: false, intro: fal
   poster: "start.jpg", endPoster: "end.jpg" };
 const flush = async () => { for (let i=0; i<8; i++) await Promise.resolve(); };
 
+// Instructions pause the same decoder and uncover the Ren'Py guide, not EOF.
+api.start(options); await flush();
+video.currentTime = 2.4;
+element("video-guide").listeners.click();
+assert.equal(video.paused, true);
+assert.equal(root.hidden, true);
+assert.equal(api.finished, false);
+assert.equal(api.takeGuideRequest(), true);
+assert.equal(api.takeGuideRequest(), false);
+api.resumeFromGuide(); await flush();
+assert.equal(video.currentTime, 2.4);
+assert.equal(video.paused, false);
+assert.equal(root.hidden, false);
+video.pause();
+element("video-guide").listeners.click();
+api.resumeFromGuide(); await flush();
+assert.equal(video.paused, true, "Keep a pre-existing user pause when closing instructions");
+api.close(); nextFrame(); nextFrame();
+console.log("PASS: instructions pause/resume the same video and preserve an existing pause.");
+
 api.start(options); await flush();
 assert.equal(video.paused, false);
 assert.equal(video.style.opacity, "0", "Download/play must not cover the canvas with an empty video");

@@ -6,8 +6,10 @@ on:
       - 'game/Video/Bayra/*.mp4'
       - 'game/Video/anu/*.mp4'
       - 'game/Video/deeremchin/*.webm'
+      - 'game/Video/ganba/*.webm'
       - 'tools/prepare_transition_frames.py'
       - 'game/deeremchin.rpy'
+      - 'game/ganba.rpy'
       - 'tools/encounter_media.json'
       - 'tools/prepare_encounter_media.py'
 permissions:

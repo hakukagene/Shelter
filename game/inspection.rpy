@@ -7,6 +7,7 @@ init python:
     import pygame
 
     SHELTER_INSPECTION_SPRITES = {
+        "ganba_bag": ("ganba-bag.webp", None),
         "delivery_bag": ("containers.png", (0, 90, 580, 770)),
         "school_bag": ("containers.png", (580, 250, 450, 580)),
         "business_bag": ("containers.png", (1040, 245, 496, 585)),
@@ -18,6 +19,11 @@ init python:
         "rabbit": ("items.png", (1090, 510, 440, 505)),
     }
     SHELTER_INSPECTION_ITEMS = {
+        "ganba_bag": {
+            "name": "Шилтэй архинууд", "action": "Торыг шалгах",
+            "description": "Ганбаагийн авч ирсэн гялгар тортой зүйлс.",
+            "detail": "Торон дотор шилтэй архинууд байна. Түүний зоориноос авчирсан гэж хэлсэн зүйлтэй таарч байна.",
+        },
         "meal": {
             "name": "Захиалгын хоол", "action": "Савлагааг шалгах",
             "description": "Хүргэлтийн үүргэвчнээс гаргасан хоолны сав.",
@@ -52,6 +58,9 @@ init python:
     }
     # Extend this table only when a visitor and their belongings are supplied.
     SHELTER_INSPECTIONS = {
+        "ganba": {"owner": "ГАНБАА", "bag": "ganba_bag",
+            "title": "Гялгар тортой шилнүүд", "items": ("ganba_bag",),
+            "note": "Тортой шилнүүдийг сонгож ойроос шалгаарай."},
         "Chinba": {"owner": "ЧИНБАА", "bag": "delivery_bag",
             "title": "Хүргэлтийн үүргэвч", "items": ("meal", "charger", "schedule"),
             "note": "Үүргэвчний эд зүйл дээр дарж авч үзээрэй."},
@@ -189,7 +198,7 @@ screen shelter_inspection(visitor):
     add Solid("#06070766") xysize (1920, 112)
     text "ҮЗЛЭГИЙН ШИРЭЭ" style "inspection_text" font SHELTER_BOLD size 42 xpos 64 ypos 26
     text bag["title"] style "inspection_text" size 22 color "#b9aa91" xpos 66 ypos 78
-    text bag["owner"] style "inspection_text" size 30 xanchor 1.0 xpos 1850 ypos 38
+    text bag["owner"] style "inspection_text" size 30 xanchor 1.0 xpos 1788 ypos 38
     add Solid("#9f86574d") xpos 65 ypos 111 xysize (1790, 1)
 
     # A single main prop replaces the former duplicate desk/detail previews.
@@ -324,6 +333,7 @@ screen shelter_inspection(visitor):
     key "K_RIGHT" action Function(viewer.turn, 15)
     key "K_EQUALS" action Function(viewer.zoom, 0.15)
     key "K_MINUS" action Function(viewer.zoom, -0.15)
+    use shelter_protocol_button
 
 label shelter_inspect_belongings:
     $ shelter_hold_current_frame()
