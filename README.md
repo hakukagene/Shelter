@@ -9,6 +9,18 @@ the opening film, then starts the visitors in a random order.
 The game uses a 1920×1080 logical canvas; the original
 1672×940 footage fills the screen with near-identical aspect ratio.
 
+## Desktop icon
+
+The red-lit steel bunker door is the game's desktop icon. The transparent
+256×256 `game/gui/window_icon.png` is used by the running game's window and
+taskbar through the existing `config.window_icon` setting. Restart the game
+after updating to see it.
+
+The root `icon.ico` contains 16, 24, 32, 48, 64, 128, and 256 pixel versions
+of the same artwork. Ren'Py embeds it in Windows executables when choosing
+**Build Distributions**; rebuild an existing Windows release to update its
+executable icon.
+
 ## Android APK
 
 The Android build uses Ren'Py **8.5.3** and produces a signed universal APK in
