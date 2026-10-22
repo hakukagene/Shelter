@@ -277,6 +277,13 @@ the movie. The decoded end poster stays visible through the waiting-pose handoff
 including when resuming an older save. Departures dissolve straight to the ledger;
 its live clock and counters remain behind the card until the next visitor starts.
 This prevents transient screen removal or decoder startup from exposing black.
+Question/action buttons retain the current still before returning their choice.
+The first-frame poster finishes its dissolve before native movie playback starts;
+no live Movie is rendered inside that startup transition. Window hiding during
+questions and inspections also avoids an unrelated dialogue-window transition.
+The web overlay remains transparent while downloading or awaiting autoplay and
+reveals the video only after its first frame reaches the compositor (with a
+loaded-data/paint fallback for older browsers).
 
 ## Validation
 
@@ -292,11 +299,14 @@ For the black-flash regression alone, run:
 
 ```text
 renpy.exe <project-path> test shelter_transition_checks::no_black_transition_frames --savedir <project-path>/tmp/transition-saves
+renpy.exe <project-path> test shelter_transition_checks::no_black_after_button_clicks --savedir <project-path>/tmp/transition-saves
 ```
 
 It samples rendered pixels through an old-save-style still, two movies, Maral's
 departure, the ledger and Chinba's arrival, and rejects black frames in that
 sequence. This test uses the real decoder and normal playback speed.
+The button case clicks a question, aim, lower and reject from an old-save-style
+screen, capturing the player-voice and video-start intervals as well.
 
 The native suite plays all 45 clips to EOF, then rejects all five visitors in their
 shuffled order, opening Anu's notebook and playing her answer wherever she appears.
@@ -310,8 +320,9 @@ renpy.exe <project-path> test shelter_transition_checks::actual_campaign_reaches
 renpy.exe <project-path> test shelter_transition_checks::ledger_clock_and_totals --savedir <project-path>/tmp/ledger-saves
 ```
 
-The bridge test covers EOF holding, deferred canvas
-handoff, a new clip racing an old close, trimmed playback and intro skipping.
+The bridge test covers first-frame reveal, slow downloads, autoplay permission,
+old-browser fallback, EOF holding, deferred canvas handoff, stale callbacks,
+trimmed playback and intro skipping.
 The Node bridge test uses a simulated DOM; it is not physical Safari validation.
 
 Inspection regression scenarios (Ren'Py 8.5.3):

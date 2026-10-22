@@ -7,9 +7,10 @@ body{height:100vh;height:100dvh}
 #presplash{background:#070606;object-fit:contain}
 #statusDiv{font-family:Shelter,sans-serif;border:1px solid #635343;background:#100d0def;z-index:20}
 #ContextContainer{z-index:25}
-#shelter-video{position:fixed;inset:0;z-index:30;background:#000}
+#shelter-video{position:fixed;inset:0;z-index:30;background:transparent}
+#shelter-video.intro{background:#000}
 #video-stage{position:absolute;width:1920px;height:1080px;transform-origin:center;overflow:hidden}
-#story-video{width:1920px;height:1080px;object-fit:fill;background:#000;pointer-events:none}
+#story-video{width:1920px;height:1080px;object-fit:fill;background:transparent;opacity:0;pointer-events:none}
 #video-end-frame{position:absolute;inset:0;width:1920px;height:1080px;object-fit:fill;pointer-events:none}
 .metal{font:36px Shelter,sans-serif;color:#e8dfca;cursor:pointer;border:28px solid transparent;border-image:url("shelter-ui/button.png") 28 fill stretch;background:none;min-height:108px;padding:0 14px;text-shadow:0 2px 2px #000;touch-action:manipulation}
 .metal:hover,.metal:focus-visible{border-image-source:url("shelter-ui/selected.png");color:white}
