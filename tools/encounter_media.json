@@ -11,7 +11,7 @@
       "admit": "Bayar Oruulah.mp4",
       "reject": "Bayar Yavuulah.mp4"
     },
-    "frames": {"arrival_start": ["intro", 0], "idle": ["answer1", 0.08], "aim": ["lower", 0], "shoot": ["shoot", "end"], "admit": ["admit", "end"], "reject": ["reject", "end"]}
+    "frames": {"arrival_start": ["intro", 0], "idle": ["answer1", 0], "aim": ["lower", 0], "shoot": ["shoot", "end"], "admit": ["admit", "end"], "reject": ["reject", "end"]}
   },
   "anu": {
     "clips": {
@@ -22,8 +22,9 @@
       "aim": "Anu buu tulgah.mp4",
       "lower": "Anu buu buulgah.mp4",
       "shoot": "Anu buuduulah.mp4",
+      "admit": "Anu oruulav.mp4",
       "reject": "Anu yavah.mp4"
     },
-    "frames": {"arrival_start": ["intro", 0], "idle": ["answer1", 0.08], "aim": ["lower", 0], "shoot": ["shoot", "end"], "reject": ["reject", "end"]}
+    "frames": {"arrival_start": ["intro", 0], "idle": ["answer1", 0.08], "aim": ["lower", 0], "shoot": ["shoot", "end"], "admit": ["admit", "end"], "reject": ["reject", "end"]}
   }
 }

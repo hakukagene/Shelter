@@ -30,9 +30,13 @@ testsuite shelter_updated_encounters:
         pause until screen "shelter_playback" timeout 5
         pause until eval ((renpy.music.get_pos(channel="shelter_video") or 0) > 1.0) timeout 10
         pause until screen "shelter_questions" timeout 25
+        assert eval (shelter_wait_image(shelter_still) == "images/Bayra/frames/idle.jpg")
+        screenshot "../../tmp/encounter-tests/bayra-idle-clean.png"
         click "Та хэн бэ?"
         pause until screen "shelter_player_speech" timeout 5
         pause until screen "shelter_decision" timeout 45
+        assert eval (shelter_wait_image(shelter_still) == "images/Bayra/frames/idle.jpg")
+        screenshot "../../tmp/encounter-tests/bayra-after-answer1.png"
         click "Та энэ хорогдох байрыг хаанаас мэдэж ирэв?"
         pause until eval (shelter_still == "answer2") timeout 25
         pause until screen "shelter_decision" timeout 5
@@ -69,8 +73,14 @@ testsuite shelter_updated_encounters:
         pause until eval (shelter_visitor == "anu") timeout 15
         pause until screen "shelter_questions" timeout 25
         click "Оруулах"
-        pause until screen "shelter_anu_admission" timeout 5
-        pause until screen "shelter_result" timeout 5
+        pause until screen "shelter_playback" timeout 5
+        assert eval (renpy.get_screen("shelter_playback").scope["clip"] == "admit")
+        assert not screen "shelter_anu_admission"
+        pause until eval ((renpy.music.get_pos(channel="shelter_video") or 0) > 4.5) timeout 10
+        assert not screen "shelter_result"
+        screenshot "../../tmp/encounter-tests/anu-admission.png"
+        pause until screen "shelter_result" timeout 10
+        assert eval (renpy.music.get_playing(channel="shelter_video") is None)
         assert eval (shelter_outcomes == {"Bayra": "admit", "anu": "admit"})
         assert eval (shelter_admitted == 2 and shelter_civilians_saved == 1)
         assert eval (shelter_monster_ending.startswith("Ану"))

@@ -12,7 +12,7 @@ label _shelter_test_all_clips:
             $ shelter_test_clip = shelter_test_clips.pop(0)
             call shelter_clip(shelter_test_clip)
             $ shelter_test_clip_count += 1
-            $ renpy.log("TRANSITION PASS: %s/%s (%d/44)" % (shelter_visitor, shelter_test_clip, shelter_test_clip_count))
+            $ renpy.log("TRANSITION PASS: %s/%s (%d/%d)" % (shelter_visitor, shelter_test_clip, shelter_test_clip_count, sum(len(v["clips"]) for v in SHELTER_VISITORS.values())))
             $ renpy.screenshot(config.basedir + "/tmp/transition-check/%s-%s.png" % (shelter_visitor, shelter_test_clip))
     call screen _shelter_transition_test_done
     return
@@ -35,7 +35,7 @@ testsuite shelter_transition_checks:
         run Show("_shelter_test_driver", target="_shelter_test_all_clips")
         keysym "K_F9"
         pause until screen "_shelter_transition_test_done" timeout 700
-        assert eval (shelter_test_clip_count == 44)
+        assert eval (shelter_test_clip_count == sum(len(v["clips"]) for v in SHELTER_VISITORS.values()))
         assert eval (renpy.music.get_playing(channel="shelter_video") is None)
 
     testcase actual_campaign_reaches_anu:

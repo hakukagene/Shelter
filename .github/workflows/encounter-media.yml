@@ -1,6 +1,12 @@
 name: Build encounter playback media
 on:
   workflow_dispatch:
+  push:
+    paths:
+      - 'game/Video/Bayra/*.mp4'
+      - 'game/Video/anu/*.mp4'
+      - 'tools/encounter_media.json'
+      - 'tools/prepare_encounter_media.py'
 permissions:
   contents: write
 jobs:
@@ -24,7 +30,7 @@ jobs:
       - name: Commit playback assets through Git LFS
         run: |
           git add -- game/Video/Bayra/*.webm game/Video/anu/*.webm game/images/Bayra/frames/*.jpg game/images/anu/frames/*.jpg
-          git add -- game/images/transitions
+          git add -- game/images/transitions game/images/encounter-media-manifest.json
           if git diff --cached --quiet; then exit 0; fi
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
