@@ -508,13 +508,6 @@ screen shelter_result(title, description):
         ypos 393
         xsize 1160
         text_align 0.5
-    text description:
-        style "shelter_text"
-        size 32
-        xalign 0.5
-        ypos 493
-        xsize 1120
-        text_align 0.5
     # Hit areas match the two physical plates in the background.
     for caption, result, left in [("Дахин тоглох", "replay", 580), ("Үндсэн цэс", "menu", 1025)]:
         button:
