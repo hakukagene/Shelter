@@ -10,6 +10,7 @@ init python:
             "intro": intro,
             "poster": "game/" + poster if poster else None,
             "armed": armed,
+            "actions": [(icon, caption) for caption, result, icon in shelter_action_choices(armed)],
             "endTime": end_time,
             "endPoster": "game/" + end_poster if end_poster else None,
             "volume": preferences.get_volume("voice"),

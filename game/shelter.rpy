@@ -19,7 +19,7 @@ define SHELTER_TOTAL_VISITORS = SHELTER_CIVILIAN_COUNT + SHELTER_MONSTER_COUNT
 define SHELTER_CIVILIAN_TARGET = 40
 define SHELTER_MAX_CIVILIAN_DEATHS = 3
 # Available roster, also the original sequence for saves predating random order.
-define SHELTER_VISITOR_ORDER = ("Chinba", "Maral", "Swat", "Bayra", "anu")
+define SHELTER_VISITOR_ORDER = ("Chinba", "Maral", "Swat", "Bayra", "anu", "deeremchin")
 default shelter_run_order = None
 define SHELTER_CIVILIANS = {"Chinba": True, "Maral": False, "Swat": True, "Bayra": True, "anu": False}
 # Armor stops the bullet: Orgil leaves alive after being shot.
@@ -200,6 +200,9 @@ define ANU_SPEECH_WINDOWS = {
 init python:
     renpy.music.register_channel("shelter_knock", mixer="sfx", loop=False, stop_on_mute=False)
     SHELTER_VISITORS = {
+        "deeremchin": {"clips": DEEREMCHIN_CLIPS, "questions": DEEREMCHIN_QUESTIONS,
+                "lines": DEEREMCHIN_LINES, "windows": DEEREMCHIN_SPEECH_WINDOWS,
+                "voices": DEEREMCHIN_PLAYER_VOICES},
         "anu": {"clips": ANU_CLIPS, "questions": ANU_QUESTIONS,
                 "lines": ANU_LINES, "windows": ANU_SPEECH_WINDOWS, "voices": {}},
         "Bayra": {"clips": BAYRA_CLIPS, "questions": BAYRA_QUESTIONS,
@@ -240,7 +243,8 @@ init python:
         # The ledger counts every fatal shot, including monsters. Orgil's armor
         # stops the bullet; the separate civilian-loss rule remains unchanged.
         return sum(choice == "shoot" and visitor not in SHELTER_NONLETHAL_SHOOT
-                for visitor, choice in shelter_outcomes.items())
+                for visitor, choice in shelter_outcomes.items()) + sum(
+                    choice == "shoot" for choice in shelter_deeremchin_outcomes.values())
 
     def shelter_record_outcome(visitor, choice):
         # Copy-on-write supports saves/rollback; one outcome per visitor.
@@ -248,14 +252,19 @@ init python:
         global shelter_civilians_killed, shelter_visitors_seen, shelter_story_minutes
         if visitor in shelter_outcomes:
             return
-        if choice not in ("admit", "reject", "shoot"):
+        allowed = ("admit", "reject", "shoot_man", "shoot_woman") if visitor == "deeremchin" else ("admit", "reject", "shoot")
+        if choice not in allowed:
             raise ValueError("Not a final decision: " + str(choice))
-        civilian = SHELTER_CIVILIANS[visitor]
         # Advance once per resolved visitor, never during screen prediction or
         # redraw. Ren'Py saves/rolls back both this value and its random state.
         elapsed = 7 if shelter_visitors_seen == 0 else renpy.random.randint(4, 9)
         shelter_story_minutes = shelter_clock_minutes() + elapsed
         shelter_outcomes = dict(shelter_outcomes, **{visitor: choice})
+        if visitor == "deeremchin":
+            shelter_visitors_seen += 2
+            shelter_finish_deeremchin(choice)
+            return
+        civilian = SHELTER_CIVILIANS[visitor]
         shelter_visitors_seen += 1
         if choice == "admit":
             shelter_admitted += 1
@@ -284,6 +293,11 @@ init python:
         stop_on_mute=False, buffer_queue=False)
     def shelter_wait_image(clip, visitor=None):
         visitor = visitor or shelter_visitor
+        if visitor == "deeremchin":
+            # Match the actual video framing; never reintroduce a shot person.
+            if clip in ("aim", "shoot_man", "shoot_woman") or shelter_clip_is_terminal(clip):
+                return shelter_movie_frame(visitor, clip, "end")
+            return shelter_movie_frame(visitor, "answer3", "start")
         # Maral's answer1 still is a close-up. Keep the doorway framing fixed
         # between questions, including old saves that stopped on that answer.
         if visitor == "Maral" and clip in ("intro", "answer1", "answer2", "answer3", "lower"):
@@ -312,7 +326,7 @@ init python:
 
     def shelter_video_end(clip, visitor=None):
         visitor = visitor or shelter_visitor
-        if clip in ("shoot", "admit", "reject") and clip in SHELTER_VISITORS[visitor]["clips"]:
+        if shelter_clip_is_terminal(clip) and clip in SHELTER_VISITORS[visitor]["clips"]:
             return Transform(shelter_movie_frame(visitor, clip, "end"), xysize=(1920, 1080))
         return Transform(shelter_wait_image(clip, visitor), xysize=(1920, 1080))
 
@@ -383,7 +397,7 @@ screen shelter_playback(clip):
     # Keep a full-size poster underneath it, including during Dissolve.
     add shelter_movie_start_image(shelter_visitor, clip) xysize (1920, 1080)
     add shelter_movies[(shelter_visitor, clip)] xysize (1920, 1080)
-    use shelter_actions(enabled=False, armed=clip in ("aim", "shoot", "lower"))
+    use shelter_actions(enabled=False, armed=shelter_clip_is_armed(clip))
     # Block click-to-dismiss and keyboard skipping while the clip plays.
     key "dismiss" action NullAction()
     key "skip" action NullAction()
@@ -409,11 +423,11 @@ screen shelter_playback(clip):
 # Then only conversational/armed clips blend to their stable waiting pose.
 screen shelter_clip_handoff(clip):
     modal True
-    $ terminal = clip in ("shoot", "admit", "reject")
+    $ terminal = shelter_clip_is_terminal(clip)
     use shelter_backdrop
     if not terminal:
         add shelter_movie_frame(shelter_visitor, clip, "end") xysize (1920, 1080) at shelter_tail_to_idle
-    use shelter_actions(enabled=False, armed=clip in ("aim", "shoot", "lower"))
+    use shelter_actions(enabled=False, armed=shelter_clip_is_armed(clip))
     key "dismiss" action NullAction()
     key "skip" action NullAction()
     key "toggle_skip" action NullAction()
@@ -430,7 +444,7 @@ screen shelter_actions(enabled=True, armed=False):
         xalign 0.5
         ypos 880
         spacing 24
-        $ choices = [("Буудах", "shoot", "shoot"), ("Буугаа буулгах", "lower", "lower")] if armed else [("Хөөх", "reject", "reject"), ("Оруулах", "admit", "admit")]
+        $ choices = shelter_action_choices(armed)
         for caption, result, icon in choices:
             button:
                 xysize (180, 180)
@@ -497,6 +511,7 @@ screen shelter_question_choices():
             text_style "shelter_button_text"
             text_size (30 if renpy.variant("web") else 26)
             xysize (330, 170)
+            sensitive shelter_can_aim()
             action [Function(shelter_hold_current_frame), Return("aim")]
 
 screen shelter_questions():
@@ -510,7 +525,7 @@ screen shelter_decision(armed=False):
     modal True
     use shelter_backdrop
     use shelter_actions(armed=armed)
-    if not armed:
+    if not armed and shelter_can_ask_questions():
         use shelter_question_choices
 
 
@@ -596,7 +611,7 @@ label shelter_clip(clip):
     # Movie inside Dissolve can expose an uninitialised video render target.
     with Dissolve(0.6 if clip == "intro" else 0.16)
     if renpy.emscripten:
-        $ shelter_web_begin("Video/" + shelter_visitor + "/" + shelter_data("clips")[clip][0], shelter_web_clip_cues(clip), poster=shelter_movie_start_image(shelter_visitor, clip), armed=clip in ("aim", "shoot", "lower"), end_time=SHELTER_CLIP_ENDS.get(shelter_visitor + "/" + clip), end_poster=shelter_movie_frame(shelter_visitor, clip, "end"))
+        $ shelter_web_begin("Video/" + shelter_visitor + "/" + shelter_data("clips")[clip][0], shelter_web_clip_cues(clip), poster=shelter_movie_start_image(shelter_visitor, clip), armed=shelter_clip_is_armed(clip), end_time=SHELTER_CLIP_ENDS.get(shelter_visitor + "/" + clip), end_poster=shelter_movie_frame(shelter_visitor, clip, "end"))
         call screen shelter_web_wait
     else:
         call screen shelter_playback(clip)
@@ -613,6 +628,7 @@ label shelter_encounter:
     $ shelter_visitor = shelter_run_order[0]
     $ shelter_chinba_outcome = None
     $ shelter_outcomes = {}
+    $ shelter_deeremchin_outcomes = {}
     $ shelter_admitted = 0
     $ shelter_civilians_saved = 0
     $ shelter_civilians_killed = 0
@@ -639,6 +655,8 @@ label shelter_decision_phase:
     jump shelter_handle_choice
 
 label shelter_handle_choice:
+    if shelter_visitor == "deeremchin":
+        jump shelter_deeremchin_handle_choice
     if isinstance(shelter_choice, int):
         if shelter_has_inspection(shelter_visitor, shelter_choice):
             call shelter_inspect_belongings from _call_shelter_inspect_belongings
@@ -677,8 +695,8 @@ label shelter_resolve_visitor:
     $ shelter_status = shelter_campaign_status()
     if shelter_status == "casualties":
         call screen shelter_result("ТА ХОЖИГДЛОО", "Та [shelter_civilians_killed] энгийн иргэнийг алсан. Зөвшөөрөгдөх дээд хэмжээ 3.")
-    elif shelter_visitor in ("Maral", "anu") and shelter_choice == "admit":
-        $ shelter_monster_ending = "Ану чөтгөр болон хувирч, тан руу дайрлаа." if shelter_visitor == "anu" else "Маралын дүр аймшигтайгаар хувирч, тэр чөтгөрийн инээдээр инээн тан руу дайрлаа."
+    elif shelter_admitted_monster():
+        $ shelter_monster_ending = "Эмэгтэй чөтгөр болон хувирч, тан руу дайрлаа." if shelter_visitor == "deeremchin" else "Ану чөтгөр болон хувирч, тан руу дайрлаа." if shelter_visitor == "anu" else "Маралын дүр аймшигтайгаар хувирч, тэр чөтгөрийн инээдээр инээн тан руу дайрлаа."
         call screen shelter_result("ТА АЮУЛЫГ ДОТОГШ ОРУУЛЛАА", shelter_monster_ending)
     elif shelter_status == "win":
         call screen shelter_result("ТА ХОЖЛОО", "Та [SHELTER_CIVILIAN_TARGET] энгийн иргэнийг хорогдох байранд оруулж аварлаа.")

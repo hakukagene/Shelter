@@ -169,3 +169,11 @@ assert.equal(root.hidden, false);
 assert.equal(api.finished, false);
 console.log("PASS: skipping the intro cannot hide the first encounter.");
 api.close(); nextFrame(); nextFrame();
+
+api.start({ ...options, armed: true,
+  actions: [["shoot", "Эрэгтэйг буудах"], ["shoot", "Эмэгтэйг буудах"]] });
+await flush();
+assert.deepEqual(element("video-actions").children.map(item => item.children[1].textContent),
+  ["Эрэгтэйг буудах", "Эмэгтэйг буудах"]);
+api.close(); nextFrame(); nextFrame();
+console.log("PASS: two-person encounter keeps the correct target labels during web playback.");

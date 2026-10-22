@@ -154,7 +154,7 @@ testsuite shelter_transition_checks:
         assert eval (shelter_test_clip_count == sum(len(v["clips"]) for v in SHELTER_VISITORS.values()))
         assert eval (renpy.music.get_playing(channel="shelter_video") is None)
 
-    testcase actual_campaign_reaches_anu:
+    testcase actual_campaign_includes_all_encounters:
         run Show("_shelter_test_driver", target="shelter_encounter")
         keysym "K_F9"
         pause until screen "shelter_questions" timeout 30
@@ -177,7 +177,7 @@ testsuite shelter_transition_checks:
             assert eval (shelter_asked == [2])
         click "Хөөх"
         pause until screen "shelter_next_visitor_card" timeout 30
-        assert eval (shelter_visitors_seen == 1)
+        assert eval (shelter_visitors_seen == sum(2 if v == "deeremchin" else 1 for v in renpy.test.shelter_expected_order[:1]))
         run Function(renpy.save, "random-clock")
         # Loading the earlier question must restore both order and counters.
         run Function(renpy.load, "random-questions")
@@ -186,11 +186,11 @@ testsuite shelter_transition_checks:
         assert eval (shelter_visitors_seen == 0 and shelter_outcomes == {})
         run Function(renpy.load, "random-clock")
         pause until screen "shelter_next_visitor_card" timeout 5
-        assert eval (tuple(shelter_run_order) == renpy.test.shelter_expected_order and shelter_visitors_seen == 1)
+        assert eval (tuple(shelter_run_order) == renpy.test.shelter_expected_order and shelter_visitors_seen == sum(2 if v == "deeremchin" else 1 for v in renpy.test.shelter_expected_order[:1]))
         pause until screen "shelter_questions" timeout 40
         # Visitor 2: use the saved permutation, including Anu in any position.
         assert eval (shelter_visitor == renpy.test.shelter_expected_order[1] and shelter_asked == [])
-        assert eval (shelter_visitors_seen == 1)
+        assert eval (shelter_visitors_seen == sum(2 if v == "deeremchin" else 1 for v in renpy.test.shelter_expected_order[:1]))
         if eval (shelter_visitor == "anu"):
             click "Цүнхээ нээгээд харуул даа."
             pause until screen "shelter_inspection" timeout 5
@@ -201,11 +201,11 @@ testsuite shelter_transition_checks:
             assert eval (shelter_asked == [2])
         click "Хөөх"
         pause until screen "shelter_next_visitor_card" timeout 30
-        assert eval (shelter_visitors_seen == 2)
+        assert eval (shelter_visitors_seen == sum(2 if v == "deeremchin" else 1 for v in renpy.test.shelter_expected_order[:2]))
         pause until screen "shelter_questions" timeout 40
         # Visitor 3: use the saved permutation, including Anu in any position.
         assert eval (shelter_visitor == renpy.test.shelter_expected_order[2] and shelter_asked == [])
-        assert eval (shelter_visitors_seen == 2)
+        assert eval (shelter_visitors_seen == sum(2 if v == "deeremchin" else 1 for v in renpy.test.shelter_expected_order[:2]))
         if eval (shelter_visitor == "anu"):
             click "Цүнхээ нээгээд харуул даа."
             pause until screen "shelter_inspection" timeout 5
@@ -216,11 +216,11 @@ testsuite shelter_transition_checks:
             assert eval (shelter_asked == [2])
         click "Хөөх"
         pause until screen "shelter_next_visitor_card" timeout 30
-        assert eval (shelter_visitors_seen == 3)
+        assert eval (shelter_visitors_seen == sum(2 if v == "deeremchin" else 1 for v in renpy.test.shelter_expected_order[:3]))
         pause until screen "shelter_questions" timeout 40
         # Visitor 4: use the saved permutation, including Anu in any position.
         assert eval (shelter_visitor == renpy.test.shelter_expected_order[3] and shelter_asked == [])
-        assert eval (shelter_visitors_seen == 3)
+        assert eval (shelter_visitors_seen == sum(2 if v == "deeremchin" else 1 for v in renpy.test.shelter_expected_order[:3]))
         if eval (shelter_visitor == "anu"):
             click "Цүнхээ нээгээд харуул даа."
             pause until screen "shelter_inspection" timeout 5
@@ -231,11 +231,25 @@ testsuite shelter_transition_checks:
             assert eval (shelter_asked == [2])
         click "Хөөх"
         pause until screen "shelter_next_visitor_card" timeout 30
-        assert eval (shelter_visitors_seen == 4)
+        assert eval (shelter_visitors_seen == sum(2 if v == "deeremchin" else 1 for v in renpy.test.shelter_expected_order[:4]))
         pause until screen "shelter_questions" timeout 40
         # Visitor 5: use the saved permutation, including Anu in any position.
         assert eval (shelter_visitor == renpy.test.shelter_expected_order[4] and shelter_asked == [])
-        assert eval (shelter_visitors_seen == 4)
+        assert eval (shelter_visitors_seen == sum(2 if v == "deeremchin" else 1 for v in renpy.test.shelter_expected_order[:4]))
+        if eval (shelter_visitor == "anu"):
+            click "Цүнхээ нээгээд харуул даа."
+            pause until screen "shelter_inspection" timeout 5
+            click id "inspection_item_notebook"
+            click "Дэвтрийг нээх"
+            click "Энэ зургийн тухай асуух"
+            pause until screen "shelter_decision" timeout 20
+            assert eval (shelter_asked == [2])
+        click "Хөөх"
+        pause until screen "shelter_next_visitor_card" timeout 30
+        assert eval (shelter_visitors_seen == sum(2 if v == "deeremchin" else 1 for v in renpy.test.shelter_expected_order[:5]))
+        pause until screen "shelter_questions" timeout 40
+        # Visitor 6: the new two-person encounter is part of the same permutation.
+        assert eval (shelter_visitor == renpy.test.shelter_expected_order[5] and shelter_asked == [])
         if eval (shelter_visitor == "anu"):
             click "Цүнхээ нээгээд харуул даа."
             pause until screen "shelter_inspection" timeout 5
@@ -248,7 +262,7 @@ testsuite shelter_transition_checks:
         pause until screen "shelter_result" timeout 30
         assert eval (renpy.get_screen("shelter_result").scope["title"] == "ТУРШИЛТЫН ХЭСЭГ ДУУСЛАА")
         assert eval (tuple(shelter_outcomes) == renpy.test.shelter_expected_order)
-        assert eval (shelter_visitors_seen == 5 and shelter_admitted == 0 and shelter_civilians_killed == 0)
+        assert eval (shelter_visitors_seen == 7 and shelter_admitted == 0 and shelter_civilians_killed == 0)
         # Seed only the test: verify replay creates a fresh order and resets progress.
         run Function(renpy.random.seed, 41)
         $ renpy.test.shelter_expected_replay = tuple(shelter_make_visitor_order())
@@ -275,6 +289,12 @@ testsuite shelter_transition_checks:
         run SetVariable("shelter_visitor", "Bayra")
         run SetVariable("shelter_outcomes", {"Chinba": "reject", "Maral": "reject", "Swat": "reject", "Bayra": "reject"})
         assert eval (shelter_next_visitor_id() == "anu")
+        run SetVariable("shelter_visitor", "anu")
+        assert eval (shelter_next_visitor_id() == "deeremchin")
+        run SetVariable("shelter_visitor", "deeremchin")
+        assert eval (shelter_next_visitor_id() is None)
+        # Existing shuffled saves retain their exact stored roster.
+        run SetVariable("shelter_run_order", ["Chinba", "anu"])
         run SetVariable("shelter_visitor", "anu")
         assert eval (shelter_next_visitor_id() is None)
 

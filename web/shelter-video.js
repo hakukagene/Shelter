@@ -197,9 +197,9 @@
       actions.hidden = options.intro;
       actions.replaceChildren();
       if (!options.intro) {
-        for (const [icon, title] of options.armed
+        for (const [icon, title] of options.actions || (options.armed
           ? [["shoot", "Буудах"], ["lower", "Буугаа буулгах"]]
-          : [["reject", "Хөөх"], ["admit", "Оруулах"]]) {
+          : [["reject", "Хөөх"], ["admit", "Оруулах"]])) {
           const item = document.createElement("div");
           item.className = "inactive-action";
           const img = document.createElement("img");
