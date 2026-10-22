@@ -23,6 +23,26 @@ executable icon.
 
 ## Android APK
 
+Android uses the author's supplied bunker-door `icon.ico` artwork through the
+root `android-icon_foreground.png` (transparent 432×432) and
+`android-icon_background.png` (opaque 432×432). The foreground is inset so
+launcher masks can crop the surrounding background without cutting off the door.
+Ren'Py generates the launcher icon sizes, including older non-adaptive icons.
+
+The root `android-presplash.jpg` is the 1920×1080 **АЧААЛЖ БАЙНА...** startup
+screen. RAPT displays it while the native app starts, before the main menu; it
+does not add an artificial delay or replace the story intro. Its black border
+fills extra space on wider/taller phones without stretching the artwork.
+`android.json` already enables `update_icons` and `update_always`, so both icon
+and startup art are picked up by the next build. Rebuild and install the updated
+APK to see them; existing installed APKs do not update their bundled images.
+
+The assets are ready to package without Python/Pillow on the build machine.
+To regenerate them after editing the source art, use
+`python tools/prepare_android_branding.py --presplash path/to/loading-art.png`.
+Omit `--presplash` to regenerate just the icon layers. See
+`tools/art/android-branding.md` for the image-generation prompt and provenance.
+
 The Android build uses Ren'Py **8.5.3** and produces a signed universal APK in
 `dist/android/`. Copy the APK to an Android phone and open it to install.
 If Android asks, allow installation from the app used to open that file.
