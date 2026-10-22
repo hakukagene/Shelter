@@ -530,22 +530,7 @@ screen shelter_result(title, description):
 # Unskippable story-time card, followed by the supplied metal-door recording.
 screen shelter_next_visitor_card():
     modal True
-    add Solid("#000000")
-    text SHELTER_NEXT_VISITOR_TIME:
-        font SHELTER_FONT
-        size 76
-        color "#e8dfca"
-        align (0.5, 0.35)
-        text_align 0.5
-        at shelter_fade
-    vbox:
-        xalign 0.5
-        ypos 510
-        spacing 18
-        text "Оруулсан хүн: [shelter_admitted]" style "shelter_text" size 40 xalign 0.5
-        text "Аврагдсан энгийн иргэн: [shelter_civilians_saved] / [SHELTER_CIVILIAN_TARGET]" style "shelter_text" xalign 0.5
-        text "Алагдсан энгийн иргэн: [shelter_civilians_killed] / [SHELTER_MAX_CIVILIAN_DEATHS]" style "shelter_text" color "#c65959" xalign 0.5
-        text "Шалгасан хүн: [shelter_visitors_seen] / [SHELTER_TOTAL_VISITORS]" style "shelter_text" size 26 color "#999999" xalign 0.5
+    use shelter_transition_status
     key "dismiss" action NullAction()
     key "skip" action NullAction()
     key "toggle_skip" action NullAction()
