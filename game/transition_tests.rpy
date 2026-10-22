@@ -35,6 +35,14 @@ screen _shelter_test_legacy_still():
     use shelter_backdrop
     timer 0.2 action Return(True)
 
+label _shelter_test_click_legacy:
+    $ quick_menu = False
+    $ shelter_visitor = "Maral"
+    $ shelter_still = "intro"
+    $ shelter_asked = []
+    scene black
+    jump shelter_question_phase
+
 label _shelter_test_visual_handoffs:
     $ quick_menu = False
     $ shelter_visitor = "Maral"
@@ -97,6 +105,31 @@ testsuite shelter_transition_checks:
         if not screen "main_menu":
             run MainMenu(confirm=False)
         pause until screen "main_menu" timeout 10
+
+    testcase no_black_after_button_clicks:
+        run Function(shelter_test_watch_frames)
+        run Show("_shelter_test_driver", target="_shelter_test_click_legacy")
+        keysym "K_F9"
+        pause until screen "shelter_questions" timeout 10
+        $ renpy.test.shelter_capture_frames = True
+        # Real buttons exercise Return, the player voice and decoder startup.
+        click "Манай хорогдох байрыг хаанаас сонссон бэ?"
+        pause until screen "shelter_player_speech" timeout 5
+        assert eval (renpy.showing("shelter_hold"))
+        pause until screen "shelter_decision" timeout 20
+        click "Буу онилох"
+        pause until eval (shelter_still == "aim") timeout 20
+        pause until screen "shelter_decision" timeout 5
+        click "Буугаа буулгах"
+        pause until eval (shelter_still == "lower") timeout 10
+        pause until screen "shelter_decision" timeout 5
+        click "Хөөх"
+        pause until screen "shelter_next_visitor_card" timeout 20
+        run Function(shelter_test_stop_watching)
+        $ print("BUTTON FRAMES:", renpy.test.shelter_frame_count, "BLACK:", renpy.test.shelter_dark_frames)
+        assert eval (renpy.test.shelter_frame_count > 100)
+        assert eval (not renpy.test.shelter_dark_frames)
+        assert eval (shelter_outcomes.get("Maral") == "reject")
 
     testcase no_black_transition_frames:
         run Function(shelter_test_watch_frames)

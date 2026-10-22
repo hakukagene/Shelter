@@ -251,7 +251,8 @@ screen shelter_inspection(visitor):
         key "K_MINUS" action Function(viewer.zoom, -0.15)
 
 label shelter_inspect_belongings:
-    window hide
+    $ shelter_hold_current_frame()
+    window hide None
     $ _skipping = False
     # Anu's third answer is about the drawing; find it before asking her.
     if shelter_visitor != "anu" and 2 not in shelter_asked:

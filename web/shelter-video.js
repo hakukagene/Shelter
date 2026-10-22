@@ -19,8 +19,40 @@
   let active = false, sequence = 0, spec = null, frame = 0, cueIndex = -2;
   let errored = false;
   let download = null, objectUrl = null;
+  let firstFrame = null;
+
+  function revealVideo(current) {
+    if (!active || api.finished || current !== sequence || video.readyState < 2) return;
+    video.style.opacity = "1";
+    loading.hidden = true;
+  }
+
+  function prepareFirstFrame(current) {
+    // Keep the Ren'Py still visible while download, autoplay permission and
+    // decoding are pending. A playing event alone is not a painted frame.
+    video.style.opacity = "0";
+    if (firstFrame !== null) video.cancelVideoFrameCallback?.(firstFrame);
+    firstFrame = null;
+    if (video.requestVideoFrameCallback) {
+      firstFrame = video.requestVideoFrameCallback(() => {
+        if (current !== sequence) return;
+        firstFrame = null;
+        revealVideo(current);
+      });
+    }
+  }
+
+  function revealLegacyVideo() {
+    if (video.requestVideoFrameCallback || video.readyState < 2) return;
+    const current = sequence;
+    // Older browsers: wait for loaded data and two paint opportunities.
+    requestAnimationFrame(() => requestAnimationFrame(() => revealVideo(current)));
+  }
 
   function releaseVideo() {
+    video.style.opacity = "0";
+    if (firstFrame !== null) video.cancelVideoFrameCallback?.(firstFrame);
+    firstFrame = null;
     download?.abort();
     download = null;
     video.pause();
@@ -49,6 +81,7 @@
       if (objectUrl) URL.revokeObjectURL(objectUrl);
       objectUrl = URL.createObjectURL(blob);
       video.src = objectUrl;
+      prepareFirstFrame(current);
       await play();
     } catch (error) {
       if (error.name === "AbortError" || !active || current !== sequence || api.finished) return;
@@ -87,6 +120,7 @@
       if (current !== sequence || !active) return;
       pause.textContent = "Ⅱ";
       pause.setAttribute("aria-label", "Түр зогсоох");
+      revealLegacyVideo();
     } catch (error) {
       if (current !== sequence || !active || error.name === "AbortError") return;
       showPrompt(error.name === "NotAllowedError"
@@ -217,7 +251,14 @@
     mute.setAttribute("aria-pressed", String(video.muted));
   });
   video.addEventListener("ended", finish);
-  video.addEventListener("playing", () => { loading.hidden = true; prompt.hidden = true; pause.disabled = false; });
+  video.addEventListener("loadeddata", revealLegacyVideo);
+  video.addEventListener("playing", () => {
+    if (!active || api.finished) return;
+    prompt.hidden = true;
+    pause.disabled = false;
+    if (video.style.opacity === "1") loading.hidden = true;
+    revealLegacyVideo();
+  });
   video.addEventListener("waiting", () => { if (active && prompt.hidden) loading.hidden = false; });
   video.addEventListener("error", () => {
     if (!active || api.finished) return;

@@ -16,6 +16,9 @@ class Element {
     this.naturalWidth = 1920;
     this.paused = true;
     this.clears = 0;
+    this.readyState = 0;
+    this.videoFrames = new Map();
+    this.videoSerial = 0;
   }
   addEventListener(type, fn) { this.listeners[type] = fn; }
   setAttribute() {}
@@ -25,7 +28,14 @@ class Element {
   getBoundingClientRect() { return { left: 0, top: 0, width: 1920, height: 1080 }; }
   pause() { this.paused = true; }
   play() { this.paused = false; return Promise.resolve(); }
-  load() { this.clears++; }
+  load() { this.clears++; this.readyState = 0; this.currentTime = 0; }
+  requestVideoFrameCallback(fn) { this.videoFrames.set(++this.videoSerial, fn); return this.videoSerial; }
+  cancelVideoFrameCallback(id) { this.videoFrames.delete(id); }
+  presentFrame() {
+    this.readyState = 2;
+    const pending = [...this.videoFrames.values()]; this.videoFrames.clear();
+    pending.forEach(fn => fn());
+  }
 }
 const elements = new Map();
 const element = name => {
@@ -55,6 +65,12 @@ const flush = async () => { for (let i=0; i<8; i++) await Promise.resolve(); };
 
 api.start(options); await flush();
 assert.equal(video.paused, false);
+assert.equal(video.style.opacity, "0", "Download/play must not cover the canvas with an empty video");
+video.listeners.playing();
+assert.equal(video.style.opacity, "0", "Playing alone does not prove a video frame was submitted");
+video.presentFrame();
+assert.equal(video.style.opacity, "1", "Reveal only after the first decoded frame");
+console.log("PASS: the current still stays visible until the first composited video frame.");
 element("video-caption").hidden = false;
 video.listeners.ended();
 assert.equal(api.finished, true);
@@ -86,6 +102,63 @@ assert.equal(element("video-end-frame").hidden, false);
 assert.equal(root.hidden, false);
 console.log("PASS: trimmed EOF freezes the valid end poster before handoff.");
 api.close(); nextFrame(); nextFrame();
+
+// A delayed callback from an older clip must not reveal a fresh empty decoder.
+api.start(options); await flush();
+const staleFrame = [...video.videoFrames.values()][0];
+api.start({ ...options, src: "cold-next.mp4" }); await flush();
+video.readyState = 2;
+staleFrame();
+assert.equal(video.style.opacity, "0");
+video.presentFrame();
+assert.equal(video.style.opacity, "1");
+api.close(); nextFrame(); nextFrame();
+console.log("PASS: a stale first-frame callback cannot expose a newer empty video.");
+
+const originalFetch = context.fetch;
+let resolveDownload;
+context.fetch = () => new Promise(resolve => { resolveDownload = resolve; });
+api.start(options); await flush(); nextFrame(); nextFrame();
+assert.equal(video.style.opacity, "0", "Slow downloads must keep the underlying canvas visible");
+assert.equal(element("video-loading").hidden, false);
+resolveDownload({ ok: true, blob: async () => new Blob(["slow"]) });
+await flush();
+assert.equal(video.style.opacity, "0", "Downloaded bytes are not a decoded frame");
+video.presentFrame();
+assert.equal(video.style.opacity, "1");
+context.fetch = originalFetch;
+api.close(); nextFrame(); nextFrame();
+console.log("PASS: cold/slow download preserves the still through decode.");
+
+const originalPlay = video.play;
+video.play = () => Promise.reject(Object.assign(new Error("gesture required"), { name: "NotAllowedError" }));
+api.start(options); await flush();
+assert.equal(video.style.opacity, "0");
+assert.equal(element("video-prompt").hidden, false);
+video.play = originalPlay;
+element("video-resume").listeners.click(); await flush();
+video.presentFrame();
+assert.equal(video.style.opacity, "1");
+api.close(); nextFrame(); nextFrame();
+console.log("PASS: autoplay prompt retains the still until the user starts playback.");
+
+// Exercise the older-browser path without requestVideoFrameCallback.
+video.requestVideoFrameCallback = undefined;
+api.start(options); await flush();
+video.listeners.playing(); nextFrame(); nextFrame();
+assert.equal(video.style.opacity, "0", "No fallback reveal before current frame data exists");
+video.readyState = 2;
+video.listeners.loadeddata();
+nextFrame(); assert.equal(video.style.opacity, "0");
+nextFrame(); assert.equal(video.style.opacity, "1");
+api.close(); nextFrame(); nextFrame();
+delete video.requestVideoFrameCallback;
+console.log("PASS: legacy browser waits for loaded frame data and paint.");
+
+const css = await readFile(new URL("../web/shelter-web.css", import.meta.url), "utf8");
+assert.match(css, /#shelter-video\{[^}]*background:transparent/);
+assert.match(css, /#story-video\{[^}]*background:transparent/);
+console.log("PASS: encounter overlay backgrounds cannot cover the canvas in black.");
 
 api.start({ ...options, intro: true }); await flush();
 element("video-skip").listeners.click();

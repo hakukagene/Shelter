@@ -316,6 +316,11 @@ init python:
             return Transform(shelter_movie_frame(visitor, clip, "end"), xysize=(1920, 1080))
         return Transform(shelter_wait_image(clip, visitor), xysize=(1920, 1080))
 
+    def shelter_hold_current_frame():
+        # Run before Return removes the clicked screen, including old saves
+        # that have never passed through the new playback/backdrop code.
+        renpy.show("shelter_hold", what=shelter_video_end(shelter_still))
+
     def shelter_movie_frame(visitor, clip, edge):
         return "images/transitions/" + visitor + "/" + clip + "-" + edge + ".jpg"
 
@@ -435,7 +440,7 @@ screen shelter_actions(enabled=True, armed=False):
                 insensitive_background Transform("gui/shelter/actions/" + icon + ".png", xysize=(180, 180), matrixcolor=SaturationMatrix(0.0) * BrightnessMatrix(-0.22))
                 focus_mask True
                 sensitive enabled
-                action Return(result)
+                action [Function(shelter_hold_current_frame), Return(result)]
                 text caption:
                     font SHELTER_BOLD
                     size 15
@@ -486,13 +491,13 @@ screen shelter_question_choices():
                 text_text_align 0.5
                 xysize (330, 170)
                 sensitive index not in shelter_asked or shelter_has_inspection(shelter_visitor, index)
-                action Return(index)
+                action [Function(shelter_hold_current_frame), Return(index)]
         textbutton "Буу онилох":
             style "shelter_button"
             text_style "shelter_button_text"
             text_size (30 if renpy.variant("web") else 26)
             xysize (330, 170)
-            action Return("aim")
+            action [Function(shelter_hold_current_frame), Return("aim")]
 
 screen shelter_questions():
     modal True
@@ -568,7 +573,8 @@ label shelter_player_line(voice_key, caption=None):
     # New characters may have response video audio before player voice is supplied.
     if voice_key not in shelter_data("voices"):
         return
-    window hide
+    $ shelter_hold_current_frame()
+    window hide None
     $ _skipping = False
     $ renpy.music.play(shelter_data("voices")[voice_key][0], channel="shelter_player", loop=False)
     call screen shelter_player_speech(voice_key, caption)
@@ -576,7 +582,7 @@ label shelter_player_line(voice_key, caption=None):
     return
 
 label shelter_clip(clip):
-    window hide
+    window hide None
     $ _skipping = False
     if not renpy.showing("shelter_hold"):
         # Also repair saves created before a persistent backdrop existed.
@@ -586,11 +592,14 @@ label shelter_clip(clip):
     # A called screen is transient. Keep an opaque image on the master layer
     # too, so screen removal, loading and transitions never expose scene black.
     scene expression Transform(shelter_movie_start_image(shelter_visitor, clip), xysize=(1920, 1080)) as shelter_hold
+    # Finish the transition using stills before the decoder starts. A live
+    # Movie inside Dissolve can expose an uninitialised video render target.
+    with Dissolve(0.6 if clip == "intro" else 0.16)
     if renpy.emscripten:
         $ shelter_web_begin("Video/" + shelter_visitor + "/" + shelter_data("clips")[clip][0], shelter_web_clip_cues(clip), poster=shelter_movie_start_image(shelter_visitor, clip), armed=clip in ("aim", "shoot", "lower"), end_time=SHELTER_CLIP_ENDS.get(shelter_visitor + "/" + clip), end_poster=shelter_movie_frame(shelter_visitor, clip, "end"))
         call screen shelter_web_wait
     else:
-        call screen shelter_playback(clip) with Dissolve(0.6 if clip == "intro" else 0.16)
+        call screen shelter_playback(clip)
     $ shelter_still = clip
     scene expression Transform(shelter_movie_frame(shelter_visitor, clip, "end"), xysize=(1920, 1080)) as shelter_hold
     call screen shelter_clip_handoff(clip)
