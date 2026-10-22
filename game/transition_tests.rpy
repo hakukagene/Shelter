@@ -17,7 +17,7 @@ init python:
             surface = renpy.display.draw.screenshot(interface.surftree)
             width, height = surface.get_size()
             pixels = [surface.get_at((int(width*x), int(height*y)))
-                      for x in (.2, .35, .5, .65, .8) for y in (.2, .4, .6)]
+                    for x in (.2, .35, .5, .65, .8) for y in (.2, .4, .6)]
             renpy.test.shelter_frame_count += 1
             if max(max(pixel[:3]) for pixel in pixels) < 16:
                 renpy.test.shelter_dark_frames.append((shelter_visitor, shelter_still))
