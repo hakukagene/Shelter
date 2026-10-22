@@ -198,6 +198,12 @@ The campaign counters retain 43 civilians, 30 monsters, a target of 40 rescued
 civilians and a maximum of three civilian deaths. Five visitors are playable;
 finishing them is a preview ending, not a campaign win.
 
+Between visitors, `game/intermission.rpy` presents the story clock and live
+campaign counters on a steel status panel. Three read-only cards show admitted
+people, rescued civilians, and civilian deaths; a lower bar tracks inspected
+visitors. The original knock at 2 seconds and automatic transition at 8.1 seconds
+remain in `shelter_next_visitor_card`. See the [in-game preview](tools/previews/intermission.png).
+
 Neutral waiting and armed frames are extracted from the corresponding videos.
 Dialogue captions use measured speech windows on the video decoder clock.
 
