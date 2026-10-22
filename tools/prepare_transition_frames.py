@@ -16,7 +16,8 @@ import subprocess
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "game/images/transitions"
 CONSTANTS = {"Chinba": "CHINBA_CLIPS", "Maral": "SHELTER_CLIPS",
-             "Swat": "SWAT_CLIPS", "Bayra": "BAYRA_CLIPS", "anu": "ANU_CLIPS"}
+             "Swat": "SWAT_CLIPS", "Bayra": "BAYRA_CLIPS", "anu": "ANU_CLIPS",
+             "deeremchin": "DEEREMCHIN_CLIPS"}
 
 
 def digest(path):
@@ -26,6 +27,7 @@ def digest(path):
 
 def clips():
     script = (ROOT / "game/shelter.rpy").read_text(encoding="utf-8-sig")
+    script += (ROOT / "game/deeremchin.rpy").read_text(encoding="utf-8-sig")
     for visitor, constant in CONSTANTS.items():
         match = re.search(r"^define " + constant + r" = (\{.*?\})", script, re.M | re.S)
         for clip, (filename, _) in ast.literal_eval(match[1]).items():
