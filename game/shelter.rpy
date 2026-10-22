@@ -374,6 +374,9 @@ screen shelter_backdrop():
 screen shelter_playback(clip):
     modal True
     default elapsed = 0.0
+    # Movie can briefly render transparent while its decoder changes state.
+    # Keep a full-size poster underneath it, including during Dissolve.
+    add shelter_movie_start_image(shelter_visitor, clip) xysize (1920, 1080)
     add shelter_movies[(shelter_visitor, clip)] xysize (1920, 1080)
     use shelter_actions(enabled=False, armed=clip in ("aim", "shoot", "lower"))
     # Block click-to-dismiss and keyboard skipping while the clip plays.
@@ -575,13 +578,23 @@ label shelter_player_line(voice_key, caption=None):
 label shelter_clip(clip):
     window hide
     $ _skipping = False
+    if not renpy.showing("shelter_hold"):
+        # Also repair saves created before a persistent backdrop existed.
+        scene expression Transform(shelter_movie_start_image(shelter_visitor, clip), xysize=(1920, 1080)) as shelter_hold
+        with None
+    hide screen shelter_transition_status
+    # A called screen is transient. Keep an opaque image on the master layer
+    # too, so screen removal, loading and transitions never expose scene black.
+    scene expression Transform(shelter_movie_start_image(shelter_visitor, clip), xysize=(1920, 1080)) as shelter_hold
     if renpy.emscripten:
         $ shelter_web_begin("Video/" + shelter_visitor + "/" + shelter_data("clips")[clip][0], shelter_web_clip_cues(clip), poster=shelter_movie_start_image(shelter_visitor, clip), armed=clip in ("aim", "shoot", "lower"), end_time=SHELTER_CLIP_ENDS.get(shelter_visitor + "/" + clip), end_poster=shelter_movie_frame(shelter_visitor, clip, "end"))
         call screen shelter_web_wait
     else:
         call screen shelter_playback(clip) with Dissolve(0.6 if clip == "intro" else 0.16)
     $ shelter_still = clip
+    scene expression Transform(shelter_movie_frame(shelter_visitor, clip, "end"), xysize=(1920, 1080)) as shelter_hold
     call screen shelter_clip_handoff(clip)
+    scene expression shelter_video_end(clip) as shelter_hold
     return
 
 label shelter_encounter:
@@ -674,10 +687,12 @@ label shelter_resolve_visitor:
 label shelter_next_visitor:
     $ renpy.music.stop(channel="shelter_player")
     $ renpy.music.stop(channel="shelter_video")
-    scene black
-    with Dissolve(0.5)
     $ _skipping = False
-    call screen shelter_next_visitor_card
+    # Blend directly from the departure frame to the ledger; no black stop.
+    # Keep its live clock/counts after the transient card returns, so the next
+    # visitor dissolves from the ledger rather than the previous departure.
+    show screen shelter_transition_status
+    call screen shelter_next_visitor_card with Dissolve(0.5)
     $ renpy.music.stop(channel="shelter_knock")
     $ shelter_visitor = shelter_next_visitor_id()
     jump shelter_visit_start

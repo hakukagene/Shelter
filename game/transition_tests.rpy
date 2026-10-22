@@ -1,6 +1,57 @@
 # Native integration tests: every movie plays to real EOF at normal speed.
 default shelter_test_clip_count = 0
 
+init python:
+    def shelter_test_watch_frames():
+        # Test-only instrumentation of actually drawn frames, not just screen
+        # names. Sample the picture above the action buttons/subtitle panel.
+        renpy.test.shelter_frame_count = 0
+        renpy.test.shelter_dark_frames = []
+        renpy.test.shelter_capture_frames = False
+        renpy.test.shelter_original_draw = renpy.display.core.Interface.draw_screen
+
+        def watch(interface, *args, **kwargs):
+            renpy.test.shelter_original_draw(interface, *args, **kwargs)
+            if not renpy.test.shelter_capture_frames:
+                return
+            surface = renpy.display.draw.screenshot(interface.surftree)
+            width, height = surface.get_size()
+            pixels = [surface.get_at((int(width*x), int(height*y)))
+                      for x in (.2, .35, .5, .65, .8) for y in (.2, .4, .6)]
+            renpy.test.shelter_frame_count += 1
+            if max(max(pixel[:3]) for pixel in pixels) < 16:
+                renpy.test.shelter_dark_frames.append((shelter_visitor, shelter_still))
+
+        renpy.display.core.Interface.draw_screen = watch
+
+    def shelter_test_stop_watching():
+        renpy.test.shelter_capture_frames = False
+        original = getattr(renpy.test, "shelter_original_draw", None)
+        if original is not None:
+            renpy.display.core.Interface.draw_screen = original
+            renpy.test.shelter_original_draw = None
+
+screen _shelter_test_legacy_still():
+    use shelter_backdrop
+    timer 0.2 action Return(True)
+
+label _shelter_test_visual_handoffs:
+    $ quick_menu = False
+    $ shelter_visitor = "Maral"
+    $ shelter_still = "intro"
+    # Reproduce an old save: the visible still is on a transient screen, with
+    # scene black underneath it and no shelter_hold image on the master layer.
+    scene black
+    call screen _shelter_test_legacy_still
+    $ renpy.test.shelter_capture_frames = True
+    call shelter_clip("answer2")
+    call shelter_clip("lower")
+    $ shelter_choice = "reject"
+    $ shelter_run_order = ["Maral", "Chinba"]
+    call shelter_clip("reject")
+    $ shelter_record_outcome("Maral", "reject")
+    jump shelter_next_visitor
+
 label _shelter_test_all_clips:
     $ quick_menu = False
     $ shelter_test_clip_count = 0
@@ -39,12 +90,28 @@ label _shelter_test_ledger_clock_start:
 
 testsuite shelter_transition_checks:
     teardown:
+        run Function(shelter_test_stop_watching)
         exit
 
     before testcase:
         if not screen "main_menu":
             run MainMenu(confirm=False)
         pause until screen "main_menu" timeout 10
+
+    testcase no_black_transition_frames:
+        run Function(shelter_test_watch_frames)
+        run Show("_shelter_test_driver", target="_shelter_test_visual_handoffs")
+        keysym "K_F9"
+        pause until screen "shelter_next_visitor_card" timeout 30
+        assert eval (renpy.get_screen("shelter_transition_status") is not None)
+        pause until screen "shelter_questions" timeout 40
+        run Function(shelter_test_stop_watching)
+        $ print("TRANSITION FRAMES:", renpy.test.shelter_frame_count, "DARK:", renpy.test.shelter_dark_frames)
+        assert eval (renpy.test.shelter_frame_count > 100)
+        assert eval (not renpy.test.shelter_dark_frames)
+        assert eval (renpy.showing("shelter_hold"))
+        assert eval (renpy.get_screen("shelter_transition_status") is None)
+        assert eval (shelter_visitor == "Chinba" and shelter_visitors_seen == 1)
 
     testcase all_movie_boundaries:
         assert eval (all(renpy.loadable(shelter_movie_frame(v, c, edge)) for v in SHELTER_VISITOR_ORDER for c in SHELTER_VISITORS[v]["clips"] for edge in ("start", "end")))
