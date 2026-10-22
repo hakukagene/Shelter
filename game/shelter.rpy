@@ -580,7 +580,7 @@ screen shelter_next_visitor_card():
     key "toggle_skip" action NullAction()
     key "rollback" action NullAction()
     on "hide" action Stop("shelter_knock")
-    timer 2.0 action Play("shelter_knock", "audio/Audio/ES_Doors, Knock, Metal Door, Knock With Fist - Epidemic Sound.mp3", loop=False)
+    timer 2.0 action Play("shelter_knock", "audio/Audio/door.wav", loop=False)
     # Allow the full 5.93-second recording to finish before the visitor fades in.
     timer 8.1 action Return(True)
 

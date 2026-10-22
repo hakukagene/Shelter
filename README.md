@@ -107,7 +107,7 @@ Gameplay loops `shuum.mp3` at 18% so speech remains audible. Starting or
 replaying switches tracks with a fade; the opening film stops menu music.
 The Music slider adjusts these backgrounds; Voice adjusts dialogue.
 
-Visitor transitions play `ES_Doors, Knock, Metal Door, Knock With Fist - Epidemic Sound.mp3`
+Visitor transitions play `door.wav`
 once on the sound-effects channel. The transition waits for the full 5.93-second
 recording; this short effect is bundled in the web edition to avoid download delays.
 
