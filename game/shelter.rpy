@@ -8,6 +8,9 @@ default shelter_choice = None
 # Keep Maral as the default for saves made before the two-visitor sequence.
 default shelter_visitor = "Maral"
 default shelter_chinba_outcome = None
+# The supplied Bayra aim movie ends with one black frame after speech.
+# Stop before that frame; keep the original source and audio untouched.
+define SHELTER_CLIP_ENDS = {"Bayra/aim": 13.11}
 
 # Append unique IDs and civilian classifications as new visitors are added.
 define SHELTER_CIVILIAN_COUNT = 43
@@ -29,7 +32,7 @@ define SHELTER_CLIPS = {
     "intro": ("Maral ehlel.webm", 12.808),
     "answer1": ("Maral hariult1.webm", 6.168),
     "answer2": ("Maral hariult2.webm", 5.928),
-    "answer3": ("Maral hariult3.webm", 6.168),
+    "answer3": ("Maral hariult3.webm", 7.968),
     "aim": ("Maral buu gargah.webm", 11.568),
     "lower": ("Maral buudahaa bolih.webm", 3.048),
     "shoot": ("Maral buudah.webm", 8.048),
@@ -57,7 +60,7 @@ define SHELTER_SPEECH_WINDOWS = {
     "intro": (0.0, 12.49),
     "answer1": (0.568, 5.716),
     "answer2": (0.691, 5.597),
-    "answer3": (0.568, 5.716),
+    "answer3": (0.705, 7.332),
     "aim": (3.199, 8.260),
 }
 
@@ -272,28 +275,30 @@ init python:
             clip = "intro"
         return "images/" + visitor + "/frames/" + clip + ".jpg"
 
-    def shelter_movie_start(st, at):
-        return shelter_video_end(shelter_still), None
-
     def shelter_video_end(clip, visitor=None):
         visitor = visitor or shelter_visitor
-        if visitor == "Maral" and clip in ("shoot", "admit", "reject"):
-            return Transform("gui/shelter/ending/lockdown.jpg", xysize=(1920, 1080))
+        if clip in ("shoot", "admit", "reject") and clip in SHELTER_VISITORS[visitor]["clips"]:
+            return Transform(shelter_movie_frame(visitor, clip, "end"), xysize=(1920, 1080))
         return Transform(shelter_wait_image(clip, visitor), xysize=(1920, 1080))
 
+    def shelter_movie_frame(visitor, clip, edge):
+        return "images/transitions/" + visitor + "/" + clip + "-" + edge + ".jpg"
+
     def shelter_movie_start_image(visitor, clip):
-        if visitor in ("Bayra", "anu") and clip == "intro":
-            return "images/" + visitor + "/frames/arrival_start.jpg"
-        return shelter_wait_image(
-            "aim" if clip in ("shoot", "lower") else
-            ("arrival" if visitor in ("Chinba", "Swat") and clip == "intro" else "intro"), visitor)
+        return shelter_movie_frame(visitor, clip, "start")
+
+    def shelter_movie_path(visitor, clip):
+        path = "Video/" + visitor + "/" + SHELTER_VISITORS[visitor]["clips"][clip][0]
+        end = SHELTER_CLIP_ENDS.get(visitor + "/" + clip)
+        return ("<to %s>" % end if end else "") + path
 
     shelter_movies = {
         (visitor, key): Movie(
-            play="Video/" + visitor + "/" + data[0],
+            play=shelter_movie_path(visitor, key),
             channel="shelter_video", loop=False, size=(1920, 1080),
             start_image=Transform(shelter_movie_start_image(visitor, key), xysize=(1920, 1080)),
-            image=shelter_video_end(key, visitor))
+            image=Transform(shelter_movie_frame(visitor, key, "end"), xysize=(1920, 1080)),
+            keep_last_frame=True)
         for visitor, encounter in SHELTER_VISITORS.items()
         for key, data in encounter["clips"].items()
     }
@@ -301,6 +306,11 @@ init python:
 transform shelter_fade:
     alpha 0.0
     linear 0.2 alpha 1.0
+
+transform shelter_tail_to_idle:
+    alpha 1.0
+    pause 0.07
+    linear 0.18 alpha 0.0
 
 style shelter_text is default:
     font SHELTER_FONT
@@ -351,6 +361,25 @@ screen shelter_playback(clip):
     timer 0.03 repeat True action If(
         elapsed >= 0.5 and not renpy.music.get_playing(channel="shelter_video"),
         Return(True), SetScreenVariable("elapsed", elapsed + 0.03))
+
+# Both native and HTML playback land on the same decoded end frame first.
+# Then only conversational/armed clips blend to their stable waiting pose.
+screen shelter_clip_handoff(clip):
+    modal True
+    $ terminal = clip in ("shoot", "admit", "reject")
+    use shelter_backdrop
+    if not terminal:
+        add shelter_movie_frame(shelter_visitor, clip, "end") xysize (1920, 1080) at shelter_tail_to_idle
+    use shelter_actions(enabled=False, armed=clip in ("aim", "shoot", "lower"))
+    key "dismiss" action NullAction()
+    key "skip" action NullAction()
+    key "toggle_skip" action NullAction()
+    key "rollback" action NullAction()
+    key "game_menu" action NullAction()
+    if renpy.emscripten:
+        # Paint this canvas before hiding the HTML video overlay.
+        timer 0.03 action Function(shelter_web_close)
+    timer (0.12 if terminal else 0.26) action Return(True)
 
 # Armed mode offers exactly two actions; aiming lives in the question row.
 screen shelter_actions(enabled=True, armed=False):
@@ -533,14 +562,12 @@ label shelter_clip(clip):
     window hide
     $ _skipping = False
     if renpy.emscripten:
-        $ shelter_web_begin("Video/" + shelter_visitor + "/" + shelter_data("clips")[clip][0], shelter_web_clip_cues(clip), poster=shelter_movie_start_image(shelter_visitor, clip), armed=clip in ("aim", "shoot", "lower"))
+        $ shelter_web_begin("Video/" + shelter_visitor + "/" + shelter_data("clips")[clip][0], shelter_web_clip_cues(clip), poster=shelter_movie_start_image(shelter_visitor, clip), armed=clip in ("aim", "shoot", "lower"), end_time=SHELTER_CLIP_ENDS.get(shelter_visitor + "/" + clip), end_poster=shelter_movie_frame(shelter_visitor, clip, "end"))
         call screen shelter_web_wait
-        $ shelter_web_close()
-    elif clip == "intro" and shelter_visitor in ("Maral", "Swat", "Bayra", "anu"):
-        call screen shelter_playback(clip) with Dissolve(0.8)
     else:
-        call screen shelter_playback(clip)
+        call screen shelter_playback(clip) with Dissolve(0.6 if clip == "intro" else 0.16)
     $ shelter_still = clip
+    call screen shelter_clip_handoff(clip)
     return
 
 label shelter_encounter:

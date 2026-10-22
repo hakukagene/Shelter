@@ -3,13 +3,15 @@
 init python:
     import json as shelter_web_json
 
-    def shelter_web_begin(path, cues=(), intro=False, poster=None, armed=False):
+    def shelter_web_begin(path, cues=(), intro=False, poster=None, armed=False, end_time=None, end_poster=None):
         payload = {
             "src": "game/" + path.rsplit(".", 1)[0] + ".mp4",
             "cues": cues,
             "intro": intro,
             "poster": "game/" + poster if poster else None,
             "armed": armed,
+            "endTime": end_time,
+            "endPoster": "game/" + end_poster if end_poster else None,
             "volume": preferences.get_volume("voice"),
             "muted": preferences.get_mute("voice"),
         }
