@@ -236,8 +236,6 @@ screen shelter_inspection(visitor):
                     action [Function(shelter_inspection_mark, visitor, selected_item), SetScreenVariable("revealed", not revealed), Function(viewer.choose, selected_item if revealed else selected.get("revealed_sprite", selected_item))]
 
     add Solid("#090b0eee") xpos 0 ypos 965 xysize (1920, 115)
-    text "Шалгасан зүйл: [checked] / [len(bag['items'])]" style "inspection_text" xpos 64 ypos 993
-    text "Дүгнэлтийг та өөрөө гаргана." style "inspection_text" size 23 color "#a9a395" xpos 615 ypos 997
     textbutton "ҮЗЛЭГ ДУУСГАХ":
         style "inspection_button"
         xpos 1500 ypos 986 xysize (355, 70)
