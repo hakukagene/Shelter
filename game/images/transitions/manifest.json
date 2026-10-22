@@ -300,6 +300,13 @@
     "start_sha256": "0bdf0833b6ffa16f020aa6ccc57ba6f47a7536d90739642331da064f207b9bbd",
     "end_sha256": "804212fb03e2555d6345a0bdf997f4b278a16de10ac7fe5736dbeadcd9feef52"
   },
+  "anu/admit": {
+    "source": "Video/anu/admit.webm",
+    "source_sha256": "15c1ba3f02c46685a6c5f4bdc89dc0ae383a3c9f106c35e584b6e2b6458cf828",
+    "end_time": null,
+    "start_sha256": "bb0a2f59f093201210b32ed5cf94cde64ba9cf0c1aa141638274f510bf3a9462",
+    "end_sha256": "c29f85a301b9caf123b9cdcf0fe6a19cbd7b008ea98839456ee8ccd73031b76f"
+  },
   "anu/reject": {
     "source": "Video/anu/reject.webm",
     "source_sha256": "b056c1af8cb69f5084bb32276c0e0307aa3c8ee90371f16f171ddbab7dfb7b70",
