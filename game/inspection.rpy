@@ -1,6 +1,7 @@
 # Character belongings are evidence to examine, never an automatic verdict.
 # Assets use alpha atlases or standalone cutouts; each prop stays separate.
 default shelter_inspection_progress = {}
+default shelter_inspection_requests = []
 
 init python:
     import pygame
@@ -85,9 +86,9 @@ init python:
         No render or texture objects are retained, so save/load is supported.
         It rotates the illustration in its plane, not a fabricated 3D backside.
         """
-        def __init__(self, **kwargs):
+        def __init__(self, sprite=None, **kwargs):
             super(ShelterInspectionView, self).__init__(**kwargs)
-            self.sprite = None
+            self.sprite = sprite
             self.angle = 0.0
             self.magnification = 1.0
             self.drag_x = None
@@ -108,19 +109,25 @@ init python:
             self.magnification = min(1.6, max(0.75, self.magnification + amount))
             renpy.redraw(self, 0)
 
+        def reset(self):
+            self.angle = 0.0
+            self.magnification = 1.0
+            self.drag_x = None
+            renpy.redraw(self, 0)
+
         def render(self, width, height, st, at):
-            rv = renpy.Render(660, 430)
+            rv = renpy.Render(900, 680)
             if self.sprite:
                 child = Transform(shelter_inspection_sprite(self.sprite),
-                    xysize=(470, 350), fit="contain", zoom=self.magnification,
+                    xysize=(770, 610), fit="contain", zoom=self.magnification,
                     rotate=self.angle, rotate_pad=True)
-                rendered = renpy.render(child, 660, 430, st, at)
+                rendered = renpy.render(child, 900, 680, st, at)
                 w, h = rendered.get_size()
-                rv.blit(rendered, ((660-w)/2, (430-h)/2))
-            return rv.subsurface((0, 0, 660, 430))
+                rv.blit(rendered, ((900-w)/2, (680-h)/2))
+            return rv.subsurface((0, 0, 900, 680))
 
         def event(self, ev, x, y, st):
-            inside = 0 <= x < 660 and 0 <= y < 430
+            inside = 0 <= x < 900 and 0 <= y < 680
             if ev.type == pygame.MOUSEBUTTONDOWN and inside:
                 if ev.button == 1:
                     self.drag_x, self.drag_angle = x, self.angle
@@ -137,124 +144,196 @@ init python:
                 self.drag_x = None
                 raise renpy.IgnoreEvent()
 
+# Concept 01: one prop on the illuminated bench, live tag and compact controls.
 style inspection_text is shelter_text:
     size 28
     color "#e4ded2"
 
-style inspection_button is shelter_button:
-    padding (18, 12)
+style inspection_button is button:
+    background Frame("gui/shelter/metal/button.png", 28, 18)
+    hover_background Transform(Frame("gui/shelter/metal/button.png", 28, 18), matrixcolor=BrightnessMatrix(0.14))
+    insensitive_background Transform(Frame("gui/shelter/metal/button.png", 28, 18), matrixcolor=SaturationMatrix(0.0) * BrightnessMatrix(-0.16))
+    padding (24, 16)
     xminimum 100
     yminimum 64
 
 style inspection_button_text is shelter_button_text:
     size 26
 
+screen inspection_plate(caption, icon, command, enabled=True, width=500):
+    button:
+        style "inspection_button"
+        xysize (width, 94)
+        sensitive enabled
+        action command
+        hbox:
+            xalign 0.5
+            yalign 0.5
+            spacing 15
+            add "gui/shelter/inspection/" + icon + ".svg" xysize (45, 45) yalign 0.5
+            text caption style "inspection_button_text" font SHELTER_BOLD size 26 yalign 0.5 xmaximum (width-115)
+
 screen shelter_inspection(visitor):
     modal True
-    default selected_item = None
+    default selected_item = "business_bag" if visitor == "Bayra" else None
     default revealed = False
-    default viewer = ShelterInspectionView()
+    default viewer = ShelterInspectionView(SHELTER_INSPECTIONS[visitor]["bag"])
     $ bag = SHELTER_INSPECTIONS[visitor]
     $ checked = sum(shelter_inspection_done(visitor, item) for item in bag["items"])
+    $ selected = SHELTER_INSPECTION_ITEMS.get(selected_item)
+    # Saves from the previous screen may have an empty viewer at the overview.
+    if viewer.sprite is None:
+        $ viewer.choose(bag["bag"] if selected_item is None else selected_item)
 
-    add "images/inspection/workbench.png" xysize (1920, 1080)
-    add Solid("#00000042")
-    add Solid("#090b0ee8") xpos 0 ypos 0 xysize (1920, 125)
-    add Solid("#a2885c") xpos 64 ypos 124 xysize (1792, 2)
-    text "ҮЗЛЭГИЙН ШИРЭЭ" style "inspection_text" font SHELTER_BOLD size 42 xpos 64 ypos 28
-    text bag["title"] style "inspection_text" size 25 color "#ada69b" xpos 67 ypos 80
-    text bag["owner"] style "inspection_text" size 30 xanchor 1.0 xpos 1850 ypos 45
+    add "images/inspection/bench-v2.jpg" xysize (1920, 1080)
+    add Solid("#06070766") xysize (1920, 112)
+    text "ҮЗЛЭГИЙН ШИРЭЭ" style "inspection_text" font SHELTER_BOLD size 42 xpos 64 ypos 26
+    text bag["title"] style "inspection_text" size 22 color "#b9aa91" xpos 66 ypos 78
+    text bag["owner"] style "inspection_text" size 30 xanchor 1.0 xpos 1850 ypos 38
+    add Solid("#9f86574d") xpos 65 ypos 111 xysize (1790, 1)
 
-    # The character's own container sits on the desk, with loose objects nearby.
+    # A single main prop replaces the former duplicate desk/detail previews.
+    add "gui/shelter/inspection/shadow.svg" xpos 575 ypos 745 xysize (700, 140)
+    add viewer xpos 475 ypos 145
+
+    # Other items remain within reach, like a small tray to the left of the lamp.
     if visitor != "Bayra":
-        add Transform(shelter_inspection_sprite(bag["bag"]), xysize=(530, 650), fit="contain") xpos 84 ypos 225
-    $ spots = [(665, 255), (750, 475), (620, 710)] if len(bag["items"]) == 3 else [(660, 330), (725, 625)]
-    for i, item_id in enumerate(bag["items"]):
-        $ item = SHELTER_INSPECTION_ITEMS[item_id]
-        $ is_bag = item_id == "business_bag"
-        $ spot = (225, 310) if is_bag else spots[i]
-        button:
-            id ("inspection_item_" + item_id)
-            xpos spot[0]
-            ypos spot[1]
-            xysize ((640, 530) if is_bag else (265, 210))
-            padding (8, 8)
-            background None
-            hover_background Solid("#eed4a21a")
-            selected_background Solid("#eed4a20d")
-            selected selected_item == item_id
-            action [SetScreenVariable("selected_item", item_id), SetScreenVariable("revealed", False), Function(viewer.choose, item_id)]
-            vbox:
-                spacing 8
-                xalign 0.5
-                add Transform(shelter_inspection_sprite(item_id), xysize=((580, 440) if is_bag else (235, 150)), fit="contain") xalign 0.5
-                text item["name"] style "inspection_text" size 24 text_align 0.5 xalign 0.5
-                if shelter_inspection_done(visitor, item_id):
-                    text "ШАЛГАСАН" style "inspection_text" size 17 color "#bfa776" xalign 0.5
+        vbox:
+            xpos 64
+            ypos 180
+            spacing 12
+            text "ЭД ЗҮЙЛС · [checked]/[len(bag['items'])]" style "inspection_text" size 21 color "#c1ad8a"
+            for item_id in bag["items"]:
+                $ item = SHELTER_INSPECTION_ITEMS[item_id]
+                button:
+                    id ("inspection_item_" + item_id)
+                    xysize (344, 118)
+                    padding (13, 10)
+                    background Solid("#080909b3")
+                    hover_background Frame("gui/shelter/metal/selected.png", 28, 18)
+                    selected_background Frame("gui/shelter/metal/selected.png", 28, 18)
+                    selected selected_item == item_id
+                    action [SetScreenVariable("selected_item", item_id), SetScreenVariable("revealed", False), Function(viewer.choose, item_id)]
+                    hbox:
+                        spacing 12
+                        yalign 0.5
+                        add Transform(shelter_inspection_sprite(item_id), xysize=(87, 83), fit="contain") yalign 0.5
+                        vbox:
+                            yalign 0.5
+                            spacing 7
+                            text item["name"] style "inspection_text" size 24 xsize 205
+                            if shelter_inspection_done(visitor, item_id):
+                                text "ШАЛГАСАН" style "inspection_text" size 16 color "#b9a278"
+            if selected_item:
+                textbutton "Тавих":
+                    style "inspection_button"
+                    xsize 344
+                    action [SetScreenVariable("selected_item", None), SetScreenVariable("revealed", False), Function(viewer.choose, bag["bag"])]
+
+    # Real text on a blank paper tag supports every item and localization.
+    fixed:
+        xpos 34
+        ypos 694
+        xysize (460, 178)
+        add "images/inspection/evidence-tag.webp" xysize (460, 178)
+        vbox:
+            xpos 132
+            ypos 37
+            xsize 294
+            spacing 10
+            text (selected["name"] if selected else bag["title"]):
+                font SHELTER_BOLD
+                size 27
+                color "#29251d"
+                outlines []
+            text ("Хаалттай" if visitor == "Bayra" else "Шалгасан" if selected_item and shelter_inspection_done(visitor, selected_item) else "Шалгаж байна" if selected_item else "Эд зүйлээ сонгоно уу"):
+                font SHELTER_FONT
+                size 23
+                color "#514431"
+                outlines []
+        if visitor == "Bayra":
+            button:
+                id "inspection_item_business_bag"
+                xysize (460, 178)
+                background None
+                action [SetScreenVariable("selected_item", "business_bag"), SetScreenVariable("revealed", False), Function(viewer.choose, "business_bag")]
 
     frame:
-        xpos 1080
-        ypos 155
-        xysize (776, 785)
-        background Solid("#090b0ee3")
-        padding (42, 28)
-        if selected_item is None:
-            vbox:
-                yalign 0.5
-                spacing 24
-                text "ЭД ЗҮЙЛЭЭ СОНГОНО УУ" style "inspection_text" font SHELTER_BOLD size 32
-                text bag["note"] style "inspection_text" xsize 670
-                text "Дарж авах · Томруулах · Чирж эргүүлэх" style "inspection_text" size 23 color "#ada69b"
-        else:
-            $ selected = SHELTER_INSPECTION_ITEMS[selected_item]
-            text selected["name"] style "inspection_text" font SHELTER_BOLD size 34
-            add viewer xpos 0 ypos 65
-            text "Чирж эргүүлэх · Дугуйгаар томруулах" style "inspection_text" size 21 color "#a9a395" xpos 0 ypos 500
-            hbox:
-                ypos 535
-                spacing 10
-                textbutton "Зүүн" style "inspection_button" action Function(viewer.turn, -15)
-                textbutton "Баруун" style "inspection_button" action Function(viewer.turn, 15)
-                textbutton "−" style "inspection_button" action Function(viewer.zoom, -0.15)
-                textbutton "+" style "inspection_button" action Function(viewer.zoom, 0.15)
-                textbutton "Тавих" style "inspection_button" action [SetScreenVariable("selected_item", None), Function(viewer.choose, None)]
-            text (selected["detail"] if revealed else selected["description"]):
+        xpos 1395
+        ypos 340
+        xsize 460
+        background Frame("gui/shelter/metal/button.png", 28, 18)
+        padding (29, 25)
+        hbox:
+            spacing 17
+            add "gui/shelter/inspection/" + ("lock" if visitor == "Bayra" else "check" if revealed else "info") + ".svg" xysize (47, 47)
+            text (selected["detail"] if revealed else selected["description"] if selected else bag["note"]):
                 style "inspection_text"
                 size 25
-                xpos 0
-                ypos 613
-                xsize 680
-            if selected_item == "notebook" and revealed and 2 not in shelter_asked:
-                textbutton "Энэ зургийн тухай асуух":
-                    style "inspection_button"
-                    xpos 0 ypos 700 xsize 680
-                    action Return("ask_drawing")
-            else:
-                textbutton (selected.get("close_action", "Шалгасан") if revealed else selected["action"]):
-                    style "inspection_button"
-                    xpos 0 ypos 700 xsize 680
-                    sensitive not revealed or "revealed_sprite" in selected
-                    action [Function(shelter_inspection_mark, visitor, selected_item), SetScreenVariable("revealed", not revealed), Function(viewer.choose, selected_item if revealed else selected.get("revealed_sprite", selected_item))]
+                xsize 335
+                line_spacing 4
 
-    add Solid("#090b0eee") xpos 0 ypos 965 xysize (1920, 115)
-    textbutton "ҮЗЛЭГ ДУУСГАХ":
-        style "inspection_button"
-        xpos 1500 ypos 986 xysize (355, 70)
-        action Return("close")
+    add Solid("#08080760") xpos 0 ypos 905 xysize (1920, 175)
+    add Solid("#a88c5944") xpos 64 ypos 905 xysize (1792, 1)
+    fixed:
+        xpos 64
+        ypos 938
+        xysize (510, 94)
+        if selected_item == "notebook" and revealed and 2 not in shelter_asked:
+            use inspection_plate("Энэ зургийн тухай асуух", "inspect", Return("ask_drawing"), width=510)
+        elif selected:
+            use inspection_plate(
+                selected.get("close_action", "Шалгасан") if revealed else selected["action"],
+                "check" if revealed and "revealed_sprite" not in selected else "inspect",
+                [Function(shelter_inspection_mark, visitor, selected_item), SetScreenVariable("revealed", not revealed), Function(viewer.choose, selected_item if revealed else selected.get("revealed_sprite", selected_item))],
+                enabled=not revealed or "revealed_sprite" in selected, width=510)
+        else:
+            use inspection_plate("Эд зүйлээ сонгоно уу", "inspect", NullAction(), enabled=False, width=510)
+
+    hbox:
+        xpos 700
+        ypos 937
+        spacing 15
+        for icon, caption, command in [
+                ("left", "Зүүн", Function(viewer.turn, -15)),
+                ("right", "Баруун", Function(viewer.turn, 15)),
+                ("minus", "−", Function(viewer.zoom, -0.15)),
+                ("plus", "+", Function(viewer.zoom, 0.15)),
+                ("reset", "Төвлөрүүлэх", Function(viewer.reset))]:
+            button:
+                id ("inspection_" + icon)
+                xysize (88, 88)
+                padding (0, 0)
+                background "gui/shelter/inspection/round.svg"
+                hover_background Transform("gui/shelter/inspection/round.svg", matrixcolor=BrightnessMatrix(0.16))
+                action command
+                tooltip caption
+                alt caption
+                add "gui/shelter/inspection/" + icon + ".svg" xysize (62, 62) align (0.5, 0.5)
+    text "Чирж эргүүлэх · Дугуйгаар томруулах" style "inspection_text" size 20 color "#b3a58e" xalign 0.5 ypos 1040
+    fixed:
+        xpos 1435
+        ypos 938
+        xysize (420, 94)
+        use inspection_plate("ҮЗЛЭГ ДУУСГАХ", "exit", Return("close"), width=420)
     key "game_menu" action Return("close")
     key "skip" action NullAction()
     key "toggle_skip" action NullAction()
     key "rollback" action NullAction()
-    if selected_item:
-        key "K_LEFT" action Function(viewer.turn, -15)
-        key "K_RIGHT" action Function(viewer.turn, 15)
-        key "K_EQUALS" action Function(viewer.zoom, 0.15)
-        key "K_MINUS" action Function(viewer.zoom, -0.15)
+    key "K_LEFT" action Function(viewer.turn, -15)
+    key "K_RIGHT" action Function(viewer.turn, 15)
+    key "K_EQUALS" action Function(viewer.zoom, 0.15)
+    key "K_MINUS" action Function(viewer.zoom, -0.15)
 
 label shelter_inspect_belongings:
     $ shelter_hold_current_frame()
     window hide None
     $ _skipping = False
+    # Anu's bag request plays once; her separate drawing question follows only
+    # after opening the notebook. Closing early must not consume answer three.
+    if shelter_visitor == "anu" and 2 not in shelter_asked and "anu" not in shelter_inspection_requests:
+        call shelter_player_line("question3", shelter_data("questions")[2])
+        $ shelter_inspection_requests = shelter_inspection_requests + ["anu"]
     # Anu's third answer is about the drawing; find it before asking her.
     if shelter_visitor != "anu" and 2 not in shelter_asked:
         call shelter_player_line("question3", shelter_data("questions")[2]) from _call_shelter_player_line

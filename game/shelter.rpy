@@ -479,7 +479,7 @@ screen shelter_player_speech(voice_key, caption=None):
     key "rollback" action NullAction()
     on "hide" action Stop("shelter_player")
     $ position = renpy.music.get_pos(channel="shelter_player")
-    $ cue = shelter_data("voices")[voice_key]
+    $ cue = shelter_player_voice(voice_key)
     if caption and position is not None and cue[1] <= position < cue[2]:
         frame:
             background Solid("#080707dd")
@@ -586,12 +586,12 @@ screen shelter_next_visitor_card():
 
 label shelter_player_line(voice_key, caption=None):
     # New characters may have response video audio before player voice is supplied.
-    if voice_key not in shelter_data("voices"):
+    if shelter_player_voice(voice_key) is None:
         return
     $ shelter_hold_current_frame()
     window hide None
     $ _skipping = False
-    $ renpy.music.play(shelter_data("voices")[voice_key][0], channel="shelter_player", loop=False)
+    $ renpy.music.play(shelter_player_voice(voice_key)[0], channel="shelter_player", loop=False)
     call screen shelter_player_speech(voice_key, caption)
     $ renpy.music.stop(channel="shelter_player")
     return
@@ -635,6 +635,7 @@ label shelter_encounter:
     $ shelter_visitors_seen = 0
     $ shelter_story_minutes = SHELTER_CLOCK_START
     $ shelter_inspection_progress = {}
+    $ shelter_inspection_requests = []
     jump shelter_visit_start
 
 label shelter_visit_start:
