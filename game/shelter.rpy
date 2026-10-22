@@ -173,7 +173,7 @@ define ANU_CLIPS = {
 define ANU_QUESTIONS = [
     "Ээжийг чинь хамгийн сүүлд хаана харсан бэ?",
     "Замд чинь том хүн тааралдаагүй гэж үү?",
-    "Чи энэ зургийг зурсан уу?",
+    "Цүнхээ нээгээд харуул даа.",
 ]
 define ANU_LINES = {
     "intro": "Ах аа... хаалгаа нээгээч. Би ээжийгээ олохгүй байна. Ээж маань танайд байж магадгүй. Би энд ганцаараа баймааргүй байна.",
@@ -418,7 +418,7 @@ screen shelter_question_choices():
                 text_size (30 if renpy.variant("web") else 26)
                 text_text_align 0.5
                 xysize (330, 170)
-                sensitive index not in shelter_asked
+                sensitive index not in shelter_asked or shelter_has_inspection(shelter_visitor, index)
                 action Return(index)
         textbutton "Буу онилох":
             style "shelter_button"
@@ -553,6 +553,7 @@ label shelter_encounter:
     $ shelter_civilians_saved = 0
     $ shelter_civilians_killed = 0
     $ shelter_visitors_seen = 0
+    $ shelter_inspection_progress = {}
     jump shelter_visit_start
 
 label shelter_visit_start:
@@ -574,6 +575,9 @@ label shelter_decision_phase:
 
 label shelter_handle_choice:
     if isinstance(shelter_choice, int):
+        if shelter_has_inspection(shelter_visitor, shelter_choice):
+            call shelter_inspect_belongings
+            jump shelter_decision_phase
         $ shelter_asked.append(shelter_choice)
         call shelter_player_line("question%d" % (shelter_choice + 1), shelter_data("questions")[shelter_choice])
         call shelter_clip("answer%d" % (shelter_choice + 1))

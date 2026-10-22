@@ -36,6 +36,8 @@ testsuite shelter_updated_encounters:
         pause until screen "shelter_decision" timeout 5
         click "Наад цүнхэн доторхоо харуулаач"
         pause until eval (shelter_still == "answer3") timeout 30
+        pause until screen "shelter_inspection" timeout 5
+        click "ҮЗЛЭГ ДУУСГАХ"
         pause until screen "shelter_decision" timeout 5
         assert eval (shelter_asked == [0, 1, 2])
         assert eval (shelter_wait_image(shelter_still) == "images/Bayra/frames/idle.jpg")
@@ -80,7 +82,11 @@ testsuite shelter_updated_encounters:
         click "Замд чинь том хүн тааралдаагүй гэж үү?"
         pause until eval (shelter_still == "answer2") timeout 30
         pause until screen "shelter_decision" timeout 5
-        click "Чи энэ зургийг зурсан уу?"
+        click "Цүнхээ нээгээд харуул даа."
+        pause until screen "shelter_inspection" timeout 5
+        click id "inspection_item_notebook"
+        click "Дэвтрийг нээх"
+        click "Энэ зургийн тухай асуух"
         pause until eval (shelter_still == "answer3") timeout 20
         pause until screen "shelter_decision" timeout 5
         assert eval (shelter_asked == [0, 1, 2])

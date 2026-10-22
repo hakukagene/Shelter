@@ -135,8 +135,9 @@ Re-align the SRT if the video's edit or narration timing changes.
 ## Encounter flow
 
 The playable order is Chinba → Maral → Swat (Orgil) → Bayra → Anu.
-Each visitor has three questions plus an aim button. Asked questions are disabled;
-aiming offers shoot or lower. Unarmed players can admit or reject the visitor.
+Each visitor has three questions plus an aim button. Asked dialogue questions are
+disabled; the bag question stays available for repeat inspection. Aiming offers
+shoot or lower. Unarmed players can admit or reject the visitor.
 A black clock/count screen and metal door knock separate visitors.
 
 Bayra's updated footage combines arrival with introduction, entry with admission,
@@ -148,6 +149,30 @@ the available preview without a civilian death. Admitting her loses the game.
 No Anu admission video was supplied: her supplied smiling still appears briefly,
 then the monster-ending result screen. This can be replaced when that clip arrives.
 Her player question voice recordings are also not supplied yet.
+
+### Interactive belongings inspection
+
+The third question opens a tabletop inspection for visitors with supplied bags:
+
+| Visitor | Container and available objects | Story behavior |
+| --- | --- | --- |
+| Chinba | Yellow delivery backpack; meal, charger, delivery schedule | His answer plays once, then the contents can be inspected. |
+| Anu | Pink school backpack; notebook, rabbit placed alongside it | Open the notebook to reveal the bunker-door drawing, then ask her about it to play answer 3. Closing early does not consume that answer. |
+| Bayra | Closed black business bag | His refusal plays once. Only the outside can be inspected; no contents are invented. |
+
+Maral has no supplied bag and Orgil says he lost his. Their questions stay unchanged.
+Click an object to enlarge it; drag to rotate the **2D illustration**, use the
+mouse wheel or +/− buttons to zoom, and use its action to inspect/read it.
+Left/right arrow keys also rotate; =/− keys zoom. Touch users can tap the same
+large buttons. This does not reveal a modeled 3D reverse side.
+“Тавих” puts the selected item down; “ҮЗЛЭГ ДУУСГАХ” or Escape closes inspection.
+Checked-item progress survives reopening and save/load, and resets for a new game.
+Inspection does not change admissions, deaths, visitor counts, or classifications.
+
+The new text-free workbench and transparent prop atlases are generated assets,
+matched to the supplied character appearance and updated script. Their runtime
+crop rectangles, per-visitor inventory, and interactions live in
+`game/inspection.rpy`; extend its data tables when future visitors arrive.
 
 The campaign counters retain 43 civilians, 30 monsters, a target of 40 rescued
 civilians and a maximum of three civilian deaths. Five visitors are playable;
@@ -175,6 +200,7 @@ updating the source clips or conversion manifest.
 ## Implementation
 
 - `game/shelter.rpy`: stages, clip map, story text and UI.
+- `game/inspection.rpy`: interactive belongings and saved inspection progress.
 - `game/script.rpy`: entry point.
 - `game/images/<visitor>/frames`: stills extracted from the original videos,
   providing startup and choice-screen images without looping spoken dialogue.
@@ -186,6 +212,17 @@ short startup grace period. Menus and choices use real Ren'Py controls and text;
 no generated mockup is baked into the game.
 
 ## Validation
+
+Inspection regression scenarios (Ren'Py 8.5.3):
+
+```text
+renpy.exe <project-path> test shelter_inspection_checks --savedir <project-path>/tmp/inspection-saves --overwrite-screenshots
+```
+
+They cover all three bag-question paths, item actions, actual mouse dragging,
+zoom, save/load, reopening without repeated audio, Anu's drawing/answer gating,
+Bayra's refusal, and unchanged encounter counters. Screenshots go to
+`tmp/inspection-tests`; test scripts are excluded from distributions.
 
 Bayra/Anu regression scenarios are in `game/encounter_tests.rpy` (Ren'Py 8.5):
 
