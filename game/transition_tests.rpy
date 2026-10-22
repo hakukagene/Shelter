@@ -10,7 +10,7 @@ label _shelter_test_all_clips:
         $ shelter_test_clips = list(shelter_data("clips"))
         while shelter_test_clips:
             $ shelter_test_clip = shelter_test_clips.pop(0)
-            call shelter_clip(shelter_test_clip)
+            call shelter_clip(shelter_test_clip) from _call_shelter_clip_10
             $ shelter_test_clip_count += 1
             $ renpy.log("TRANSITION PASS: %s/%s (%d/%d)" % (shelter_visitor, shelter_test_clip, shelter_test_clip_count, sum(len(v["clips"]) for v in SHELTER_VISITORS.values())))
             $ renpy.screenshot(config.basedir + "/tmp/transition-check/%s-%s.png" % (shelter_visitor, shelter_test_clip))

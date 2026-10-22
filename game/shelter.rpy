@@ -603,7 +603,7 @@ label shelter_visit_start:
     $ shelter_asked = []
     $ shelter_choice = None
     $ shelter_still = "arrival" if shelter_visitor in ("Chinba", "Swat") else "intro"
-    call shelter_clip("intro")
+    call shelter_clip("intro") from _call_shelter_clip_2
     jump shelter_question_phase
 
 label shelter_question_phase:
@@ -619,32 +619,32 @@ label shelter_decision_phase:
 label shelter_handle_choice:
     if isinstance(shelter_choice, int):
         if shelter_has_inspection(shelter_visitor, shelter_choice):
-            call shelter_inspect_belongings
+            call shelter_inspect_belongings from _call_shelter_inspect_belongings
             jump shelter_decision_phase
         $ shelter_asked.append(shelter_choice)
-        call shelter_player_line("question%d" % (shelter_choice + 1), shelter_data("questions")[shelter_choice])
-        call shelter_clip("answer%d" % (shelter_choice + 1))
+        call shelter_player_line("question%d" % (shelter_choice + 1), shelter_data("questions")[shelter_choice]) from _call_shelter_player_line_2
+        call shelter_clip("answer%d" % (shelter_choice + 1)) from _call_shelter_clip_3
         jump shelter_decision_phase
     elif shelter_choice == "aim":
-        call shelter_clip("aim")
+        call shelter_clip("aim") from _call_shelter_clip_4
         call screen shelter_decision(armed=True)
         $ shelter_choice = _return
         if shelter_choice == "lower":
-            call shelter_clip("lower")
+            call shelter_clip("lower") from _call_shelter_clip_5
             jump shelter_decision_phase
         elif shelter_choice in ("reject", "admit"):
-            call shelter_clip("lower")
+            call shelter_clip("lower") from _call_shelter_clip_6
         jump shelter_handle_choice
     elif shelter_choice == "shoot":
-        call shelter_clip("shoot")
+        call shelter_clip("shoot") from _call_shelter_clip_7
         jump shelter_resolve_visitor
     elif shelter_choice == "reject":
-        call shelter_player_line("reject")
-        call shelter_clip("reject")
+        call shelter_player_line("reject") from _call_shelter_player_line_3
+        call shelter_clip("reject") from _call_shelter_clip_8
         jump shelter_resolve_visitor
     elif shelter_choice == "admit":
-        call shelter_player_line("admit")
-        call shelter_clip("admit")
+        call shelter_player_line("admit") from _call_shelter_player_line_4
+        call shelter_clip("admit") from _call_shelter_clip_9
         jump shelter_resolve_visitor
     jump shelter_decision_phase
 

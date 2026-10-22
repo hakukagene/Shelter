@@ -255,15 +255,15 @@ label shelter_inspect_belongings:
     $ _skipping = False
     # Anu's third answer is about the drawing; find it before asking her.
     if shelter_visitor != "anu" and 2 not in shelter_asked:
-        call shelter_player_line("question3", shelter_data("questions")[2])
-        call shelter_clip("answer3")
+        call shelter_player_line("question3", shelter_data("questions")[2]) from _call_shelter_player_line
+        call shelter_clip("answer3") from _call_shelter_clip
         $ shelter_asked.append(2)
     # A save made during this screen must retain checked items, instead of
     # rolling data back to the beginning of the call-screen statement.
     $ renpy.retain_after_load()
     call screen shelter_inspection(shelter_visitor) with Dissolve(0.2)
     if _return == "ask_drawing" and shelter_visitor == "anu" and 2 not in shelter_asked:
-        call shelter_player_line("drawing", "Чи энэ зургийг зурсан уу?")
-        call shelter_clip("answer3")
+        call shelter_player_line("drawing", "Чи энэ зургийг зурсан уу?") from _call_shelter_player_line_1
+        call shelter_clip("answer3") from _call_shelter_clip_1
         $ shelter_asked.append(2)
     return
