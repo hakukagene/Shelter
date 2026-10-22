@@ -272,6 +272,12 @@ Movie completion is detected on the dedicated `shelter_video` channel after a
 short startup grace period. Menus and choices use real Ren'Py controls and text;
 no generated mockup is baked into the game.
 
+Encounter playback keeps an opaque poster on the master layer as well as under
+the movie. The decoded end poster stays visible through the waiting-pose handoff,
+including when resuming an older save. Departures dissolve straight to the ledger;
+its live clock and counters remain behind the card until the next visitor starts.
+This prevents transient screen removal or decoder startup from exposing black.
+
 ## Validation
 
 Full transition and sequence checks (normal playback, about 12 minutes):
@@ -281,6 +287,16 @@ python tools/prepare_transition_frames.py --check --audit
 renpy.exe <project-path> test shelter_transition_checks --savedir <project-path>/tmp/transition-saves --overwrite-screenshots
 node tools/test_video_bridge.mjs
 ```
+
+For the black-flash regression alone, run:
+
+```text
+renpy.exe <project-path> test shelter_transition_checks::no_black_transition_frames --savedir <project-path>/tmp/transition-saves
+```
+
+It samples rendered pixels through an old-save-style still, two movies, Maral's
+departure, the ledger and Chinba's arrival, and rejects black frames in that
+sequence. This test uses the real decoder and normal playback speed.
 
 The native suite plays all 45 clips to EOF, then rejects all five visitors in their
 shuffled order, opening Anu's notebook and playing her answer wherever she appears.
