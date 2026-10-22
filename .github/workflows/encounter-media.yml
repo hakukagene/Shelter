@@ -16,12 +16,15 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y ffmpeg
           git lfs install --local
-          git lfs pull --include='game/Video/Bayra/*.mp4,game/Video/anu/*.mp4'
+          git lfs pull --include='game/Video/**/*.webm,game/Video/Bayra/*.mp4,game/Video/anu/*.mp4'
       - name: Convert playback videos and extract stills
-        run: python3 tools/prepare_encounter_media.py
+        run: |
+          python3 tools/prepare_encounter_media.py
+          python3 tools/prepare_transition_frames.py --audit
       - name: Commit playback assets through Git LFS
         run: |
           git add -- game/Video/Bayra/*.webm game/Video/anu/*.webm game/images/Bayra/frames/*.jpg game/images/anu/frames/*.jpg
+          git add -- game/images/transitions
           if git diff --cached --quiet; then exit 0; fi
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'

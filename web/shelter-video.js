@@ -4,6 +4,7 @@
   const root = document.getElementById("shelter-video");
   const stage = document.getElementById("video-stage");
   const video = document.getElementById("story-video");
+  const endFrame = document.getElementById("video-end-frame");
   const caption = document.getElementById("video-caption");
   const speaker = document.getElementById("caption-speaker");
   const words = document.getElementById("caption-words");
@@ -72,7 +73,7 @@
   }
 
   async function play() {
-    if (!active) return;
+    if (!active || api.finished) return;
     const current = sequence;
     prompt.hidden = true;
     if (errored) {
@@ -96,8 +97,12 @@
   }
 
   function updateCaption() {
-    if (!active) return;
+    if (!active || api.finished) return;
     const time = video.currentTime;
+    if (spec.endTime && time >= spec.endTime) {
+      finish();
+      return;
+    }
     const index = spec.cues.findIndex(cue => cue[0] <= time && time < cue[1]);
     if (index !== cueIndex) {
       cueIndex = index;
@@ -121,12 +126,17 @@
   }
 
   function finish() {
-    if (!active) return;
+    if (!active || api.finished) return;
     api.finished = true;
     download?.abort();
     video.pause();
     loading.hidden = true;
     prompt.hidden = true;
+    caption.hidden = true;
+    // The trimmed clip's end poster also covers a stale cached, untrimmed MP4.
+    if (spec.endTime && endFrame.complete && endFrame.naturalWidth) {
+      endFrame.hidden = false;
+    }
     cancelAnimationFrame(frame);
     // Hold the last frame until Ren'Py advances; never leave a dangling video.
   }
@@ -142,6 +152,9 @@
       cueIndex = -2;
       errored = false;
       root.hidden = false;
+      endFrame.hidden = true;
+      if (options.endPoster) endFrame.src = encodeURI(options.endPoster);
+      else endFrame.removeAttribute("src");
       root.classList.toggle("intro", options.intro);
       caption.hidden = true;
       prompt.hidden = true;
@@ -176,11 +189,16 @@
       loadClip();
     },
     close() {
-      sequence++;
+      const closing = ++sequence;
       active = false;
-      releaseVideo();
-      root.hidden = true;
       cancelAnimationFrame(frame);
+      // Ren'Py has just drawn its handoff screen. Let that canvas reach the
+      // compositor before uncovering it; never reveal the previous visitor.
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        if (closing !== sequence) return;
+        root.hidden = true;
+        releaseVideo();
+      }));
     },
   };
 

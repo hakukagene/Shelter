@@ -181,6 +181,16 @@ finishing them is a preview ending, not a campaign win.
 Neutral waiting and armed frames are extracted from the corresponding videos.
 Dialogue captions use measured speech windows on the video decoder clock.
 
+Playback now holds its decoded last frame at EOF, then uses the matching end
+poster before returning to a stable waiting pose. Conversational clips blend
+back over 0.18 seconds; final actions keep their own last frame until the clock
+or result transition. Maral's rejection/shooting no longer flashes the lockdown
+ending artwork. All 44 encounter clips have individual start/end posters.
+The supplied Bayra aim clip's trailing black frame is excluded at 13.11 seconds
+in both native playback and web MP4 conversion; speech has already finished.
+Maral's third-answer caption now follows the updated recording through 7.332s.
+The browser bridge uncovers Ren'Py only after its replacement canvas is painted.
+
 ### Rebuilding the updated encounter media
 
 The source-to-playback map is `tools/encounter_media.json`. With FFmpeg, Python
@@ -189,6 +199,7 @@ and Git LFS installed, run from the repository root:
 ```text
 git lfs pull
 python tools/prepare_encounter_media.py
+python tools/prepare_transition_frames.py --audit
 ```
 
 This builds Bayra and Anu VP9/Opus WebMs and stable JPEG frames, preserving source
@@ -196,6 +207,13 @@ resolution and audio. Commit the derivatives through Git LFS before pushing.
 The **Build encounter playback media** GitHub Actions workflow can also build and
 commit them on the selected branch. Run it manually through Actions after
 updating the source clips or conversion manifest.
+
+After replacing any playable WebM, regenerate the transition posters with
+`tools/prepare_transition_frames.py`. It reads the live clip tables and playback
+limits in `game/shelter.rpy`, preserves resolution, and records source/poster
+hashes in `game/images/transitions/manifest.json`. Use `--check` to detect stale
+or missing posters; add `--audit` to decode all video/audio streams completely.
+The media workflow runs both conversion and poster extraction before committing.
 
 ## Implementation
 
@@ -212,6 +230,20 @@ short startup grace period. Menus and choices use real Ren'Py controls and text;
 no generated mockup is baked into the game.
 
 ## Validation
+
+Full transition and sequence checks (normal playback, about 12 minutes):
+
+```text
+python tools/prepare_transition_frames.py --check --audit
+renpy.exe <project-path> test shelter_transition_checks --savedir <project-path>/tmp/transition-saves --overwrite-screenshots
+node tools/test_video_bridge.mjs
+```
+
+The native suite plays all 44 clips to EOF, then takes the actual rejection route
+Chinba → Maral → Orgil → Bayra → Anu, opens Anu's notebook, plays her answer and
+finishes her encounter. The bridge test covers EOF holding, deferred canvas
+handoff, a new clip racing an old close, trimmed playback and intro skipping.
+The Node bridge test uses a simulated DOM; it is not physical Safari validation.
 
 Inspection regression scenarios (Ren'Py 8.5.3):
 

@@ -7,19 +7,24 @@ import json
 import shutil
 import subprocess
 import zipfile
+from prepare_transition_frames import clips, playback_ends
 
 ROOT = Path(__file__).resolve().parents[1]
 CACHE = ROOT / ".web-build" / "mp4-v1"
+PLAYBACK_ENDS = playback_ends()
+SOURCE_ENDS = {source: PLAYBACK_ENDS.get(visitor + "/" + clip) for visitor, clip, source in clips()}
 
 
 def convert(source):
     target = CACHE / source.relative_to(ROOT / "game").with_suffix(".mp4")
     target.parent.mkdir(parents=True, exist_ok=True)
     stamp = target.with_suffix(".sha256")
-    digest = sha256(source.read_bytes()).hexdigest()
+    end = SOURCE_ENDS.get(source)
+    digest = sha256(source.read_bytes() + (str(end).encode() if end else b"")).hexdigest()
     if not target.exists() or not stamp.exists() or stamp.read_text() != digest:
         subprocess.run([
             "ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-i", str(source),
+            *(["-to", str(end)] if end else []),
             "-vf", "scale=1280:-2", "-c:v", "libx264", "-preset", "fast",
             "-crf", "25", "-maxrate", "1800k", "-bufsize", "3600k",
             "-threads", "4", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "96k",
