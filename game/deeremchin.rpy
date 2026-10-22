@@ -135,6 +135,7 @@ label shelter_deeremchin_handle_choice:
             call shelter_player_line(shelter_choice)
             call shelter_clip(shelter_choice)
         else:
+            call shelter_player_line("survivor_" + shelter_choice)
             call shelter_clip(shelter_deeremchin_survivor() + "_" + shelter_choice)
         jump shelter_resolve_visitor
     jump shelter_decision_phase

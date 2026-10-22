@@ -197,6 +197,10 @@ init python:
     build.classify('game/inspection_tests.rpyc', None)
     build.classify('game/transition_tests.rpy', None)
     build.classify('game/transition_tests.rpyc', None)
+    build.classify('game/deeremchin_tests.rpy', None)
+    build.classify('game/deeremchin_tests.rpyc', None)
+    build.classify('game/player_voice_tests.rpy', None)
+    build.classify('game/player_voice_tests.rpyc', None)
     # The desktop game uses the VP9/Opus derivative; retain the MP4 as source.
     build.classify('game/Video/Introvideo/Intro.mp4', None)
     build.classify('game/Video/Bayra/*.mp4', None)

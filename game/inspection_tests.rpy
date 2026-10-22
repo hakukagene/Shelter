@@ -12,6 +12,7 @@ testsuite shelter_inspection_checks:
         pause until screen "shelter_questions" timeout 10
         run SetVariable("shelter_asked", [])
         run SetVariable("shelter_inspection_progress", {})
+        run SetVariable("shelter_inspection_requests", [])
         run SetVariable("shelter_outcomes", {})
         run SetVariable("shelter_visitors_seen", 0)
         run SetVariable("shelter_admitted", 0)
@@ -34,9 +35,9 @@ testsuite shelter_inspection_checks:
         assert eval (shelter_inspection_done("Chinba", "charger"))
         click id "inspection_item_schedule"
         click "Хуваарийг унших"
-        click "+"
+        click id "inspection_plus"
         assert eval (renpy.get_screen("shelter_inspection").scope["viewer"].magnification > 1.0)
-        drag pos (1360, 420) to pos (1490, 420) steps 8
+        drag pos (900, 420) to pos (1030, 420) steps 8
         assert eval (renpy.get_screen("shelter_inspection").scope["viewer"].angle != 0)
         screenshot "../../tmp/inspection-tests/chinba-schedule.png"
         run Function(renpy.save, "inspection-test")
@@ -57,7 +58,10 @@ testsuite shelter_inspection_checks:
     testcase anu_find_drawing_before_answer:
         run SetVariable("shelter_visitor", "anu")
         click "Цүнхээ нээгээд харуул даа."
+        pause until screen "shelter_player_speech" timeout 3
+        assert eval (renpy.music.get_playing(channel="shelter_player") == "audio/anu/anu asuult3.wav")
         pause until screen "shelter_inspection" timeout 5
+        assert eval (shelter_inspection_requests == ["anu"])
         assert eval (shelter_asked == [])
         assert not "Энэ зургийн тухай асуух"
         click id "inspection_item_rabbit"
@@ -75,6 +79,8 @@ testsuite shelter_inspection_checks:
         click id "inspection_item_notebook"
         click "Дэвтрийг нээх"
         click "Энэ зургийн тухай асуух"
+        pause until screen "shelter_player_speech" timeout 3
+        assert eval (renpy.music.get_playing(channel="shelter_player") == "audio/anu/anu zurag asuuh.wav")
         pause until screen "shelter_decision" timeout 20
         assert eval (shelter_still == "answer3" and shelter_asked == [2])
         click "Цүнхээ нээгээд харуул даа."
