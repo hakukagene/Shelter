@@ -240,7 +240,7 @@ init python:
         # The ledger counts every fatal shot, including monsters. Orgil's armor
         # stops the bullet; the separate civilian-loss rule remains unchanged.
         return sum(choice == "shoot" and visitor not in SHELTER_NONLETHAL_SHOOT
-                   for visitor, choice in shelter_outcomes.items())
+                for visitor, choice in shelter_outcomes.items())
 
     def shelter_record_outcome(visitor, choice):
         # Copy-on-write supports saves/rollback; one outcome per visitor.
