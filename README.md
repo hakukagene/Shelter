@@ -147,12 +147,15 @@ A black clock/count screen and metal door knock separate visitors.
 Bayra's updated footage combines arrival with introduction, entry with admission,
 and departure with rejection. These clips play once, without the old extra segments.
 His three supplied question recordings play before their matching answers.
+His idle pose uses the exact first frame of the corrected answer-1 playback clip;
+the former 0.08s still was a blended frame that made his face appear doubled.
 
 Anu follows the updated story's monster encounter. Rejecting or shooting her proceeds
 to the next visitor without a civilian death (or ends the preview if she is last).
 Admitting her loses the game.
-No Anu admission video was supplied: her supplied smiling still appears briefly,
-then the monster-ending result screen. This can be replaced when that clip arrives.
+Anu's supplied admission movie now plays in full: the door opens and she attacks,
+then the monster-ending result appears. The still-image placeholder is no longer
+used during new admissions.
 Her player question voice recordings are also not supplied yet.
 
 ### Interactive belongings inspection
@@ -209,9 +212,12 @@ python tools/prepare_transition_frames.py --audit
 
 This builds Bayra and Anu VP9/Opus WebMs and stable JPEG frames, preserving source
 resolution and audio. Commit the derivatives through Git LFS before pushing.
-The **Build encounter playback media** GitHub Actions workflow can also build and
-commit them on the selected branch. Run it manually through Actions after
-updating the source clips or conversion manifest.
+The **Build encounter playback media** GitHub Actions workflow builds and commits
+media when Bayra/Anu source MP4s or the converter/manifest change. It can also be
+run manually through Actions on a selected branch. Removed MP4s are supported:
+the converter preserves their existing WebMs, and extracts stills from the actual
+playback files. Hashes in `game/images/encounter-media-manifest.json` prevent
+unchanged clips/stills from being rebuilt. Keep the WebMs when retiring originals.
 
 After replacing any playable WebM, regenerate the transition posters with
 `tools/prepare_transition_frames.py`. It reads the live clip tables and playback
@@ -244,11 +250,11 @@ renpy.exe <project-path> test shelter_transition_checks --savedir <project-path>
 node tools/test_video_bridge.mjs
 ```
 
-The native suite plays all 44 clips to EOF, then rejects all five visitors in their
+The native suite plays all 45 clips to EOF, then rejects all five visitors in their
 shuffled order, opening Anu's notebook and playing her answer wherever she appears.
 It verifies no duplicates or missing visitors, question/clock save-load recovery,
 replay reset, legacy-save progression and seeded coverage of every first/last visitor.
-To run only the order checks without replaying all 44 movies:
+To run only the order checks without replaying all 45 movies:
 
 ```text
 renpy.exe <project-path> test shelter_transition_checks::random_roster_and_legacy_saves --savedir <project-path>/tmp/order-saves

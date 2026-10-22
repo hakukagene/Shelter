@@ -1,0 +1,84 @@
+{
+  "clips": {
+    "anu/admit": {
+      "source": "Video/anu/Anu oruulav.mp4",
+      "source_sha256": "7f4a7a721b18ff292085dd72d52049ad94f08c9859423298a7cee6ea74292aa6",
+      "output_sha256": "15c1ba3f02c46685a6c5f4bdc89dc0ae383a3c9f106c35e584b6e2b6458cf828",
+      "encoding": "vp9-crf25-speed5-opus128-v1"
+    }
+  },
+  "frames": {
+    "Bayra/arrival_start": {
+      "source": "Video/Bayra/intro.webm",
+      "source_sha256": "b9620cdb25582fd9f482a12de6bcb8a46facae44b1c891c95ee0ea2c87b18acc",
+      "position": 0,
+      "image_sha256": "204310a27e532ad9cec588f9ef8586abbb6c98cee728f3991fc9c5b7af69ea39"
+    },
+    "Bayra/idle": {
+      "source": "Video/Bayra/answer1.webm",
+      "source_sha256": "b900ea722154f63f11af717458df7bd2cd4a114da158d79b4908b28f1bd2d26b",
+      "position": 0,
+      "image_sha256": "d76a427516d4dda204a2b0441a168823bba7873fc16324cf9ea8ba8f84657a2b"
+    },
+    "Bayra/aim": {
+      "source": "Video/Bayra/lower.webm",
+      "source_sha256": "c403c14679b347b0a33ecd10cf0aec863dae6912da8e8b889ef482d301a4c430",
+      "position": 0,
+      "image_sha256": "edf96777b857123b3547bf2df3a0276aa49ea40fc75742f6f84a83cbd9210fa9"
+    },
+    "Bayra/shoot": {
+      "source": "Video/Bayra/shoot.webm",
+      "source_sha256": "bf5190e582dbf8713dac84f1c3cf3aecbe9e822977d4f8febb93e9a993efb1b1",
+      "position": "end",
+      "image_sha256": "b66d9e15c25aba63e6a118a180a77af0b22ff026de5340dabbf9af6d8f38e09c"
+    },
+    "Bayra/admit": {
+      "source": "Video/Bayra/admit.webm",
+      "source_sha256": "fc3025c94df414627e0ddb6dddbe5e8efbb19d750fc1de271e21ccf9151fd12d",
+      "position": "end",
+      "image_sha256": "0596b053c8f71b72aa85abe6c9d74398f342dc832580e40759a6cc294a0f491c"
+    },
+    "Bayra/reject": {
+      "source": "Video/Bayra/reject.webm",
+      "source_sha256": "939dbf7d680fbc7ea4d0a7cc6da4a86301d63f03579491477acc500c9c941736",
+      "position": "end",
+      "image_sha256": "809c109366ec305ef930b1d30f1246a7b23d21d5bdcd9410cdb8db8bab435a81"
+    },
+    "anu/arrival_start": {
+      "source": "Video/anu/intro.webm",
+      "source_sha256": "8dfdd83535614038ed0836e363b9486cf2d8d106b42f511c815be75bff081549",
+      "position": 0,
+      "image_sha256": "8c9ac073350ac64b58dd6495ab02859234a72309f763f9a91d013dc8987ba6fc"
+    },
+    "anu/idle": {
+      "source": "Video/anu/answer1.webm",
+      "source_sha256": "dc212af807cf09b2ffd24afd9ffa96cf9b5969277a22d513989e5fd02c1a82e9",
+      "position": 0.08,
+      "image_sha256": "01aa74eced199dc2aa3096f31f5bbdfa78b2d16acaf06bc59cefc16fbb32b673"
+    },
+    "anu/aim": {
+      "source": "Video/anu/lower.webm",
+      "source_sha256": "280ac6db7cca29a7a3589d0e36e12016620da041d38a4bbcb3d5c5f99f007119",
+      "position": 0,
+      "image_sha256": "0bdf0833b6ffa16f020aa6ccc57ba6f47a7536d90739642331da064f207b9bbd"
+    },
+    "anu/shoot": {
+      "source": "Video/anu/shoot.webm",
+      "source_sha256": "7c889e5efc4c84b6059bbb46749b9f5c78f14a32f4e6fef03f8c26dce66fcc1b",
+      "position": "end",
+      "image_sha256": "804212fb03e2555d6345a0bdf997f4b278a16de10ac7fe5736dbeadcd9feef52"
+    },
+    "anu/admit": {
+      "source": "Video/anu/admit.webm",
+      "source_sha256": "15c1ba3f02c46685a6c5f4bdc89dc0ae383a3c9f106c35e584b6e2b6458cf828",
+      "position": "end",
+      "image_sha256": "c29f85a301b9caf123b9cdcf0fe6a19cbd7b008ea98839456ee8ccd73031b76f"
+    },
+    "anu/reject": {
+      "source": "Video/anu/reject.webm",
+      "source_sha256": "b056c1af8cb69f5084bb32276c0e0307aa3c8ee90371f16f171ddbab7dfb7b70",
+      "position": "end",
+      "image_sha256": "d6c1fac4aea5fb9998de85f2b30aef84d7d4c873fbd5c00bd69e102f46bae1a4"
+    }
+  }
+}

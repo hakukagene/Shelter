@@ -173,6 +173,7 @@ define ANU_CLIPS = {
     "aim": ("aim.webm", 10.560),
     "lower": ("lower.webm", 3.040),
     "shoot": ("shoot.webm", 6.040),
+    "admit": ("admit.webm", 6.040),
     "reject": ("reject.webm", 19.520),
 }
 define ANU_QUESTIONS = [
@@ -271,8 +272,6 @@ init python:
                 clip = "idle"
             # Old Bayra saves can still contain split-clip still names.
             clip = {"arrival": "arrival_start", "enter": "admit", "leave": "reject"}.get(clip, clip)
-            if visitor == "anu" and clip == "admit":
-                return "images/anu/Anu ineeh.png"
             return "images/" + visitor + "/frames/" + clip + ".jpg"
         if visitor == "Swat":
             if clip in ("intro", "answer1", "answer2", "answer3", "lower"):
@@ -487,8 +486,9 @@ screen shelter_decision(armed=False):
 
 
 screen shelter_anu_admission():
+    # Compatibility for saves made while the old admission placeholder was open.
     modal True
-    add "images/anu/Anu ineeh.png" xysize (1920, 1080)
+    add shelter_movie_frame("anu", "admit", "end") xysize (1920, 1080)
     key "dismiss" action NullAction()
     key "skip" action NullAction()
     key "toggle_skip" action NullAction()
@@ -644,13 +644,7 @@ label shelter_handle_choice:
         jump shelter_resolve_visitor
     elif shelter_choice == "admit":
         call shelter_player_line("admit")
-        if "admit" in shelter_data("clips"):
-            call shelter_clip("admit")
-        elif shelter_visitor == "anu":
-            # No admission movie was supplied. Use the supplied smile still,
-            # then the scripted monster ending instead of loading a missing file.
-            $ shelter_still = "admit"
-            call screen shelter_anu_admission with Dissolve(0.25)
+        call shelter_clip("admit")
         jump shelter_resolve_visitor
     jump shelter_decision_phase
 
