@@ -243,8 +243,8 @@ init python:
         return "%02d:%02d" % (minutes // 60, minutes % 60)
 
     def shelter_killed_total():
-        # The ledger counts every fatal shot, including monsters. Orgil's armor
-        # stops the bullet; the separate civilian-loss rule remains unchanged.
+        # Total fatal shots, including monsters, for encounter bookkeeping.
+        # The ledger displays shelter_civilians_killed instead. Orgil survives.
         return sum(choice == "shoot" and visitor not in SHELTER_NONLETHAL_SHOOT
                 for visitor, choice in shelter_outcomes.items()) + sum(
                     choice == "shoot" for choice in shelter_deeremchin_outcomes.values())
@@ -276,14 +276,18 @@ init python:
         elif choice == "shoot" and civilian and visitor not in SHELTER_NONLETHAL_SHOOT:
             shelter_civilians_killed += 1
 
-    def shelter_civilian_mistakes():
-        # Fatal shots are already counted, including the man in the pair.
-        # Rejecting a civilian (or forcing armored Orgil to leave) also loses one.
+    def shelter_civilians_rejected():
+        # Derive from saved outcomes: includes armored Orgil leaving after a
+        # nonlethal shot and the civilian man lost when the pair is expelled.
+        # Monsters and admitted civilians never enter this count.
         rejected = sum(SHELTER_CIVILIANS.get(visitor, False) and
             (choice == "reject" or (choice == "shoot" and visitor in SHELTER_NONLETHAL_SHOOT))
             for visitor, choice in shelter_outcomes.items())
         rejected += shelter_deeremchin_outcomes.get("man") in ("reject", "lost")
-        return shelter_civilians_killed + rejected
+        return rejected
+
+    def shelter_civilian_mistakes():
+        return shelter_civilians_killed + shelter_civilians_rejected()
 
     def shelter_campaign_status():
         if shelter_civilian_mistakes() > SHELTER_MAX_CIVILIAN_MISTAKES:
