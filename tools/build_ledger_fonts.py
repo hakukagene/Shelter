@@ -1,6 +1,6 @@
 """Build the small digit fonts used by the ledger and its physical clock.
 
-Usage: python tools/build_ledger_fonts.py /path/to/DejaVuSerif-Bold.ttf
+Usage: python tools/build_ledger_fonts.py /path/to/DejaVuSerif-Bold.ttf [/path/to/DejaVuSerif.ttf]
 Requires fonttools. The seven-segment glyphs are original geometric artwork;
 the ledger digits are a renamed DejaVu subset (see game/fonts/DejaVu-LICENSE.txt).
 """
@@ -75,7 +75,24 @@ def ledger_font(source):
     font.save(DEST / "ShelterLedgerDigits.ttf")
 
 
+def ledger_label_font(source):
+    font = TTFont(source)
+    options = subset.Options()
+    options.name_IDs = [0, 1, 2, 3, 4, 5, 6, 13, 14]
+    options.name_languages = [0x409]
+    cutter = subset.Subsetter(options=options)
+    cutter.populate(text="Шалгасан хүн Хөөж явуулсан энгийн иргэн Алсан")
+    cutter.subset(font)
+    for record in font["name"].names:
+        values = {1: "Shelter Ledger Labels", 2: "Regular", 3: "ShelterLedgerLabels-Regular-1", 4: "Shelter Ledger Labels Regular", 6: "ShelterLedgerLabels-Regular"}
+        if record.nameID in values:
+            record.string = values[record.nameID].encode(record.getEncoding())
+    font.save(DEST / "ShelterLedgerLabels.ttf")
+
+
 if __name__ == "__main__":
     DEST.mkdir(parents=True, exist_ok=True)
     clock_font()
     ledger_font(sys.argv[1])
+    if len(sys.argv) > 2:
+        ledger_label_font(sys.argv[2])
