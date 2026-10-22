@@ -29,6 +29,8 @@ default shelter_admitted = 0
 default shelter_civilians_saved = 0
 default shelter_civilians_killed = 0
 default shelter_visitors_seen = 0
+# None gives older saves a stable time derived from their completed visits.
+default shelter_story_minutes = None
 
 define SHELTER_CLIPS = {
     "intro": ("Maral ehlel.webm", 12.808),
@@ -74,7 +76,7 @@ define SHELTER_PLAYER_VOICES = {
     "admit": ("audio/Chingune/MaralOruulah.wav", 0.347, 0.879),
 }
 
-define SHELTER_NEXT_VISITOR_TIME = "23:17"
+define SHELTER_CLOCK_START = 23 * 60 + 10
 
 define CHINBA_CLIPS = {
     "reject": ("Chinbaa yavah.webm", 13.648),
@@ -225,15 +227,34 @@ init python:
         remaining = order[order.index(shelter_visitor) + 1:]
         return next((visitor for visitor in remaining if visitor not in shelter_outcomes), None)
 
+    def shelter_clock_minutes():
+        if shelter_story_minutes is None:
+            return SHELTER_CLOCK_START + 7 * shelter_visitors_seen
+        return shelter_story_minutes
+
+    def shelter_clock_text():
+        minutes = shelter_clock_minutes() % (24 * 60)
+        return "%02d:%02d" % (minutes // 60, minutes % 60)
+
+    def shelter_killed_total():
+        # The ledger counts every fatal shot, including monsters. Orgil's armor
+        # stops the bullet; the separate civilian-loss rule remains unchanged.
+        return sum(choice == "shoot" and visitor not in SHELTER_NONLETHAL_SHOOT
+                   for visitor, choice in shelter_outcomes.items())
+
     def shelter_record_outcome(visitor, choice):
         # Copy-on-write supports saves/rollback; one outcome per visitor.
         global shelter_outcomes, shelter_admitted, shelter_civilians_saved
-        global shelter_civilians_killed, shelter_visitors_seen
+        global shelter_civilians_killed, shelter_visitors_seen, shelter_story_minutes
         if visitor in shelter_outcomes:
             return
         if choice not in ("admit", "reject", "shoot"):
             raise ValueError("Not a final decision: " + str(choice))
         civilian = SHELTER_CIVILIANS[visitor]
+        # Advance once per resolved visitor, never during screen prediction or
+        # redraw. Ren'Py saves/rolls back both this value and its random state.
+        elapsed = 7 if shelter_visitors_seen == 0 else renpy.random.randint(4, 9)
+        shelter_story_minutes = shelter_clock_minutes() + elapsed
         shelter_outcomes = dict(shelter_outcomes, **{visitor: choice})
         shelter_visitors_seen += 1
         if choice == "admit":
@@ -574,6 +595,7 @@ label shelter_encounter:
     $ shelter_civilians_saved = 0
     $ shelter_civilians_killed = 0
     $ shelter_visitors_seen = 0
+    $ shelter_story_minutes = SHELTER_CLOCK_START
     $ shelter_inspection_progress = {}
     jump shelter_visit_start
 

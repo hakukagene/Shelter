@@ -198,11 +198,25 @@ The campaign counters retain 43 civilians, 30 monsters, a target of 40 rescued
 civilians and a maximum of three civilian deaths. Five visitors are playable;
 finishing them is a preview ending, not a campaign win.
 
-Between visitors, `game/intermission.rpy` presents the story clock and live
-campaign counters on a steel status panel. Three read-only cards show admitted
-people, rescued civilians, and civilian deaths; a lower bar tracks inspected
-visitors. The original knock at 2 seconds and automatic transition at 8.1 seconds
-remain in `shelter_next_visitor_card`. See the [in-game preview](tools/previews/intermission.png).
+Between visitors, `game/intermission.rpy` uses the selected guard's ledger artwork
+with the **ХОРОГДОХ БАЙР** heading and three live totals: **Шалгасан хүн**,
+**Оруулсан хүн**, and **Алсан хүн**. The last counts all fatal shootings, including
+monsters, but excludes Orgil's nonlethal armor hit. The separate civilian rescue
+and death-limit rules still govern campaign results.
+
+The physical alarm clock starts at 23:10; the first completed visitor advances it
+to 23:17, and later visitors add a random 4–9 minutes. The saved story time changes
+only when a new outcome is recorded, remains stable through redraws and loading,
+wraps correctly past midnight, and resets on replay. Older saves derive a stable
+fallback time from their completed-visitor count until their next decision.
+The original knock at 2 seconds and automatic transition at 8.1 seconds remain
+in `shelter_next_visitor_card`. See the [in-game preview](tools/previews/intermission.jpg).
+
+`game/gui/shelter/intermission/ledger.jpg` has blank number cells and clock glass;
+the numbers are rendered by Ren'Py. The small clock font uses original geometric
+seven-segment glyphs. The ledger numerals use a renamed DejaVu Serif subset with
+its license in `game/fonts/DejaVu-LICENSE.txt`. Both can be rebuilt using fonttools
+and `python tools/build_ledger_fonts.py /path/to/DejaVuSerif-Bold.ttf`.
 
 Neutral waiting and armed frames are extracted from the corresponding videos.
 Dialogue captions use measured speech windows on the video decoder clock.
@@ -277,6 +291,7 @@ To run only the order checks without replaying all 45 movies:
 ```text
 renpy.exe <project-path> test shelter_transition_checks::random_roster_and_legacy_saves --savedir <project-path>/tmp/order-saves
 renpy.exe <project-path> test shelter_transition_checks::actual_campaign_reaches_anu --savedir <project-path>/tmp/order-saves
+renpy.exe <project-path> test shelter_transition_checks::ledger_clock_and_totals --savedir <project-path>/tmp/ledger-saves
 ```
 
 The bridge test covers EOF holding, deferred canvas

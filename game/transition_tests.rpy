@@ -21,6 +21,22 @@ screen _shelter_transition_test_done():
     modal True
     text "Playback checks complete" align (0.5, 0.5)
 
+label _shelter_test_ledger_clock_start:
+    # Use normal script statements before the save point. Mutations made only
+    # by test actions inside an interaction are not Ren'Py's saved script state.
+    $ quick_menu = False
+    $ shelter_outcomes = {}
+    $ shelter_visitors_seen = 0
+    $ shelter_admitted = 0
+    $ shelter_civilians_saved = 0
+    $ shelter_civilians_killed = 0
+    $ shelter_story_minutes = None
+    $ assert shelter_clock_text() == "23:10"
+    $ shelter_record_outcome("Chinba", "reject")
+    call screen shelter_next_visitor_card
+    call screen _shelter_transition_test_done
+    return
+
 testsuite shelter_transition_checks:
     teardown:
         exit
@@ -161,3 +177,39 @@ testsuite shelter_transition_checks:
         assert eval (shelter_next_visitor_id() == "anu")
         run SetVariable("shelter_visitor", "anu")
         assert eval (shelter_next_visitor_id() is None)
+
+    testcase ledger_clock_and_totals:
+        run Show("_shelter_test_driver", target="_shelter_test_ledger_clock_start")
+        keysym "K_F9"
+        pause until screen "shelter_next_visitor_card" timeout 10
+        assert eval (shelter_clock_text() == "23:17" and shelter_visitors_seen == 1)
+        run Function(renpy.save, "ledger-clock")
+        run Function(shelter_record_outcome, "Maral", "shoot")
+        assert eval (4 <= shelter_story_minutes - (23 * 60 + 17) <= 9)
+        assert eval (shelter_killed_total() == 1 and shelter_civilians_killed == 0)
+        run Function(renpy.load, "ledger-clock")
+        pause until screen "shelter_next_visitor_card" timeout 5
+        assert eval (shelter_clock_text() == "23:17" and shelter_killed_total() == 0)
+        run Function(shelter_record_outcome, "Maral", "shoot")
+        assert eval (4 <= shelter_story_minutes - (23 * 60 + 17) <= 9)
+        $ renpy.test.shelter_saved_clock = shelter_story_minutes
+        # Repeating an outcome cannot count or advance time a second time.
+        run Function(shelter_record_outcome, "Maral", "shoot")
+        assert eval (shelter_story_minutes == renpy.test.shelter_saved_clock and shelter_visitors_seen == 2)
+        run Function(shelter_record_outcome, "Swat", "shoot")
+        assert eval (shelter_killed_total() == 1 and shelter_civilians_killed == 0)
+        run Function(shelter_record_outcome, "Bayra", "shoot")
+        assert eval (shelter_killed_total() == 2 and shelter_civilians_killed == 1)
+        run SetVariable("shelter_story_minutes", 23 * 60 + 58)
+        run Function(shelter_record_outcome, "anu", "reject")
+        assert eval (24 * 60 + 2 <= shelter_story_minutes <= 24 * 60 + 7)
+        assert eval (shelter_clock_text().startswith("00:"))
+        # Old saves derive a consistent time until the next real outcome.
+        run SetVariable("shelter_story_minutes", None)
+        run SetVariable("shelter_visitors_seen", 3)
+        assert eval (shelter_clock_text() == "23:31" and shelter_clock_text() == "23:31")
+        # A new run/replay must reset the story clock along with all counters.
+        run Show("_shelter_test_driver", target="shelter_encounter")
+        keysym "K_F10"
+        pause until screen "shelter_playback" timeout 5
+        assert eval (shelter_clock_text() == "23:10" and shelter_visitors_seen == 0 and shelter_killed_total() == 0)
