@@ -18,7 +18,9 @@ define SHELTER_MONSTER_COUNT = 30
 define SHELTER_TOTAL_VISITORS = SHELTER_CIVILIAN_COUNT + SHELTER_MONSTER_COUNT
 define SHELTER_CIVILIAN_TARGET = 40
 define SHELTER_MAX_CIVILIAN_DEATHS = 3
+# Available roster, also the original sequence for saves predating random order.
 define SHELTER_VISITOR_ORDER = ("Chinba", "Maral", "Swat", "Bayra", "anu")
+default shelter_run_order = None
 define SHELTER_CIVILIANS = {"Chinba": True, "Maral": False, "Swat": True, "Bayra": True, "anu": False}
 # Armor stops the bullet: Orgil leaves alive after being shot.
 define SHELTER_NONLETHAL_SHOOT = ("Swat",)
@@ -208,6 +210,19 @@ init python:
                 "lines": CHINBA_LINES, "windows": CHINBA_SPEECH_WINDOWS,
                 "voices": CHINBA_PLAYER_VOICES},
     }
+
+    def shelter_make_visitor_order():
+        # Shuffle once per new game/replay, using Ren'Py's rollback-aware RNG.
+        order = list(SHELTER_VISITOR_ORDER)
+        renpy.random.shuffle(order)
+        return order
+
+    def shelter_next_visitor_id():
+        # Old saves keep their original remaining sequence. Never reshuffle on
+        # load, during a movie, or while displaying the clock between visitors.
+        order = shelter_run_order or SHELTER_VISITOR_ORDER
+        remaining = order[order.index(shelter_visitor) + 1:]
+        return next((visitor for visitor in remaining if visitor not in shelter_outcomes), None)
 
     def shelter_record_outcome(visitor, choice):
         # Copy-on-write supports saves/rollback; one outcome per visitor.
@@ -573,7 +588,8 @@ label shelter_clip(clip):
 label shelter_encounter:
     play music "<volume 0.18>audio/Audio/shuum.mp3" fadeout 0.6 fadein 1.0
     $ quick_menu = False
-    $ shelter_visitor = SHELTER_VISITOR_ORDER[0]
+    $ shelter_run_order = shelter_make_visitor_order()
+    $ shelter_visitor = shelter_run_order[0]
     $ shelter_chinba_outcome = None
     $ shelter_outcomes = {}
     $ shelter_admitted = 0
@@ -652,7 +668,7 @@ label shelter_resolve_visitor:
         call screen shelter_result("ТА ХОЖЛОО", "Та [SHELTER_CIVILIAN_TARGET] энгийн иргэнийг хорогдох байранд оруулж аварлаа.")
     elif shelter_status == "shortfall":
         call screen shelter_result("ТА ХОЖИГДЛОО", "[SHELTER_TOTAL_VISITORS] хүнийг шалгаж дууслаа. Та [shelter_civilians_saved] / [SHELTER_CIVILIAN_TARGET] энгийн иргэнийг аварсан.")
-    elif SHELTER_VISITOR_ORDER.index(shelter_visitor) + 1 < len(SHELTER_VISITOR_ORDER):
+    elif shelter_next_visitor_id() is not None:
         jump shelter_next_visitor
     else:
         # The available visitor preview is not a complete campaign victory.
@@ -669,5 +685,5 @@ label shelter_next_visitor:
     $ _skipping = False
     call screen shelter_next_visitor_card
     $ renpy.music.stop(channel="shelter_knock")
-    $ shelter_visitor = SHELTER_VISITOR_ORDER[SHELTER_VISITOR_ORDER.index(shelter_visitor) + 1]
+    $ shelter_visitor = shelter_next_visitor_id()
     jump shelter_visit_start

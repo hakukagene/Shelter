@@ -5,7 +5,7 @@ Ren'Py video encounter using the supplied `game/Video/Maral/*.webm` footage.
 ## Play
 
 Open the project in Ren'Py Launcher and choose Launch Project. **Эхлэх** plays
-the opening film, then starts the visitor sequence with Chinbaa.
+the opening film, then starts the visitors in a random order.
 The game uses a 1920×1080 logical canvas; the original
 1672×940 footage fills the screen with near-identical aspect ratio.
 
@@ -134,7 +134,11 @@ Re-align the SRT if the video's edit or narration timing changes.
 
 ## Encounter flow
 
-The playable order is Chinba → Maral → Swat (Orgil) → Bayra → Anu.
+The playable roster is Chinba, Maral, Swat (Orgil), Bayra and Anu.
+New games and **Дахин тоглох** shuffle all available visitors once, with no repeats.
+The first visitor is random too. The order is saved with the game and stays fixed
+when loading or rolling back. Older saves without a shuffled order continue their
+original remaining sequence; starting again enables random order.
 Each visitor has three questions plus an aim button. Asked dialogue questions are
 disabled; the bag question stays available for repeat inspection. Aiming offers
 shoot or lower. Unarmed players can admit or reject the visitor.
@@ -144,8 +148,9 @@ Bayra's updated footage combines arrival with introduction, entry with admission
 and departure with rejection. These clips play once, without the old extra segments.
 His three supplied question recordings play before their matching answers.
 
-Anu follows the updated story's monster encounter. Rejecting or shooting her ends
-the available preview without a civilian death. Admitting her loses the game.
+Anu follows the updated story's monster encounter. Rejecting or shooting her proceeds
+to the next visitor without a civilian death (or ends the preview if she is last).
+Admitting her loses the game.
 No Anu admission video was supplied: her supplied smiling still appears briefly,
 then the monster-ending result screen. This can be replaced when that clip arrives.
 Her player question voice recordings are also not supplied yet.
@@ -239,9 +244,18 @@ renpy.exe <project-path> test shelter_transition_checks --savedir <project-path>
 node tools/test_video_bridge.mjs
 ```
 
-The native suite plays all 44 clips to EOF, then takes the actual rejection route
-Chinba → Maral → Orgil → Bayra → Anu, opens Anu's notebook, plays her answer and
-finishes her encounter. The bridge test covers EOF holding, deferred canvas
+The native suite plays all 44 clips to EOF, then rejects all five visitors in their
+shuffled order, opening Anu's notebook and playing her answer wherever she appears.
+It verifies no duplicates or missing visitors, question/clock save-load recovery,
+replay reset, legacy-save progression and seeded coverage of every first/last visitor.
+To run only the order checks without replaying all 44 movies:
+
+```text
+renpy.exe <project-path> test shelter_transition_checks::random_roster_and_legacy_saves --savedir <project-path>/tmp/order-saves
+renpy.exe <project-path> test shelter_transition_checks::actual_campaign_reaches_anu --savedir <project-path>/tmp/order-saves
+```
+
+The bridge test covers EOF holding, deferred canvas
 handoff, a new clip racing an old close, trimmed playback and intro skipping.
 The Node bridge test uses a simulated DOM; it is not physical Safari validation.
 

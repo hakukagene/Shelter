@@ -20,6 +20,8 @@ testsuite shelter_updated_encounters:
         run SetVariable("shelter_admitted", 0)
         run SetVariable("shelter_civilians_saved", 0)
         run SetVariable("shelter_civilians_killed", 0)
+        # These targeted scenarios start partway through a legacy fixed-order save.
+        run SetVariable("shelter_run_order", None)
 
     testcase bayra_questions_and_reject_to_anu:
         run SetVariable("shelter_visitor", "Bayra")
