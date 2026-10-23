@@ -20,7 +20,8 @@ define SHELTER_CIVILIAN_TARGET = 40
 define SHELTER_MAX_CIVILIAN_DEATHS = 2
 define SHELTER_MAX_CIVILIAN_MISTAKES = 2
 # Available roster, also the original sequence for saves predating random order.
-define SHELTER_VISITOR_ORDER = ("Chinba", "Maral", "Swat", "Bayra", "anu", "deeremchin", "ganba", "ganzo", "naraa")
+# Naraa is temporarily excluded from new runs; keep her character data and assets intact.
+define SHELTER_VISITOR_ORDER = ("Chinba", "Maral", "Swat", "Bayra", "anu", "deeremchin", "ganba", "ganzo")
 default shelter_run_order = None
 define SHELTER_CIVILIANS = {"Chinba": True, "Maral": False, "Swat": True, "Bayra": True, "anu": False, "ganba": True, "ganzo": True, "naraa": True}
 # Armor stops the bullet: Orgil leaves alive after being shot.
