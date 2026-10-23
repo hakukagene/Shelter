@@ -20,9 +20,9 @@ define SHELTER_CIVILIAN_TARGET = 40
 define SHELTER_MAX_CIVILIAN_DEATHS = 2
 define SHELTER_MAX_CIVILIAN_MISTAKES = 2
 # Available roster, also the original sequence for saves predating random order.
-define SHELTER_VISITOR_ORDER = ("Chinba", "Maral", "Swat", "Bayra", "anu", "deeremchin", "ganba", "ganzo")
+define SHELTER_VISITOR_ORDER = ("Chinba", "Maral", "Swat", "Bayra", "anu", "deeremchin", "ganba", "ganzo", "naraa")
 default shelter_run_order = None
-define SHELTER_CIVILIANS = {"Chinba": True, "Maral": False, "Swat": True, "Bayra": True, "anu": False, "ganba": True, "ganzo": True}
+define SHELTER_CIVILIANS = {"Chinba": True, "Maral": False, "Swat": True, "Bayra": True, "anu": False, "ganba": True, "ganzo": True, "naraa": True}
 # Armor stops the bullet: Orgil leaves alive after being shot.
 define SHELTER_NONLETHAL_SHOOT = ("Swat",)
 default shelter_outcomes = {}
@@ -38,6 +38,8 @@ define SHELTER_CLOCK_START = 23 * 60 + 10
 init 1 python:
     renpy.music.register_channel("shelter_knock", mixer="sfx", loop=False, stop_on_mute=False)
     SHELTER_VISITORS = {
+        "naraa": {"clips": NARAA_CLIPS, "questions": NARAA_QUESTIONS,
+                  "lines": NARAA_LINES, "windows": NARAA_SPEECH_WINDOWS, "voices": {}},
         "ganzo": {"clips": GANZO_CLIPS, "questions": GANZO_QUESTIONS,
                 "lines": GANZO_LINES, "windows": GANZO_SPEECH_WINDOWS, "voices": {}},
         "ganba": {"clips": GANBA_CLIPS, "questions": GANBA_QUESTIONS,
@@ -148,6 +150,8 @@ init 1 python:
         stop_on_mute=False, buffer_queue=False)
     def shelter_wait_image(clip, visitor=None):
         visitor = visitor or shelter_visitor
+        if visitor == "naraa":
+            return "images/naraa/Nara ok.jpg"
         if visitor in ("ganba", "ganzo"):
             if clip in ("intro", "answer1", "answer2", "answer3", "lower"):
                 return shelter_movie_frame(visitor, "answer1", "start")
@@ -195,6 +199,9 @@ init 1 python:
         renpy.show("shelter_hold", what=shelter_video_end(shelter_still))
 
     def shelter_movie_frame(visitor, clip, edge):
+        # Naraa was supplied without extracted first/last-frame posters.
+        if visitor == "naraa":
+            return "images/naraa/Nara ok.jpg"
         return "images/transitions/" + visitor + "/" + clip + "-" + edge + ".jpg"
 
     def shelter_movie_start_image(visitor, clip):
@@ -544,6 +551,8 @@ label shelter_handle_choice:
         $ shelter_asked.append(shelter_choice)
         call shelter_player_line("question%d" % (shelter_choice + 1), shelter_data("questions")[shelter_choice]) from _call_shelter_player_line_2
         call shelter_clip("answer%d" % (shelter_choice + 1)) from _call_shelter_clip_3
+        if shelter_visitor == "naraa" and shelter_choice == 1:
+            call shelter_clip("answer2_part2")
         jump shelter_decision_phase
     elif shelter_choice == "aim":
         call shelter_clip("aim") from _call_shelter_clip_4
