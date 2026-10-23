@@ -379,6 +379,20 @@ init python:
         for key, data in encounter["clips"].items()
     }
 
+
+    def shelter_movie_for(visitor, clip):
+        # A saved/older movie cache can predate newly registered visitors.
+        # Populate missing entries on demand instead of crashing with KeyError.
+        key = (visitor, clip)
+        if key not in shelter_movies:
+            shelter_movies[key] = Movie(
+                play=shelter_movie_path(visitor, clip),
+                channel="shelter_video", loop=False, size=(1920, 1080),
+                start_image=Transform(shelter_movie_start_image(visitor, clip), xysize=(1920, 1080)),
+                image=Transform(shelter_movie_frame(visitor, clip, "end"), xysize=(1920, 1080)),
+                keep_last_frame=True)
+        return shelter_movies[key]
+
 transform shelter_fade:
     alpha 0.0
     linear 0.2 alpha 1.0
@@ -418,7 +432,7 @@ screen shelter_playback(clip):
     # Movie can briefly render transparent while its decoder changes state.
     # Keep a full-size poster underneath it, including during Dissolve.
     add shelter_movie_start_image(shelter_visitor, clip) xysize (1920, 1080)
-    add shelter_movies[(shelter_visitor, clip)] xysize (1920, 1080)
+    add shelter_movie_for(shelter_visitor, clip) xysize (1920, 1080)
     use shelter_actions(enabled=False, armed=shelter_clip_is_armed(clip))
     # Block click-to-dismiss and keyboard skipping while the clip plays.
     key "dismiss" action NullAction()
