@@ -20,9 +20,9 @@ define SHELTER_CIVILIAN_TARGET = 40
 define SHELTER_MAX_CIVILIAN_DEATHS = 2
 define SHELTER_MAX_CIVILIAN_MISTAKES = 2
 # Available roster, also the original sequence for saves predating random order.
-define SHELTER_VISITOR_ORDER = ("Chinba", "Maral", "Swat", "Bayra", "anu", "deeremchin", "ganba")
+define SHELTER_VISITOR_ORDER = ("Chinba", "Maral", "Swat", "Bayra", "anu", "deeremchin", "ganba", "ganzo")
 default shelter_run_order = None
-define SHELTER_CIVILIANS = {"Chinba": True, "Maral": False, "Swat": True, "Bayra": True, "anu": False, "ganba": True}
+define SHELTER_CIVILIANS = {"Chinba": True, "Maral": False, "Swat": True, "Bayra": True, "anu": False, "ganba": True, "ganzo": True}
 # Armor stops the bullet: Orgil leaves alive after being shot.
 define SHELTER_NONLETHAL_SHOOT = ("Swat",)
 default shelter_outcomes = {}
@@ -201,6 +201,8 @@ define ANU_SPEECH_WINDOWS = {
 init python:
     renpy.music.register_channel("shelter_knock", mixer="sfx", loop=False, stop_on_mute=False)
     SHELTER_VISITORS = {
+        "ganzo": {"clips": GANZO_CLIPS, "questions": GANZO_QUESTIONS,
+                "lines": GANZO_LINES, "windows": GANZO_SPEECH_WINDOWS, "voices": {}},
         "ganba": {"clips": GANBA_CLIPS, "questions": GANBA_QUESTIONS,
                 "lines": GANBA_LINES, "windows": GANBA_SPEECH_WINDOWS, "voices": {}},
         "deeremchin": {"clips": DEEREMCHIN_CLIPS, "questions": DEEREMCHIN_QUESTIONS,
@@ -309,7 +311,7 @@ init python:
         stop_on_mute=False, buffer_queue=False)
     def shelter_wait_image(clip, visitor=None):
         visitor = visitor or shelter_visitor
-        if visitor == "ganba":
+        if visitor in ("ganba", "ganzo"):
             if clip in ("intro", "answer1", "answer2", "answer3", "lower"):
                 return shelter_movie_frame(visitor, "answer1", "start")
             return shelter_movie_frame(visitor, clip, "end")
@@ -429,10 +431,10 @@ screen shelter_playback(clip):
         frame:
             background Solid("#080707dd")
             xalign 0.5
-            ypos (580 if shelter_visitor in ("Bayra", "ganba") else 630 if shelter_visitor == "Swat" else 710)
+            ypos (580 if shelter_visitor in ("Bayra", "ganba", "ganzo") else 630 if shelter_visitor == "Swat" else 710)
             xsize 1344
             padding (35, 22)
-            text shelter_data("lines")[clip] style "shelter_text" size (24 if shelter_visitor == "Bayra" else 26 if shelter_visitor in ("Swat", "ganba") else 30) xalign 0.5 text_align 0.5
+            text shelter_data("lines")[clip] style "shelter_text" size (24 if shelter_visitor == "Bayra" else 26 if shelter_visitor in ("Swat", "ganba", "ganzo") else 30) xalign 0.5 text_align 0.5
     # A short startup grace avoids interpreting a not-yet-started decoder as EOF.
     # Actual playback completion, rather than a fixed timer, drives progression.
     timer 0.03 repeat True action If(renpy.get_screen("shelter_protocol"), NullAction(), If(

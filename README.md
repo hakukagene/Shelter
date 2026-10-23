@@ -222,7 +222,7 @@ The source and generation prompt are documented in `tools/art/anu-notebook.md`.
 
 The campaign counters retain 43 civilians, 30 monsters, a target of 40 rescued
 civilians and at most two civilian mistakes (killing or rejecting). The third
-mistake ends the run. Seven encounters containing eight people are playable;
+mistake ends the run. Eight encounters containing nine people are playable;
 finishing them is a preview ending, not a campaign win.
 
 Between visitors, `game/intermission.rpy` uses the selected guard's ledger artwork
@@ -420,3 +420,12 @@ does not repeat or fabricate visitors to unlock it.
 Ganbaa is the seventh encounter: all nine supplied clips, questions, civilian
 classification, bag inspection, aiming/lowering and three endings are connected.
 See `tools/art/protocol-and-ganba.md` for asset provenance and validation.
+
+Ganzorig (`ganzo`), 43, is a civilian from the latest author DOCX. New runs
+include him in the shuffled roster. His nine supplied VP9/Opus clips retain
+their original framing and sound; questions use the three existing `audio/ganzo`
+recordings and decisions reuse the existing admit/reject voices. Waiting poses
+come from the actual video frames, with start/end posters for every clip to
+cover decoder handoffs. No carried bag is specified for this character.
+Existing saves with a stored roster keep that roster. Native flow checks are in
+`game/ganzo_tests.rpy` (excluded from release builds).
