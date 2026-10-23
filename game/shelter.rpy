@@ -39,7 +39,7 @@ init 1 python:
     renpy.music.register_channel("shelter_knock", mixer="sfx", loop=False, stop_on_mute=False)
     SHELTER_VISITORS = {
         "naraa": {"clips": NARAA_CLIPS, "questions": NARAA_QUESTIONS,
-                  "lines": NARAA_LINES, "windows": NARAA_SPEECH_WINDOWS, "voices": {}},
+                "lines": NARAA_LINES, "windows": NARAA_SPEECH_WINDOWS, "voices": {}},
         "ganzo": {"clips": GANZO_CLIPS, "questions": GANZO_QUESTIONS,
                 "lines": GANZO_LINES, "windows": GANZO_SPEECH_WINDOWS, "voices": {}},
         "ganba": {"clips": GANBA_CLIPS, "questions": GANBA_QUESTIONS,

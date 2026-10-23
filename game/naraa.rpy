@@ -17,9 +17,9 @@ define NARAA_CLIPS = {
 # Player question captions. Naraa's exact spoken lines are preserved in the video
 # soundtrack and intentionally not fabricated as text subtitles.
 define NARAA_QUESTIONS = [
-    "Та хэн бэ? Хаанаас ирэв?",
-    "Танд юу тохиолдсон бэ?",
-    "Яагаад таныг энд оруулах ёстой гэж?",
+    "Чамд юу тохиолдоо вэ?",
+    "Чамайг яагаад би оруулах ёстой вэ?",
+    "Цүнхэнд чинь юу байгаа вэ?",
 ]
 define NARAA_LINES = {}
 define NARAA_SPEECH_WINDOWS = {}
