@@ -1,33 +1,15 @@
 # Supplied player speech, keyed by visitor and the actual choice it belongs to.
 # Unreleased visitors are registered here without inventing missing encounters.
 define SHELTER_SUPPLIED_PLAYER_VOICES = {
-    'Swat': {
-        'question1': ('audio/SwatQuestion/asuult1.wav', 0.496, 1.822),
-        'question2': ('audio/SwatQuestion/asuult2.wav', 0.435, 3.128),
-        'question3': ('audio/SwatQuestion/asuult3.wav', 0.257, 2.678),
-        'admit': ('audio/SwatQuestion/oruulah.wav', 0.166, 0.656),
-    },
-    'anu': {
-        'question1': ('audio/anu/anu asuult1.wav', 0.255, 2.102),
-        'question2': ('audio/anu/anu asuult2.wav', 0.104, 1.998),
-        'question3': ('audio/anu/anu asuult3.wav', 0.165, 1.296),
-        'drawing': ('audio/anu/anu zurag asuuh.wav', 0.213, 1.179),
-    },
+    'Swat': SWAT_SUPPLIED_PLAYER_VOICES,
+    'anu': ANU_SUPPLIED_PLAYER_VOICES,
     'baatra': {
         'question1': ('audio/baatra/baatra asuult1.wav', 0, 1.118),
         'question2': ('audio/baatra/baatra asuult2.wav', 0, 1.18),
         'question3': ('audio/baatra/baatra asuult3.wav', 0, 1.567),
     },
-    'ganba': {
-        'question1': ('audio/ganba/ganba asuult1.wav', 0.122, 1.315),
-        'question2': ('audio/ganba/ganba asuult2.wav', 0, 1.748),
-        'question3': ('audio/ganba/ganba asuult3.wav', 0, 1.038),
-    },
-    'ganzo': {
-        'question1': ('audio/ganzo/ganzo asuult1.wav', 0, 1.89),
-        'question2': ('audio/ganzo/ganzo asuult2.wav', 0, 1.068),
-        'question3': ('audio/ganzo/ganzo asuult3.wav', 0, 3.583),
-    },
+    'ganba': GANBA_SUPPLIED_PLAYER_VOICES,
+    'ganzo': GANZO_SUPPLIED_PLAYER_VOICES,
     'hulan': {
         'question1': ('audio/hulan/hulan asuult1.wav', 0, 2.608),
         'question2': ('audio/hulan/hulan asuult2.wav', 0, 1.643),
@@ -61,9 +43,7 @@ define SHELTER_SUPPLIED_PLAYER_VOICES = {
         'question2': ('audio/undral/undral asuult2.wav', 0, 1.848),
         'question3': ('audio/undral/undral asuult3.wav', 0, 0.887),
     },
-    'Chinba': {
-        'question2': ('audio/Chingune/ChinbaAsuult2.wav', 0.686, 1.889),
-    },
+    'Chinba': CHINBA_SUPPLIED_PLAYER_VOICES,
 }
 
 define SHELTER_DEFAULT_PLAYER_VOICES = {
