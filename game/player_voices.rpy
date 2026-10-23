@@ -6,7 +6,7 @@ define SHELTER_DEFAULT_PLAYER_VOICES = {
     "admit": ("audio/Chingune/ChinbaOruulah.wav", 0.356, 0.815),
 }
 
-init 1 python:
+init 2 python:
     # Assemble references only after every character's define has been initialized.
     SHELTER_SUPPLIED_PLAYER_VOICES = {
         'Swat': SWAT_SUPPLIED_PLAYER_VOICES,
