@@ -8,8 +8,8 @@ define NARAA_CLIPS = {
     "answer2_part2": ("Naraa Hariult 2.2.webm", 0.0),
     "answer3": ("Naraa Hariult 3.webm", 0.0),
     "aim": ("Naraa Buu gargahad hooloi.webm", 0.0),
-    "lower": ("Naraa Buu Buulgah.webm", 0.0),
-    "shoot": ("Naraa buuduulah.webm", 0.0),
+    "lower": ("Buu Buulgah zassan.webm", 0.0),
+    "shoot": ("Buu Buudah zassan.webm", 0.0),
     "admit": ("Naraa Oruulah.webm", 0.0),
     "reject": ("Naraa yavuulah.webm", 0.0),
 }
