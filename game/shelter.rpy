@@ -549,10 +549,16 @@ label shelter_handle_choice:
             call shelter_inspect_belongings from _call_shelter_inspect_belongings
             jump shelter_decision_phase
         $ shelter_asked.append(shelter_choice)
-        call shelter_player_line("question%d" % (shelter_choice + 1), shelter_data("questions")[shelter_choice]) from _call_shelter_player_line_2
-        call shelter_clip("answer%d" % (shelter_choice + 1)) from _call_shelter_clip_3
         if shelter_visitor == "naraa" and shelter_choice == 1:
+            # Naraa's second question is a four-part conversation.
+            # Keep the same scene and do not show the decision buttons between lines.
+            call shelter_player_line("question2_part1", NARAA_QUESTION2_PART1)
+            call shelter_clip("answer2")
+            call shelter_player_line("question2_part2", NARAA_QUESTION2_PART2)
             call shelter_clip("answer2_part2")
+        else:
+            call shelter_player_line("question%d" % (shelter_choice + 1), shelter_data("questions")[shelter_choice]) from _call_shelter_player_line_2
+            call shelter_clip("answer%d" % (shelter_choice + 1)) from _call_shelter_clip_3
         jump shelter_decision_phase
     elif shelter_choice == "aim":
         call shelter_clip("aim") from _call_shelter_clip_4
