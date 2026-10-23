@@ -84,7 +84,7 @@ screen shelter_protocol(briefing=False):
         background None
         hover_background Solid("#ffb99118")
         action (Return(True) if briefing else Hide("shelter_protocol"))
-        text ("ОЙЛГОЛОО — ЭЭЛЖЭЭ ЭХЛҮҮЛЭХ  ›" if briefing else "ТОГЛОЛТ РУУ БУЦАХ  ›"):
+        text (" ЭХЛҮҮЛЭХ " if briefing else " ТОГЛОЛТ РУУ БУЦАХ "):
             font SHELTER_BOLD
             size 31
             color "#f5d8bf"

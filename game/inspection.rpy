@@ -14,8 +14,7 @@ init python:
         "meal": ("items.png", (10, 60, 525, 430)),
         "charger": ("items.png", (540, 90, 505, 415)),
         "schedule": ("items.png", (1050, 10, 480, 500)),
-        "notebook": ("items.png", (25, 535, 440, 455)),
-        "drawing": ("anu-notebook.webp", None),
+        "notebook": ("anu-notebook.webp", None),
         "rabbit": ("items.png", (1090, 510, 440, 505)),
     }
     SHELTER_INSPECTION_ITEMS = {
@@ -40,10 +39,10 @@ init python:
             "detail": "Захиалга хүргэх хуваарь байна. Чинбаа хүргэлт хийж явсан гэж хэлсэн.",
         },
         "notebook": {
-            "name": "Зургийн дэвтэр", "action": "Дэвтрийг нээх",
+            "name": "Зургийн дэвтэр", "action": "Зургийн тухай асуух ",
             "description": "Анугийн сургуулийн цүнхэнд байсан жижиг дэвтэр.",
             "detail": "Сүүлийн хуудсанд энэ хорогдох байрны хаалга, дотор талын дугуй түгжээг зуржээ.",
-            "revealed_sprite": "drawing", "close_action": "Дэвтрийг хаах",
+
         },
         "rabbit": {
             "name": "Туулайн чихмэл", "action": "Ойроос шалгах",
@@ -222,7 +221,11 @@ screen shelter_inspection(visitor):
                     hover_background Frame("gui/shelter/metal/selected.png", 28, 18)
                     selected_background Frame("gui/shelter/metal/selected.png", 28, 18)
                     selected selected_item == item_id
-                    action [SetScreenVariable("selected_item", item_id), SetScreenVariable("revealed", False), Function(viewer.choose, item_id)]
+                    action [
+                        SetScreenVariable("selected_item", item_id),
+                        SetScreenVariable("revealed", False),
+                        Function(viewer.choose, item_id)
+                    ]
                     hbox:
                         spacing 12
                         yalign 0.5
@@ -288,16 +291,46 @@ screen shelter_inspection(visitor):
         xpos 64
         ypos 938
         xysize (510, 94)
-        if selected_item == "notebook" and revealed and 2 not in shelter_asked:
-            use inspection_plate("Энэ зургийн тухай асуух", "inspect", Return("ask_drawing"), width=510)
-        elif selected:
-            use inspection_plate(
-                selected.get("close_action", "Шалгасан") if revealed else selected["action"],
-                "check" if revealed and "revealed_sprite" not in selected else "inspect",
-                [Function(shelter_inspection_mark, visitor, selected_item), SetScreenVariable("revealed", not revealed), Function(viewer.choose, selected_item if revealed else selected.get("revealed_sprite", selected_item))],
-                enabled=not revealed or "revealed_sprite" in selected, width=510)
+        if selected:
+            if selected_item == "notebook":
+                if 2 not in shelter_asked:
+                    use inspection_plate(
+                        "Зургийн тухай асуух",
+                        "inspect",
+                        Return("ask_drawing"),
+                        width=510
+                    )
+                else:
+                    use inspection_plate(
+                        "Шалгасан",
+                        "check",
+                        NullAction(),
+                        enabled=False,
+                        width=510
+                    )
+            else:
+                use inspection_plate(
+                    selected.get("close_action", "Шалгасан") if revealed else selected["action"],
+                    "check" if revealed and "revealed_sprite" not in selected else "inspect",
+                    [
+                        Function(shelter_inspection_mark, visitor, selected_item),
+                        SetScreenVariable("revealed", not revealed),
+                        Function(
+                            viewer.choose,
+                            selected_item if revealed else selected.get("revealed_sprite", selected_item)
+                        )
+                    ],
+                    enabled=not revealed or "revealed_sprite" in selected,
+                    width=510
+                )
         else:
-            use inspection_plate("Эд зүйлээ сонгоно уу", "inspect", NullAction(), enabled=False, width=510)
+            use inspection_plate(
+                "Эд зүйлээ сонгоно уу",
+                "inspect",
+                NullAction(),
+                enabled=False,
+                width=510
+            )
 
     hbox:
         xpos 700
@@ -353,8 +386,8 @@ label shelter_inspect_belongings:
     # rolling data back to the beginning of the call-screen statement.
     $ renpy.retain_after_load()
     call screen shelter_inspection(shelter_visitor) with Dissolve(0.2)
-    if _return == "ask_drawing" and shelter_visitor == "anu" and 2 not in shelter_asked:
-        call shelter_player_line("drawing", "Чи энэ зургийг зурсан уу?") from _call_shelter_player_line_1
+    if _return == "ask_drawing" and shelter_visitor == "anu":
+        call shelter_player_line("notebook", "Чи энэ зургийг зурсан уу?") from _call_shelter_player_line_1
         call shelter_clip("answer3") from _call_shelter_clip_1
         $ shelter_asked.append(2)
     return
