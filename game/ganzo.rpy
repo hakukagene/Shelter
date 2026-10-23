@@ -33,3 +33,9 @@ define GANZO_SPEECH_WINDOWS = {
     "reject": (1.383, 6.048),
     "admit": (0.801, 3.794),
 }
+
+define GANZO_SUPPLIED_PLAYER_VOICES = {
+    'question1': ('audio/ganzo/ganzo asuult1.wav', 0, 1.89),
+    'question2': ('audio/ganzo/ganzo asuult2.wav', 0, 1.068),
+    'question3': ('audio/ganzo/ganzo asuult3.wav', 0, 3.583),
+}
