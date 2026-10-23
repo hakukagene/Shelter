@@ -35,7 +35,7 @@ default shelter_story_minutes = None
 
 define SHELTER_CLOCK_START = 23 * 60 + 10
 
-init python:
+init 1 python:
     renpy.music.register_channel("shelter_knock", mixer="sfx", loop=False, stop_on_mute=False)
     SHELTER_VISITORS = {
         "ganzo": {"clips": GANZO_CLIPS, "questions": GANZO_QUESTIONS,
