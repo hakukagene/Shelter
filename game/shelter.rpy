@@ -151,6 +151,9 @@ init 1 python:
     def shelter_wait_image(clip, visitor=None):
         visitor = visitor or shelter_visitor
         if visitor == "naraa":
+            # Display this still only on the armed choice screen after aiming.
+            if clip == "aim":
+                return "images/naraa/Red Light, Cold Window stand-off.png"
             return "images/naraa/Nara ok.jpg"
         if visitor in ("ganba", "ganzo"):
             if clip in ("intro", "answer1", "answer2", "answer3", "lower"):
