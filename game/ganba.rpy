@@ -28,3 +28,9 @@ define GANBA_SPEECH_WINDOWS = {
     "answer2": (0.965, 12.069), "aim": (2.295, 6.525),
     "reject": (0.370, 3.830), "admit": (0.311, 4.588),
 }
+
+define GANBA_SUPPLIED_PLAYER_VOICES = {
+    'question1': ('audio/ganba/ganba asuult1.wav', 0.122, 1.315),
+    'question2': ('audio/ganba/ganba asuult2.wav', 0, 1.748),
+    'question3': ('audio/ganba/ganba asuult3.wav', 0, 1.038),
+}
