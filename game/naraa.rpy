@@ -21,7 +21,15 @@ define NARAA_QUESTIONS = [
     "Чамайг яагаад би оруулах ёстой вэ?",
     "Цүнхэнд чинь юу байгаа вэ?",
 ]
-define NARAA_LINES = {}
+# Two separate player lines around Naraa's split second response.
+define NARAA_QUESTION2_PART1 = "Чамайг яагаад би оруулах ёстой вэ?"
+define NARAA_QUESTION2_PART2 = "Тиймээ гэхдээ би чамайг энгийн хүн гэж яагаад итгэх ёстой гэж?"
+
+# Exact spoken content as supplied; video soundtracks remain the audio source.
+define NARAA_LINES = {
+    "answer2": "Наадах чинь хорогдох байр юм бишүү. Орж хорогдоё лдоо",
+    "answer2_part2": "Би тиймч энгийн хүн биш лдээ. Заа лдаа ийм сайхан хүүхнийг үх гээд орхино гэж үү? Намайг оруулбал би хариуг чинь барина шүү. Яаж гэдгийг нь чи мэдэж байгаа биз дээ айн? кк",
+}
 define NARAA_SPEECH_WINDOWS = {}
 
 # Naraa's question recordings are registered in player_voices.rpy.
