@@ -123,6 +123,17 @@ assert.equal(root.hidden, false);
 console.log("PASS: trimmed EOF freezes the valid end poster before handoff.");
 api.close(); nextFrame(); nextFrame();
 
+api.start({ ...options, startTime: 13.14, endTime: 16.414 }); await flush();
+assert.equal(video.paused, true, "A ranged clip waits for seekable metadata before playback");
+video.readyState = 1;
+video.listeners.loadedmetadata(); await flush();
+assert.equal(video.currentTime, 13.14);
+assert.equal(video.paused, false);
+video.currentTime = 16.42; nextFrame();
+assert.equal(api.finished, true);
+api.close(); nextFrame(); nextFrame();
+console.log("PASS: ranged encounter clips seek to their exact source start and stop at the source end.");
+
 // A delayed callback from an older clip must not reveal a fresh empty decoder.
 api.start(options); await flush();
 const staleFrame = [...video.videoFrames.values()][0];

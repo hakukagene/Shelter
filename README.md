@@ -222,7 +222,7 @@ The source and generation prompt are documented in `tools/art/anu-notebook.md`.
 
 The campaign counters retain 43 civilians, 30 monsters, a target of 40 rescued
 civilians and at most two civilian mistakes (killing or rejecting). The third
-mistake ends the run. Nine encounters containing ten people are playable;
+mistake ends the run. Ten encounters containing eleven people are playable;
 finishing them is a preview ending, not a campaign win.
 
 Between visitors, `game/intermission.rpy` uses the selected guard's ledger artwork
@@ -252,7 +252,7 @@ Playback now holds its decoded last frame at EOF, then uses the matching end
 poster before returning to a stable waiting pose. Conversational clips blend
 back over 0.18 seconds; final actions keep their own last frame until the clock
 or result transition. Maral's rejection/shooting no longer flashes the lockdown
-ending artwork. All 86 encounter clips have individual start/end posters.
+ending artwork. All 97 logical encounter clips have individual start/end posters.
 The supplied Bayra aim clip's trailing black frame is excluded at 13.11 seconds
 in both native playback and web MP4 conversion; speech has already finished.
 Maral's third-answer caption now follows the updated recording through 7.332s.
@@ -434,3 +434,11 @@ Naraa is a civilian in the shuffled roster. Her ten supplied clips now use 20
 exact first/last video frames during decoder handoffs. The separate `Nara ok.jpg`
 and stand-off artwork are no longer inserted between clips, preventing the brief
 wrong-frame flash while preserving the supplied footage and sound unchanged.
+
+Margad, 18, is the third monster in the author DOCX. His eight supplied WebMs
+are connected as eleven logical clips, including three exact ranges from the
+first-answer movie so the player's three recordings alternate with Margad's
+responses. Native and web playback share the same source-time ranges and 22
+transition posters. The supplied set has no rejection movie, so that outcome
+uses only the silent final 0.955 seconds of the intro instead of replaying
+unrelated dialogue.

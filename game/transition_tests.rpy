@@ -275,10 +275,15 @@ testsuite shelter_transition_checks:
         # Ninth encounter: Naraa returns after her exact transition posters load.
         assert eval (shelter_visitor == renpy.test.shelter_expected_order[8] and shelter_asked == [])
         click expression ("Оруулах" if SHELTER_CIVILIANS.get(shelter_visitor, False) else "Хөөх")
+        pause until screen "shelter_next_visitor_card" timeout 40
+        pause until screen "shelter_questions" timeout 40
+        # Tenth encounter: Margad is a monster in the same saved permutation.
+        assert eval (shelter_visitor == renpy.test.shelter_expected_order[9] and shelter_asked == [])
+        click expression ("Оруулах" if SHELTER_CIVILIANS.get(shelter_visitor, False) else "Хөөх")
         pause until screen "shelter_result" timeout 40
         assert eval (renpy.get_screen("shelter_result").scope["title"] == "ТУРШИЛТЫН ХЭСЭГ ДУУСЛАА")
         assert eval (tuple(shelter_outcomes) == renpy.test.shelter_expected_order)
-        assert eval (shelter_visitors_seen == 10 and shelter_admitted == 6 and shelter_civilians_killed == 0)
+        assert eval (shelter_visitors_seen == 11 and shelter_admitted == 6 and shelter_civilians_killed == 0)
         # Seed only the test: verify replay creates a fresh order and resets progress.
         run Function(renpy.random.seed, 41)
         $ renpy.test.shelter_expected_replay = tuple(shelter_make_visitor_order())
@@ -314,6 +319,8 @@ testsuite shelter_transition_checks:
         run SetVariable("shelter_visitor", "ganzo")
         assert eval (shelter_next_visitor_id() == "naraa")
         run SetVariable("shelter_visitor", "naraa")
+        assert eval (shelter_next_visitor_id() == "margad")
+        run SetVariable("shelter_visitor", "margad")
         assert eval (shelter_next_visitor_id() is None)
         # Existing shuffled saves retain their exact stored roster.
         run SetVariable("shelter_run_order", ["Chinba", "anu"])

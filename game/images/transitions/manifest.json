@@ -600,5 +600,93 @@
     "end_time": null,
     "start_sha256": "dc7265a5ea2ed5f4752cbdb31ca69b1ff4ec0bac6520a1f11a72d6144b80408c",
     "end_sha256": "7d8e6c5a0bf3e788b6d19bca3684eca1a4c21cfccb70224829243848e03a35b6"
+  },
+  "margad/intro": {
+    "source": "Video/margad/Chotgor ehlel.webm",
+    "source_sha256": "59035bcdb284e66cb572a818202e35eee0fd0f1a97f01c994ebaf9911208cc8d",
+    "start_time": null,
+    "end_time": null,
+    "start_sha256": "40af76a4aa24650e87e6366b418715270627694b67ddecbe319ef362ae946670",
+    "end_sha256": "d4e25736a1143f8250e8c7b4dc0bdad3bdb6794630f4c56654e5495196c0cb5e"
+  },
+  "margad/answer1": {
+    "source": "Video/margad/Chotgor hariult 1.webm",
+    "source_sha256": "6febe670524f40d515feffa78643a41ec46637c143f8a93f2990a8535300c421",
+    "start_time": null,
+    "end_time": 11.525,
+    "start_sha256": "7dfa207e9d7f3ddaec27781cfd31afd66ac10ea84507ebc5271c5c2e00cce92f",
+    "end_sha256": "5266ca62bf5e725c84645302bf280fcaaf5b27dca7c7fdb44f2588ab2fde44ac"
+  },
+  "margad/answer1_part2": {
+    "source": "Video/margad/Chotgor hariult 1.webm",
+    "source_sha256": "6febe670524f40d515feffa78643a41ec46637c143f8a93f2990a8535300c421",
+    "start_time": 13.14,
+    "end_time": 16.414,
+    "start_sha256": "4f63159f2cb2a4df6e253b0a98722514326ca6087caa00f0d1c33293877c189e",
+    "end_sha256": "2abc862bfefd7220d0c59e3fc958b46203755617ada711ceedc53f832a4c14fb"
+  },
+  "margad/answer1_part3": {
+    "source": "Video/margad/Chotgor hariult 1.webm",
+    "source_sha256": "6febe670524f40d515feffa78643a41ec46637c143f8a93f2990a8535300c421",
+    "start_time": 17.74,
+    "end_time": 22.04,
+    "start_sha256": "ad0f1ab111b1562215040d969639c3c73da5a56cd3c58c6fd5053ca75eb54879",
+    "end_sha256": "1ab221e7fa589994520876d290efc13a71e744978a3d244993d91ba71333ce23"
+  },
+  "margad/answer2": {
+    "source": "Video/margad/Chotgor hariult 2.webm",
+    "source_sha256": "69e3fb3bccb0106d7ed8defc4f9a2c6b05d1ce1ca107deae4459a734f55d5460",
+    "start_time": null,
+    "end_time": null,
+    "start_sha256": "7dfa207e9d7f3ddaec27781cfd31afd66ac10ea84507ebc5271c5c2e00cce92f",
+    "end_sha256": "46e593af0512e7fcfaac59a2d0f2a228a376e0f0d31f1973a8141a040399b6ab"
+  },
+  "margad/answer3": {
+    "source": "Video/margad/Chotgor hariult 3.webm",
+    "source_sha256": "ae5e39551ccbcded5674dddddb68d80c1b7e0a50c088778fc2e28820038be958",
+    "start_time": null,
+    "end_time": null,
+    "start_sha256": "2e1a6fdbec338c58c9148cb7f155d910103bac51419156330ab749b7a3e1305a",
+    "end_sha256": "5150b5490f91d3d8dff09e1eb473ca983e22ea62f411fcd804c4227ae95d40a3"
+  },
+  "margad/aim": {
+    "source": "Video/margad/Chotgor Buu tulgah.webm",
+    "source_sha256": "21123e92197c4ebd75247758f7a8bdbeff4cba8b8d6f023d6da56467a8e8978d",
+    "start_time": null,
+    "end_time": null,
+    "start_sha256": "7dfa207e9d7f3ddaec27781cfd31afd66ac10ea84507ebc5271c5c2e00cce92f",
+    "end_sha256": "f589a03f5ae68453c1cdf9fce0147680a3bb6b71d6f8b479a0efe44e4cdc6310"
+  },
+  "margad/lower": {
+    "source": "Video/margad/Chotgor buugaa bolih.webm",
+    "source_sha256": "2176758d71dde53daaa2e13a2efa976c70ed3c9dd467ca1f45cc9c154d5d03fb",
+    "start_time": null,
+    "end_time": null,
+    "start_sha256": "8be23439aa20bd5c67cb45b546eac06ed4bd4190f4c7b35f6b0257238bc60f8d",
+    "end_sha256": "855e8a25a0a73efa20aafd4f4034a8acdc146a4b728cb316fe7727761fc17ef9"
+  },
+  "margad/shoot": {
+    "source": "Video/margad/Chotgor buuduulah.webm",
+    "source_sha256": "1b6029cbdf877c84e38c14007b9c161429e31d7ed546c81c421e79f416f314e2",
+    "start_time": null,
+    "end_time": null,
+    "start_sha256": "6e95ba012c42e8fc07350719709dff5caa7b9c43e1953f6c62e6f76d0c02ec57",
+    "end_sha256": "2ca2c803c76f2719785f165368840ef2ee9787848c38bf7a4df70cab96fad894"
+  },
+  "margad/reject": {
+    "source": "Video/margad/Chotgor ehlel.webm",
+    "source_sha256": "59035bcdb284e66cb572a818202e35eee0fd0f1a97f01c994ebaf9911208cc8d",
+    "start_time": 20.772,
+    "end_time": 21.727,
+    "start_sha256": "811b97bf54c05cfbbb676dfe5440e949c0b3ea085f8c22b92eae088d781e431a",
+    "end_sha256": "d4e25736a1143f8250e8c7b4dc0bdad3bdb6794630f4c56654e5495196c0cb5e"
+  },
+  "margad/admit": {
+    "source": "Video/margad/Chotgor oruulah.webm",
+    "source_sha256": "682d5c5c2aa3bc8d81caaadcd5d35b974f684991bde71c1e04956c4f83c0bf0b",
+    "start_time": null,
+    "end_time": null,
+    "start_sha256": "7dfa207e9d7f3ddaec27781cfd31afd66ac10ea84507ebc5271c5c2e00cce92f",
+    "end_sha256": "27730678dc2d855216464c22bf29b1e204a45f271404521a6261dc466e8b0278"
   }
 }

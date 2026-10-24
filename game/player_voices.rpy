@@ -23,12 +23,7 @@ init 2 python:
             'question2': ('audio/hulan/hulan asuult2.wav', 0, 1.643),
             'question3': ('audio/hulan/hulan asuult3.wav', 0, 2.182),
         },
-        'margad': {
-            'question1_part2': ('audio/margad/margad asuult1 2heseg.wav', 0.106, 2.587),
-            'question1': ('audio/margad/margad asuult1.wav', 0.137, 2.859),
-            'question2': ('audio/margad/margad asuult2.wav', 0.119, 3.39),
-            'question3': ('audio/margad/margad asuult3.wav', 0, 1.408),
-        },
+        'margad': MARGAD_SUPPLIED_PLAYER_VOICES,
         'naraa': {
             'question1': ('audio/naraa/naraa asuult1.wav', 0, 1.354),
             'question2_part1': ('audio/naraa/naraa asuult2 1heseg.wav', 0, 1.407),

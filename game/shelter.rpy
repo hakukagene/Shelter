@@ -10,7 +10,18 @@ default shelter_visitor = "Maral"
 default shelter_chinba_outcome = None
 # The supplied Bayra aim movie ends with one black frame after speech.
 # Stop before that frame; keep the original source and audio untouched.
-define SHELTER_CLIP_ENDS = {"Bayra/aim": 13.11}
+define SHELTER_CLIP_STARTS = {
+    "margad/answer1_part2": 13.140,
+    "margad/answer1_part3": 17.740,
+    "margad/reject": 20.772,
+}
+define SHELTER_CLIP_ENDS = {
+    "Bayra/aim": 13.11,
+    "margad/answer1": 11.525,
+    "margad/answer1_part2": 16.414,
+    "margad/answer1_part3": 22.040,
+    "margad/reject": 21.727,
+}
 
 # Append unique IDs and civilian classifications as new visitors are added.
 define SHELTER_CIVILIAN_COUNT = 43
@@ -20,9 +31,9 @@ define SHELTER_CIVILIAN_TARGET = 40
 define SHELTER_MAX_CIVILIAN_DEATHS = 2
 define SHELTER_MAX_CIVILIAN_MISTAKES = 2
 # Available roster, also the original sequence for saves predating random order.
-define SHELTER_VISITOR_ORDER = ("Chinba", "Maral", "Swat", "Bayra", "anu", "deeremchin", "ganba", "ganzo", "naraa")
+define SHELTER_VISITOR_ORDER = ("Chinba", "Maral", "Swat", "Bayra", "anu", "deeremchin", "ganba", "ganzo", "naraa", "margad")
 default shelter_run_order = None
-define SHELTER_CIVILIANS = {"Chinba": True, "Maral": False, "Swat": True, "Bayra": True, "anu": False, "ganba": True, "ganzo": True, "naraa": True}
+define SHELTER_CIVILIANS = {"Chinba": True, "Maral": False, "Swat": True, "Bayra": True, "anu": False, "ganba": True, "ganzo": True, "naraa": True, "margad": False}
 # Armor stops the bullet: Orgil leaves alive after being shot.
 define SHELTER_NONLETHAL_SHOOT = ("Swat",)
 default shelter_outcomes = {}
@@ -38,6 +49,9 @@ define SHELTER_CLOCK_START = 23 * 60 + 10
 init 1 python:
     renpy.music.register_channel("shelter_knock", mixer="sfx", loop=False, stop_on_mute=False)
     SHELTER_VISITORS = {
+        "margad": {"clips": MARGAD_CLIPS, "questions": MARGAD_QUESTIONS,
+                "lines": MARGAD_LINES, "windows": MARGAD_SPEECH_WINDOWS,
+                "voices": MARGAD_SUPPLIED_PLAYER_VOICES},
         "naraa": {"clips": NARAA_CLIPS, "questions": NARAA_QUESTIONS,
                 "lines": NARAA_LINES, "windows": NARAA_SPEECH_WINDOWS, "voices": {}},
         "ganzo": {"clips": GANZO_CLIPS, "questions": GANZO_QUESTIONS,
@@ -150,6 +164,13 @@ init 1 python:
         stop_on_mute=False, buffer_queue=False)
     def shelter_wait_image(clip, visitor=None):
         visitor = visitor or shelter_visitor
+        if visitor == "margad":
+            # Preserve the exact pose across the two player interjections.
+            if clip in ("answer1", "answer1_part2"):
+                return shelter_movie_frame(visitor, clip, "end")
+            if clip in ("intro", "answer1_part3", "answer2", "answer3", "lower"):
+                return shelter_movie_frame(visitor, "answer1", "start")
+            return shelter_movie_frame(visitor, clip, "end")
         if visitor == "naraa":
             # Use only frames decoded from Naraa's movies. The standalone art
             # differs from the footage and used to flash between every clip.
@@ -210,8 +231,18 @@ init 1 python:
 
     def shelter_movie_path(visitor, clip):
         path = "Video/" + visitor + "/" + SHELTER_VISITORS[visitor]["clips"][clip][0]
+        start = SHELTER_CLIP_STARTS.get(visitor + "/" + clip)
         end = SHELTER_CLIP_ENDS.get(visitor + "/" + clip)
-        return ("<to %s>" % end if end else "") + path
+        bounds = (("from %s " % start) if start is not None else "") + (("to %s" % end) if end is not None else "")
+        return ("<%s>" % bounds.strip() if bounds else "") + path
+
+    def shelter_speech_position(clip):
+        position = renpy.music.get_pos(channel="shelter_video")
+        start = SHELTER_CLIP_STARTS.get(shelter_visitor + "/" + clip)
+        # Ren'Py backends can report either source time or time since <from>.
+        if position is not None and start is not None and position < start:
+            position += start
+        return position
 
     shelter_movies = {
         (visitor, key): Movie(
@@ -284,7 +315,7 @@ screen shelter_playback(clip):
     key "skip" action NullAction()
     key "toggle_skip" action NullAction()
     key "rollback" action NullAction()
-    $ speech_position = renpy.music.get_pos(channel="shelter_video")
+    $ speech_position = shelter_speech_position(clip)
     $ speech_window = shelter_data("windows").get(clip)
     if speech_window and speech_position is not None and speech_window[0] <= speech_position < speech_window[1]:
         frame:
@@ -496,7 +527,7 @@ label shelter_clip(clip):
     # Movie inside Dissolve can expose an uninitialised video render target.
     with Dissolve(0.6 if clip == "intro" else 0.16)
     if renpy.emscripten:
-        $ shelter_web_begin("Video/" + shelter_visitor + "/" + shelter_data("clips")[clip][0], shelter_web_clip_cues(clip), poster=shelter_movie_start_image(shelter_visitor, clip), armed=shelter_clip_is_armed(clip), end_time=SHELTER_CLIP_ENDS.get(shelter_visitor + "/" + clip), end_poster=shelter_movie_frame(shelter_visitor, clip, "end"))
+        $ shelter_web_begin("Video/" + shelter_visitor + "/" + shelter_data("clips")[clip][0], shelter_web_clip_cues(clip), poster=shelter_movie_start_image(shelter_visitor, clip), armed=shelter_clip_is_armed(clip), start_time=SHELTER_CLIP_STARTS.get(shelter_visitor + "/" + clip), end_time=SHELTER_CLIP_ENDS.get(shelter_visitor + "/" + clip), end_poster=shelter_movie_frame(shelter_visitor, clip, "end"))
         call screen shelter_web_wait
     else:
         call screen shelter_playback(clip)
@@ -550,7 +581,16 @@ label shelter_handle_choice:
             call shelter_inspect_belongings from _call_shelter_inspect_belongings
             jump shelter_decision_phase
         $ shelter_asked.append(shelter_choice)
-        if shelter_visitor == "naraa" and shelter_choice == 1:
+        if shelter_visitor == "margad" and shelter_choice == 0:
+            # Margad's first answer alternates three player lines with three
+            # portions of one supplied response movie.
+            call shelter_player_line("question1", MARGAD_QUESTION1_PART1)
+            call shelter_clip("answer1")
+            call shelter_player_line("question1_part2", MARGAD_QUESTION1_PART2)
+            call shelter_clip("answer1_part2")
+            call shelter_player_line("question1_part3", MARGAD_QUESTION1_PART3)
+            call shelter_clip("answer1_part3")
+        elif shelter_visitor == "naraa" and shelter_choice == 1:
             # Naraa's second question is a four-part conversation.
             # Keep the same scene and do not show the decision buttons between lines.
             call shelter_player_line("question2_part1", NARAA_QUESTION2_PART1)
@@ -595,7 +635,7 @@ label shelter_resolve_visitor:
         $ shelter_mistakes = shelter_civilian_mistakes()
         call screen shelter_result("ТА ХОЖИГДЛОО", "Та [shelter_mistakes] энгийн хүнийг хөнөөсөн эсвэл хөөж явуулсан. Зөвшөөрөгдөх алдааны дээд хэмжээ 2.")
     elif shelter_admitted_monster():
-        $ shelter_monster_ending = "Эмэгтэй чөтгөр болон хувирч, тан руу дайрлаа." if shelter_visitor == "deeremchin" else "Ану чөтгөр болон хувирч, тан руу дайрлаа." if shelter_visitor == "anu" else "Маралын дүр аймшигтайгаар хувирч, тэр чөтгөрийн инээдээр инээн тан руу дайрлаа."
+        $ shelter_monster_ending = "Эмэгтэй чөтгөр болон хувирч, тан руу дайрлаа." if shelter_visitor == "deeremchin" else "Ану чөтгөр болон хувирч, тан руу дайрлаа." if shelter_visitor == "anu" else "Маргад шууд тан руу дайрлаа." if shelter_visitor == "margad" else "Маралын дүр аймшигтайгаар хувирч, тэр чөтгөрийн инээдээр инээн тан руу дайрлаа."
         call screen shelter_result("ТА АЮУЛЫГ ДОТОГШ ОРУУЛЛАА", shelter_monster_ending)
     elif shelter_status == "win":
         call screen shelter_result("ТА ХОЖЛОО", "Та [SHELTER_CIVILIAN_TARGET] энгийн иргэнийг хорогдох байранд оруулж аварлаа.")
