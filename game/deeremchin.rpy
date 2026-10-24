@@ -115,16 +115,16 @@ label shelter_deeremchin_handle_choice:
     if isinstance(shelter_choice, int) and shelter_can_ask_questions():
         if shelter_choice not in shelter_asked:
             $ shelter_asked.append(shelter_choice)
-            call shelter_player_line("question%d" % (shelter_choice + 1), DEEREMCHIN_QUESTIONS[shelter_choice])
-            call shelter_clip("answer%d" % (shelter_choice + 1))
+            call shelter_player_line("question%d" % (shelter_choice + 1), DEEREMCHIN_QUESTIONS[shelter_choice]) from _call_shelter_player_line_5
+            call shelter_clip("answer%d" % (shelter_choice + 1)) from _call_shelter_clip_11
         jump shelter_decision_phase
     elif shelter_choice == "aim" and shelter_can_aim():
-        call shelter_clip("aim")
+        call shelter_clip("aim") from _call_shelter_clip_12
         call screen shelter_decision(armed=True)
         $ shelter_choice = _return
         jump shelter_deeremchin_handle_choice
     elif shelter_choice in ("shoot_man", "shoot_woman") and shelter_still == "aim" and shelter_can_aim():
-        call shelter_clip(shelter_choice)
+        call shelter_clip(shelter_choice) from _call_shelter_clip_13
         $ shelter_record_deeremchin_person(shelter_choice.split("_")[1], "shoot")
         if shelter_campaign_status() == "casualties":
             # The third civilian mistake ends the game immediately.
@@ -132,10 +132,10 @@ label shelter_deeremchin_handle_choice:
         jump shelter_decision_phase
     elif shelter_choice in ("admit", "reject"):
         if shelter_deeremchin_survivor() is None:
-            call shelter_player_line(shelter_choice)
-            call shelter_clip(shelter_choice)
+            call shelter_player_line(shelter_choice) from _call_shelter_player_line_6
+            call shelter_clip(shelter_choice) from _call_shelter_clip_14
         else:
-            call shelter_player_line("survivor_" + shelter_choice)
-            call shelter_clip(shelter_deeremchin_survivor() + "_" + shelter_choice)
+            call shelter_player_line("survivor_" + shelter_choice) from _call_shelter_player_line_7
+            call shelter_clip(shelter_deeremchin_survivor() + "_" + shelter_choice) from _call_shelter_clip_15
         jump shelter_resolve_visitor
     jump shelter_decision_phase

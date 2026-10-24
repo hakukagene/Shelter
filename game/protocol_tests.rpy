@@ -19,7 +19,7 @@ label _shelter_test_midpoint_start:
 label _shelter_test_below_midpoint:
     $ shelter_civilians_saved = 19
     $ shelter_checkpoint_created = False
-    call shelter_save_midpoint
+    call shelter_save_midpoint from _call_shelter_save_midpoint_1
     jump shelter_question_phase
 
 testsuite shelter_protocol_checks:

@@ -375,7 +375,7 @@ label shelter_inspect_belongings:
     # Anu's bag request plays once; her separate drawing question follows only
     # after opening the notebook. Closing early must not consume answer three.
     if shelter_visitor == "anu" and 2 not in shelter_asked and "anu" not in shelter_inspection_requests:
-        call shelter_player_line("question3", shelter_data("questions")[2])
+        call shelter_player_line("question3", shelter_data("questions")[2]) from _call_shelter_player_line_8
         $ shelter_inspection_requests = shelter_inspection_requests + ["anu"]
     # Anu's third answer is about the drawing; find it before asking her.
     if shelter_visitor != "anu" and 2 not in shelter_asked:
