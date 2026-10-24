@@ -45,6 +45,8 @@ default shelter_story_minutes = None
 define SHELTER_CLOCK_START = 23 * 60 + 10
 
 init 1 python:
+    import math
+
     renpy.music.register_channel("shelter_knock", mixer="sfx", loop=False, stop_on_mute=False)
     SHELTER_VISITORS = {
         "margad": {"clips": MARGAD_CLIPS, "questions": MARGAD_QUESTIONS,
@@ -338,26 +340,35 @@ screen shelter_hold_skip(complete_action):
         id "shelter_hold_skip"
         xalign 0.975
         yalign 0.965
-        xysize (250, 104)
-        add Frame("gui/shelter/hover.png" if hold_hovered else "gui/shelter/idle.png", 16, 16) xysize (250, 104)
-        text ("АЛГАСАЖ БАЙНА…" if hold_active else "1 СЕК ДАРЖ АЛГАСАХ"):
+        xysize (180, 180)
+
+        add Transform(
+            "gui/shelter/actions/reject.png",
+            xysize=(180, 180),
+            matrixcolor=(BrightnessMatrix(0.14) if hold_hovered else IdentityMatrix()))
+
+        # Twenty-five pieces match the 0.04-second timer. They trace the
+        # circumference clockwise and complete after one continuous second.
+        for segment in range(25):
+            $ segment_angle = -90.0 + segment * 14.4
+            if hold_progress >= float(segment + 1) / 25.0:
+                add Solid("#ffe13b"):
+                    xysize (5, 13)
+                    xpos int(90 + math.cos(math.radians(segment_angle)) * 76 - 2.5)
+                    ypos int(90 + math.sin(math.radians(segment_angle)) * 76 - 6.5)
+                    at Transform(rotate=segment_angle + 90.0)
+
+        text ("АЛГАСАХ" if hold_active else "1 СЕК ДАР"):
             font SHELTER_BOLD
-            size 22
+            size 15
             color ("#ffffff" if hold_active else "#e8dfca")
             xalign 0.5
-            ypos 18
+            ypos 107
+            xsize 118
             text_align 0.5
             outlines [(1, "#000c", 0, 1)]
-        bar:
-            value StaticValue(hold_progress, 1.0)
-            xalign 0.5
-            yalign 0.86
-            xsize 196
-            ysize 8
-            left_bar Solid("#c8944f")
-            right_bar Solid("#44382f")
         mousearea:
-            area (0, 0, 250, 104)
+            area (0, 0, 180, 180)
             hovered SetScreenVariable("hold_hovered", True)
             unhovered [
                 SetScreenVariable("hold_hovered", False),

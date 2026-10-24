@@ -11,6 +11,7 @@
   const interjection = document.getElementById("video-interjection");
   const playerVoice = document.getElementById("video-player-voice");
   const skip = document.getElementById("video-skip");
+  const skipLabel = document.getElementById("video-skip-label");
   const pause = document.getElementById("video-pause");
   const mute = document.getElementById("video-mute");
   const prompt = document.getElementById("video-prompt");
@@ -31,7 +32,7 @@
     if (skipHoldTimer !== null) clearTimeout(skipHoldTimer);
     skipHoldTimer = null;
     skip.classList.remove("holding");
-    skip.textContent = "1 СЕК ДАРЖ АЛГАСАХ";
+    skipLabel.textContent = "1 СЕК ДАР";
   }
 
   function beginSkipHold(event) {
@@ -39,7 +40,7 @@
     event.preventDefault();
     skip.setPointerCapture?.(event.pointerId);
     skip.classList.add("holding");
-    skip.textContent = "АЛГАСАЖ БАЙНА…";
+    skipLabel.textContent = "АЛГАСАХ";
     skipHoldTimer = setTimeout(() => {
       skipHoldTimer = null;
       finish(true);
