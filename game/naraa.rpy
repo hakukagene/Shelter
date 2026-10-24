@@ -1,17 +1,16 @@
 # Naraa - civilian encounter. Media supplied in game/Video/naraa/.
-# Clip durations are not used by the current native/browser playback driver.
-# They remain 0.0 until precise durations can be measured from the video files.
+# Durations were measured from the supplied VP9/Opus WebMs.
 define NARAA_CLIPS = {
-    "intro": ("Naraa Ehlel.webm", 0.0),
-    "answer1": ("Naraa Hariult 1.webm", 0.0),
-    "answer2": ("Naraa Hariult 2.1.webm", 0.0),
-    "answer2_part2": ("Naraa Hariult 2.2.webm", 0.0),
-    "answer3": ("Naraa Hariult 3.webm", 0.0),
-    "aim": ("Naraa Buu gargahad hooloi.webm", 0.0),
-    "lower": ("Buu Buulgah zassan.webm", 0.0),
-    "shoot": ("Buu Buudah zassan.webm", 0.0),
-    "admit": ("Naraa Oruulah.webm", 0.0),
-    "reject": ("Naraa yavuulah.webm", 0.0),
+    "intro": ("Naraa Ehlel.webm", 11.648),
+    "answer1": ("Naraa Hariult 1.webm", 37.568),
+    "answer2": ("Naraa Hariult 2.1.webm", 5.008),
+    "answer2_part2": ("Naraa Hariult 2.2.webm", 19.288),
+    "answer3": ("Naraa Hariult 3.webm", 10.768),
+    "aim": ("Naraa Buu gargahad hooloi.webm", 11.448),
+    "lower": ("Buu Buulgah zassan.webm", 3.488),
+    "shoot": ("Buu Buudah zassan.webm", 3.128),
+    "admit": ("Naraa Oruulah.webm", 15.288),
+    "reject": ("Naraa yavuulah.webm", 6.488),
 }
 
 # Player question captions. Naraa's exact spoken lines are preserved in the video

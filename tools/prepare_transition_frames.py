@@ -17,7 +17,8 @@ ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "game/images/transitions"
 CONSTANTS = {"Chinba": "CHINBA_CLIPS", "Maral": "SHELTER_CLIPS",
              "Swat": "SWAT_CLIPS", "Bayra": "BAYRA_CLIPS", "anu": "ANU_CLIPS",
-             "deeremchin": "DEEREMCHIN_CLIPS", "ganba": "GANBA_CLIPS", "ganzo": "GANZO_CLIPS"}
+             "deeremchin": "DEEREMCHIN_CLIPS", "ganba": "GANBA_CLIPS",
+             "ganzo": "GANZO_CLIPS", "naraa": "NARAA_CLIPS"}
 
 
 def digest(path):
@@ -26,10 +27,10 @@ def digest(path):
 
 
 def clips():
-    script = (ROOT / "game/shelter.rpy").read_text(encoding="utf-8-sig")
-    script += (ROOT / "game/deeremchin.rpy").read_text(encoding="utf-8-sig")
-    script += (ROOT / "game/ganba.rpy").read_text(encoding="utf-8-sig")
-    script += (ROOT / "game/ganzo.rpy").read_text(encoding="utf-8-sig")
+    # Clip tables live in one character file each. Reading all scripts keeps
+    # this audit utility working as new visitors move out of shelter.rpy.
+    script = "\n".join(path.read_text(encoding="utf-8-sig")
+                       for path in sorted((ROOT / "game").glob("*.rpy")))
     for visitor, constant in CONSTANTS.items():
         match = re.search(r"^define " + constant + r" = (\{.*?\})", script, re.M | re.S)
         for clip, (filename, _) in ast.literal_eval(match[1]).items():
@@ -45,6 +46,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--check", action="store_true")
     parser.add_argument("--audit", action="store_true")
+    parser.add_argument("--visitor", choices=CONSTANTS,
+                        help="process one visitor while preserving the rest of the manifest")
     args = parser.parse_args()
     manifest = OUT / "manifest.json"
     previous = json.loads(manifest.read_text()) if manifest.exists() else {}
@@ -87,11 +90,13 @@ def main():
         print(key + (": checked + decoded" if args.audit else ": checked"), flush=True)
         return key, data
 
+    jobs = [job for job in clips() if not args.visitor or job[0] == args.visitor]
     with ThreadPoolExecutor(max_workers=2) as pool:
-        result = dict(pool.map(process, clips()))
+        result = dict(pool.map(process, jobs))
     if not args.check:
-        manifest.write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    elif set(previous) != set(result):
+        previous.update(result)
+        manifest.write_text(json.dumps(previous, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    elif not args.visitor and set(previous) != set(result):
         raise RuntimeError("Transition manifest has missing or obsolete clip entries")
     print("Verified", len(result), "playable clips and", len(result)*2, "transition frames")
 

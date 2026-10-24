@@ -20,8 +20,7 @@ define SHELTER_CIVILIAN_TARGET = 40
 define SHELTER_MAX_CIVILIAN_DEATHS = 2
 define SHELTER_MAX_CIVILIAN_MISTAKES = 2
 # Available roster, also the original sequence for saves predating random order.
-# Naraa is temporarily excluded from new runs; keep her character data and assets intact.
-define SHELTER_VISITOR_ORDER = ("Chinba", "Maral", "Swat", "Bayra", "anu", "deeremchin", "ganba", "ganzo")
+define SHELTER_VISITOR_ORDER = ("Chinba", "Maral", "Swat", "Bayra", "anu", "deeremchin", "ganba", "ganzo", "naraa")
 default shelter_run_order = None
 define SHELTER_CIVILIANS = {"Chinba": True, "Maral": False, "Swat": True, "Bayra": True, "anu": False, "ganba": True, "ganzo": True, "naraa": True}
 # Armor stops the bullet: Orgil leaves alive after being shot.
@@ -152,10 +151,11 @@ init 1 python:
     def shelter_wait_image(clip, visitor=None):
         visitor = visitor or shelter_visitor
         if visitor == "naraa":
-            # Display this still only on the armed choice screen after aiming.
-            if clip == "aim":
-                return "images/naraa/Red Light, Cold Window stand-off.png"
-            return "images/naraa/Nara ok.jpg"
+            # Use only frames decoded from Naraa's movies. The standalone art
+            # differs from the footage and used to flash between every clip.
+            if clip in ("intro", "answer1", "answer2", "answer2_part2", "answer3", "lower"):
+                return shelter_movie_frame(visitor, "answer1", "start")
+            return shelter_movie_frame(visitor, clip, "end")
         if visitor in ("ganba", "ganzo"):
             if clip in ("intro", "answer1", "answer2", "answer3", "lower"):
                 return shelter_movie_frame(visitor, "answer1", "start")
@@ -203,9 +203,6 @@ init 1 python:
         renpy.show("shelter_hold", what=shelter_video_end(shelter_still))
 
     def shelter_movie_frame(visitor, clip, edge):
-        # Naraa was supplied without extracted first/last-frame posters.
-        if visitor == "naraa":
-            return "images/naraa/Nara ok.jpg"
         return "images/transitions/" + visitor + "/" + clip + "-" + edge + ".jpg"
 
     def shelter_movie_start_image(visitor, clip):
