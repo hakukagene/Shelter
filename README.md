@@ -441,7 +441,3 @@ first-answer movie so the player's three recordings alternate with Margad's
 responses. Native and web playback share the same source-time ranges and 22
 transition posters. His dedicated `ChotgorHuuh.webm` now plays in full when
 the player rejects him.
-
-Encounter dialogue has a bottom-right hold-to-skip control on native and web
-builds. It must be held continuously for one second; releasing early resets the
-progress so an accidental tap cannot skip player audio or character video.
