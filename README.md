@@ -222,7 +222,7 @@ The source and generation prompt are documented in `tools/art/anu-notebook.md`.
 
 The campaign counters retain 43 civilians, 30 monsters, a target of 40 rescued
 civilians and at most two civilian mistakes (killing or rejecting). The third
-mistake ends the run. Eight encounters containing nine people are playable;
+mistake ends the run. Nine encounters containing ten people are playable;
 finishing them is a preview ending, not a campaign win.
 
 Between visitors, `game/intermission.rpy` uses the selected guard's ledger artwork
@@ -252,7 +252,7 @@ Playback now holds its decoded last frame at EOF, then uses the matching end
 poster before returning to a stable waiting pose. Conversational clips blend
 back over 0.18 seconds; final actions keep their own last frame until the clock
 or result transition. Maral's rejection/shooting no longer flashes the lockdown
-ending artwork. All 44 encounter clips have individual start/end posters.
+ending artwork. All 86 encounter clips have individual start/end posters.
 The supplied Bayra aim clip's trailing black frame is excluded at 13.11 seconds
 in both native playback and web MP4 conversion; speech has already finished.
 Maral's third-answer caption now follows the updated recording through 7.332s.
@@ -412,7 +412,7 @@ clock and inspection progress, then proceeds to the next visitor. Newer manual
 saves do not replace this destination. A new game keeps the old checkpoint until
 its own twentieth rescue replaces it.
 
-Only five civilians are currently supplied (including the man in the pair), so
+Only seven civilians are currently supplied (including the man in the pair), so
 the current content preview cannot naturally reach twenty. The checkpoint is
 implemented and integration-tested with a nineteen-rescue fixture; production
 does not repeat or fabricate visitors to unlock it.
@@ -429,3 +429,8 @@ come from the actual video frames, with start/end posters for every clip to
 cover decoder handoffs. No carried bag is specified for this character.
 Existing saves with a stored roster keep that roster. Native flow checks are in
 `game/ganzo_tests.rpy` (excluded from release builds).
+
+Naraa is a civilian in the shuffled roster. Her ten supplied clips now use 20
+exact first/last video frames during decoder handoffs. The separate `Nara ok.jpg`
+and stand-off artwork are no longer inserted between clips, preventing the brief
+wrong-frame flash while preserving the supplied footage and sound unchanged.
