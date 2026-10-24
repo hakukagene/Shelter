@@ -22,6 +22,26 @@
   let errored = false;
   let download = null, objectUrl = null;
   let firstFrame = null;
+  let skipHoldTimer = null;
+
+  function cancelSkipHold() {
+    if (skipHoldTimer !== null) clearTimeout(skipHoldTimer);
+    skipHoldTimer = null;
+    skip.classList.remove("holding");
+    skip.textContent = "1 СЕК ДАРЖ АЛГАСАХ";
+  }
+
+  function beginSkipHold(event) {
+    if (!active || api.finished || skipHoldTimer !== null) return;
+    event.preventDefault();
+    skip.setPointerCapture?.(event.pointerId);
+    skip.classList.add("holding");
+    skip.textContent = "АЛГАСАЖ БАЙНА…";
+    skipHoldTimer = setTimeout(() => {
+      skipHoldTimer = null;
+      finish(true);
+    }, 1000);
+  }
 
   function revealVideo(current) {
     if (!active || api.finished || current !== sequence || video.readyState < 2) return;
@@ -179,8 +199,9 @@
     frame = requestAnimationFrame(updateCaption);
   }
 
-  function finish() {
+  function finish(skipped = false) {
     if (!active || api.finished) return;
+    cancelSkipHold();
     api.finished = true;
     download?.abort();
     video.pause();
@@ -188,7 +209,7 @@
     prompt.hidden = true;
     caption.hidden = true;
     // The trimmed clip's end poster also covers a stale cached, untrimmed MP4.
-    if (spec.endTime && endFrame.complete && endFrame.naturalWidth) {
+    if ((skipped || spec.endTime) && spec.endPoster && endFrame.complete && endFrame.naturalWidth) {
       endFrame.hidden = false;
     }
     cancelAnimationFrame(frame);
@@ -206,6 +227,7 @@
       spec = options;
       cueIndex = -2;
       errored = false;
+      cancelSkipHold();
       root.hidden = false;
       endFrame.hidden = true;
       if (options.endPoster) endFrame.src = encodeURI(options.endPoster);
@@ -214,7 +236,7 @@
       caption.hidden = true;
       prompt.hidden = true;
       loading.hidden = false;
-      skip.hidden = !options.intro;
+      skip.hidden = false;
       guide.hidden = options.intro;
       actions.hidden = options.intro;
       actions.replaceChildren();
@@ -259,6 +281,7 @@
     },
     close() {
       const closing = ++sequence;
+      cancelSkipHold();
       active = false;
       guideOpen = guideRequested = false;
       cancelAnimationFrame(frame);
@@ -272,7 +295,12 @@
     },
   };
 
-  skip.addEventListener("click", () => { if (spec?.intro) finish(); });
+  skip.addEventListener("pointerdown", beginSkipHold);
+  skip.addEventListener("pointerup", cancelSkipHold);
+  skip.addEventListener("pointercancel", cancelSkipHold);
+  skip.addEventListener("pointerleave", cancelSkipHold);
+  skip.addEventListener("lostpointercapture", cancelSkipHold);
+  skip.addEventListener("click", event => event.preventDefault());
   guide.addEventListener("click", () => {
     if (!active || api.finished || spec?.intro || guideOpen) return;
     guideWasPaused = video.paused;
