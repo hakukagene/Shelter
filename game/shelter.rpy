@@ -331,7 +331,7 @@ screen shelter_hold_skip(complete_action):
     timer 0.04 repeat True action If(
         hold_active,
         If(
-            hold_progress >= 0.96,
+            hold_progress >= 1.0,
             complete_action,
             SetScreenVariable("hold_progress", hold_progress + 0.04)),
         NullAction())
@@ -376,6 +376,20 @@ screen shelter_hold_skip(complete_action):
                 SetScreenVariable("hold_progress", 0.0)]
 
 
+
+screen shelter_followup_question(caption):
+    modal True
+    use shelter_backdrop
+    use shelter_actions(enabled=False)
+    textbutton caption:
+        style "shelter_button"
+        text_style "shelter_button_text"
+        text_size 27
+        xalign 0.5
+        ypos 670
+        xysize (850, 112)
+        action Return(True)
+    use shelter_hold_skip(Return("skipped"))
 
 screen shelter_playback(clip):
     modal True
@@ -574,7 +588,7 @@ screen shelter_margad_answer1_playback():
             timer 0.03 repeat True action If(
                 video_position is not None and video_position >= 11.525,
                 [Function(renpy.music.set_pause, True, channel="shelter_video"), SetScreenVariable("stage", 1)],
-                NullAction())
+                Function(renpy.restart_interaction))
         elif stage == 2:
             timer 0.03 repeat True action If(
                 stage_elapsed >= 0.3 and not renpy.music.get_playing(channel="shelter_player"),
@@ -584,7 +598,7 @@ screen shelter_margad_answer1_playback():
             timer 0.03 repeat True action If(
                 video_position is not None and video_position >= 16.414,
                 [Function(renpy.music.set_pause, True, channel="shelter_video"), SetScreenVariable("stage", 4)],
-                NullAction())
+                Function(renpy.restart_interaction))
         elif stage == 5:
             timer 0.03 repeat True action If(
                 stage_elapsed >= 0.3 and not renpy.music.get_playing(channel="shelter_player"),
@@ -814,7 +828,9 @@ label shelter_handle_choice:
             # Keep the same scene and do not show the decision buttons between lines.
             call shelter_player_line("question2_part1", NARAA_QUESTION2_PART1)
             call shelter_clip("answer2")
-            call shelter_player_line("question2_part2", NARAA_QUESTION2_PART2)
+            call screen shelter_followup_question(NARAA_QUESTION2_PART2)
+            if _return != "skipped":
+                call shelter_player_line("question2_part2", NARAA_QUESTION2_PART2)
             call shelter_clip("answer2_part2")
         else:
             call shelter_player_line("question%d" % (shelter_choice + 1), shelter_data("questions")[shelter_choice]) from _call_shelter_player_line_2

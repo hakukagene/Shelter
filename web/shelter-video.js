@@ -36,6 +36,7 @@
   }
 
   function beginSkipHold(event) {
+    if (event.button !== undefined && event.button !== 0) return;
     if (!active || api.finished || skipHoldTimer !== null) return;
     event.preventDefault();
     skip.setPointerCapture?.(event.pointerId);
