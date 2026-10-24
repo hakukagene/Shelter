@@ -299,62 +299,6 @@ screen shelter_backdrop():
     add shelter_video_end(shelter_still) xysize (1920, 1080)
 
 
-# Dialogue only skips after a deliberate one-second hold. Releasing or moving
-# away early resets the progress, preventing accidental taps on mobile.
-screen shelter_hold_skip(complete_action):
-    default hold_hovered = False
-    default hold_active = False
-    default hold_progress = 0.0
-
-    timer 0.04 repeat True action If(
-        hold_active,
-        If(
-            hold_progress >= 0.96,
-            complete_action,
-            SetScreenVariable("hold_progress", hold_progress + 0.04)),
-        NullAction())
-
-    button:
-        id "shelter_hold_skip"
-        xalign 0.975
-        yalign 0.965
-        xysize (250, 104)
-        padding (22, 13)
-        background Frame("gui/shelter/idle.png", 16, 16)
-        hover_background Frame("gui/shelter/hover.png", 16, 16)
-        # The button consumes mouse-down events before screen-level `key`
-        # handlers can see them. Use its alternate keysym for press and its
-        # normal action for release, which also maps Android touch correctly.
-        alternate_keysym "mousedown_1"
-        alternate If(hold_hovered, SetScreenVariable("hold_active", True), NullAction())
-        action [
-            SetScreenVariable("hold_active", False),
-            SetScreenVariable("hold_progress", 0.0)]
-        hovered SetScreenVariable("hold_hovered", True)
-        unhovered [
-            SetScreenVariable("hold_hovered", False),
-            SetScreenVariable("hold_active", False),
-            SetScreenVariable("hold_progress", 0.0)]
-
-        fixed:
-            text ("АЛГАСАЖ БАЙНА…" if hold_active else "1 СЕК ДАРЖ АЛГАСАХ"):
-                font SHELTER_BOLD
-                size 22
-                color ("#ffffff" if hold_active else "#e8dfca")
-                xalign 0.5
-                ypos 5
-                text_align 0.5
-                outlines [(1, "#000c", 0, 1)]
-            bar:
-                value StaticValue(hold_progress, 1.0)
-                xalign 0.5
-                yalign 0.86
-                xsize 196
-                ysize 8
-                left_bar Solid("#c8944f")
-                right_bar Solid("#44382f")
-
-
 
 screen shelter_playback(clip):
     modal True
@@ -384,7 +328,6 @@ screen shelter_playback(clip):
     timer 0.03 repeat True action If(renpy.get_screen("shelter_protocol"), NullAction(), If(
         elapsed >= 0.5 and not renpy.music.get_playing(channel="shelter_video"),
         Return(True), SetScreenVariable("elapsed", elapsed + 0.03)))
-    use shelter_hold_skip([Stop("shelter_video"), Return("skipped")])
     use shelter_protocol_button
 
 # Both native and HTML playback land on the same decoded end frame first.
@@ -459,7 +402,6 @@ screen shelter_player_speech(voice_key, caption=None):
     timer 0.03 repeat True action If(renpy.get_screen("shelter_protocol"), NullAction(), If(
         elapsed >= 0.5 and not renpy.music.get_playing(channel="shelter_player"),
         Return(True), SetScreenVariable("elapsed", elapsed + 0.03)))
-    use shelter_hold_skip([Stop("shelter_player"), Return("skipped")])
     use shelter_protocol_button
 
 screen shelter_question_choices():

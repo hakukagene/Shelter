@@ -6,19 +6,11 @@ import vm from "node:vm";
 class Element {
   constructor() {
     this.hidden = true;
-    this.style = { setProperty(name, value) { this[name] = value; } };
+    this.style = {};
     this.dataset = {};
     this.listeners = {};
     this.children = [];
-    this.classes = new Set();
-    this.classList = {
-      toggle: (name, force) => {
-        if (force === undefined) return this.classes.has(name) ? this.classes.delete(name) : this.classes.add(name);
-        return force ? this.classes.add(name) : this.classes.delete(name);
-      },
-      add: name => this.classes.add(name),
-      remove: name => this.classes.delete(name),
-    };
+    this.classList = { toggle() {} };
     this.currentTime = 0;
     this.complete = true;
     this.naturalWidth = 1920;
@@ -52,8 +44,6 @@ const element = name => {
 };
 let serial = 0;
 const frames = new Map();
-let timerSerial = 0;
-const timers = new Map();
 const nextFrame = () => {
   const pending = [...frames.values()]; frames.clear();
   pending.forEach(fn => fn());
@@ -63,8 +53,6 @@ const context = {
   document: { getElementById: element, createElement: () => new Element(), addEventListener() {} },
   requestAnimationFrame(fn) { frames.set(++serial, fn); return serial; },
   cancelAnimationFrame(id) { frames.delete(id); },
-  setTimeout(fn) { timers.set(++timerSerial, fn); return timerSerial; },
-  clearTimeout(id) { timers.delete(id); },
   AbortController, URL, Blob, encodeURI,
   fetch: async () => ({ ok: true, blob: async () => new Blob(["test"]) }),
 };
@@ -204,20 +192,13 @@ assert.match(css, /#story-video\{[^}]*background:transparent/);
 console.log("PASS: encounter overlay backgrounds cannot cover the canvas in black.");
 
 api.start({ ...options, intro: true }); await flush();
-const pointer = { pointerId: 1, preventDefault() {} };
-element("video-skip").listeners.pointerdown(pointer);
-assert.equal(api.finished, false, "A short press must not skip");
-element("video-skip").listeners.pointerup(pointer);
-assert.equal(api.finished, false, "Releasing early cancels the hold");
-element("video-skip").listeners.pointerdown(pointer);
-[...timers.values()][0](); timers.clear();
+element("video-skip").listeners.click();
 assert.equal(api.finished, true);
-assert.equal(element("video-end-frame").hidden, false, "A held skip lands on the exact end poster");
 api.close();
 api.start(options); await flush(); nextFrame(); nextFrame();
 assert.equal(root.hidden, false);
 assert.equal(api.finished, false);
-console.log("PASS: skip requires a full hold and cannot hide the next encounter.");
+console.log("PASS: skipping the intro cannot hide the first encounter.");
 api.close(); nextFrame(); nextFrame();
 
 api.start({ ...options, armed: true,
