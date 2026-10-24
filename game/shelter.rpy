@@ -320,13 +320,14 @@ screen shelter_hold_skip(complete_action):
 
     # MouseArea does not consume the press like Button does, so raw left-click
     # down/up events reliably reach these handlers on desktop and touch builds.
-    key "mousedown_1" action If(
-        hold_hovered,
-        SetScreenVariable("hold_active", True),
-        NullAction())
-    key "mouseup_1" action [
-        SetScreenVariable("hold_active", False),
-        SetScreenVariable("hold_progress", 0.0)]
+    # A key displayable consumes matching events even with NullAction.
+    # Register raw mouse handlers only over Skip or during its active hold,
+    # otherwise they swallow the release needed by conversation buttons.
+    if hold_hovered or hold_active:
+        key "mousedown_1" action SetScreenVariable("hold_active", True)
+        key "mouseup_1" action [
+            SetScreenVariable("hold_active", False),
+            SetScreenVariable("hold_progress", 0.0)]
 
     timer 0.04 repeat True action If(
         hold_active,
