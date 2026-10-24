@@ -435,10 +435,13 @@ exact first/last video frames during decoder handoffs. The separate `Nara ok.jpg
 and stand-off artwork are no longer inserted between clips, preventing the brief
 wrong-frame flash while preserving the supplied footage and sound unchanged.
 
-Margad, 18, is the third monster in the author DOCX. His eight supplied WebMs
+Margad, 18, is the third monster in the author DOCX. His nine supplied WebMs
 are connected as eleven logical clips, including three exact ranges from the
 first-answer movie so the player's three recordings alternate with Margad's
 responses. Native and web playback share the same source-time ranges and 22
-transition posters. The supplied set has no rejection movie, so that outcome
-uses only the silent final 0.955 seconds of the intro instead of replaying
-unrelated dialogue.
+transition posters. His dedicated `ChotgorHuuh.webm` now plays in full when
+the player rejects him.
+
+Encounter dialogue has a bottom-right hold-to-skip control on native and web
+builds. It must be held continuously for one second; releasing early resets the
+progress so an accidental tap cannot skip player audio or character video.

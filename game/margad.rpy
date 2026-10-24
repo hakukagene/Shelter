@@ -9,9 +9,7 @@ define MARGAD_CLIPS = {
     "aim": ("Chotgor Buu tulgah.webm", 4.288),
     "lower": ("Chotgor buugaa bolih.webm", 3.048),
     "shoot": ("Chotgor buuduulah.webm", 7.048),
-    # No dedicated rejection movie was supplied. Reuse only the silent tail of
-    # the intro so the choice remains playable without mismatched dialogue.
-    "reject": ("Chotgor ehlel.webm", 0.955),
+    "reject": ("ChotgorHuuh.webm", 5.046),
     "admit": ("Chotgor oruulah.webm", 6.408),
 }
 
