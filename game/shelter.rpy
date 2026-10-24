@@ -427,6 +427,9 @@ screen shelter_actions(enabled=True, armed=False):
             button:
                 xysize (180, 180)
                 padding (0, 0)
+                # Dim the complete action (icon and caption) while playback
+                # keeps it visible but unavailable.
+                at Transform(alpha=(1.0 if enabled else 0.5))
                 background Transform("gui/shelter/actions/" + icon + ".png", xysize=(180, 180))
                 hover_background Transform("gui/shelter/actions/" + icon + ".png", xysize=(180, 180), matrixcolor=BrightnessMatrix(0.14))
                 insensitive_background Transform("gui/shelter/actions/" + icon + ".png", xysize=(180, 180), matrixcolor=SaturationMatrix(0.0) * BrightnessMatrix(-0.22))
