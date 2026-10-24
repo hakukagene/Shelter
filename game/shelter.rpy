@@ -347,16 +347,16 @@ screen shelter_hold_skip(complete_action):
             xysize=(180, 180),
             matrixcolor=(BrightnessMatrix(0.14) if hold_hovered else IdentityMatrix()))
 
-        # Twenty-five pieces match the 0.04-second timer. They trace the
-        # circumference clockwise and complete after one continuous second.
+        # The dark track remains visible at rest. Twenty-five bright pieces
+        # then replace it clockwise, matching the 0.04-second hold timer.
         for segment in range(25):
             $ segment_angle = -90.0 + segment * 14.4
-            if hold_progress >= float(segment + 1) / 25.0:
-                add Solid("#ffe13b"):
-                    xysize (5, 13)
-                    xpos int(90 + math.cos(math.radians(segment_angle)) * 76 - 2.5)
-                    ypos int(90 + math.sin(math.radians(segment_angle)) * 76 - 6.5)
-                    at Transform(rotate=segment_angle + 90.0)
+            $ segment_filled = hold_progress >= float(segment + 1) / 25.0
+            add Solid("#ffe13b" if segment_filled else "#514c3f"):
+                xysize (5, 13)
+                xpos int(90 + math.cos(math.radians(segment_angle)) * 76 - 2.5)
+                ypos int(90 + math.sin(math.radians(segment_angle)) * 76 - 6.5)
+                at Transform(rotate=segment_angle + 90.0)
 
         text ("АЛГАСАХ" if hold_active else "1 СЕК ДАР"):
             font SHELTER_BOLD
