@@ -35,6 +35,13 @@ testsuite shelter_margad_checks:
         click expression MARGAD_QUESTIONS[0]
         pause until screen "shelter_player_speech" timeout 3
         assert eval (renpy.music.get_playing(channel="shelter_player") == "audio/margad/margad asuult1 1heseg.wav")
+        pause until screen "shelter_margad_answer1_playback" timeout 8
+        pause until eval (renpy.get_screen("shelter_margad_answer1_playback").scope["stage"] == 1) timeout 20
+        assert eval (renpy.music.get_pause(channel="shelter_video"))
+        click expression MARGAD_QUESTION1_PART2
+        assert eval (renpy.music.get_pause(channel="shelter_video"))
+        pause until eval (renpy.get_screen("shelter_margad_answer1_playback").scope["stage"] == 4) timeout 12
+        click expression MARGAD_QUESTION1_PART3
         pause until screen "shelter_decision" timeout 45
         assert eval (shelter_asked == [0] and shelter_still == "answer1_part3")
         click "Буу онилох"

@@ -253,6 +253,16 @@ init 1 python:
         for key, data in encounter["clips"].items()
     }
 
+    # Margad's first response stays on one decoder. The conversation screen
+    # pauses this movie for the player's two follow-up question buttons, then
+    # resumes the same stream instead of swapping to a still frame.
+    shelter_margad_answer1_movie = Movie(
+        play="<to 22.040>Video/margad/Chotgor hariult 1.webm",
+        channel="shelter_video", loop=False, size=(1920, 1080),
+        start_image=Transform(shelter_movie_frame("margad", "answer1", "start"), xysize=(1920, 1080)),
+        image=Transform(shelter_movie_frame("margad", "answer1_part3", "end"), xysize=(1920, 1080)),
+        keep_last_frame=True)
+
 
     def shelter_movie_for(visitor, clip):
         # A saved/older movie cache can predate newly registered visitors.
@@ -299,6 +309,62 @@ screen shelter_backdrop():
     add shelter_video_end(shelter_still) xysize (1920, 1080)
 
 
+# Dialogue only skips after a deliberate one-second hold. Releasing or moving
+# away early resets the progress, preventing accidental taps on mobile.
+screen shelter_hold_skip(complete_action):
+    default hold_hovered = False
+    default hold_active = False
+    default hold_progress = 0.0
+
+    # MouseArea does not consume the press like Button does, so raw left-click
+    # down/up events reliably reach these handlers on desktop and touch builds.
+    key "mousedown_1" action If(
+        hold_hovered,
+        SetScreenVariable("hold_active", True),
+        NullAction())
+    key "mouseup_1" action [
+        SetScreenVariable("hold_active", False),
+        SetScreenVariable("hold_progress", 0.0)]
+
+    timer 0.04 repeat True action If(
+        hold_active,
+        If(
+            hold_progress >= 0.96,
+            complete_action,
+            SetScreenVariable("hold_progress", hold_progress + 0.04)),
+        NullAction())
+
+    fixed:
+        id "shelter_hold_skip"
+        xalign 0.975
+        yalign 0.965
+        xysize (250, 104)
+        add Frame("gui/shelter/hover.png" if hold_hovered else "gui/shelter/idle.png", 16, 16) xysize (250, 104)
+        text ("АЛГАСАЖ БАЙНА…" if hold_active else "1 СЕК ДАРЖ АЛГАСАХ"):
+            font SHELTER_BOLD
+            size 22
+            color ("#ffffff" if hold_active else "#e8dfca")
+            xalign 0.5
+            ypos 18
+            text_align 0.5
+            outlines [(1, "#000c", 0, 1)]
+        bar:
+            value StaticValue(hold_progress, 1.0)
+            xalign 0.5
+            yalign 0.86
+            xsize 196
+            ysize 8
+            left_bar Solid("#c8944f")
+            right_bar Solid("#44382f")
+        mousearea:
+            area (0, 0, 250, 104)
+            hovered SetScreenVariable("hold_hovered", True)
+            unhovered [
+                SetScreenVariable("hold_hovered", False),
+                SetScreenVariable("hold_active", False),
+                SetScreenVariable("hold_progress", 0.0)]
+
+
 
 screen shelter_playback(clip):
     modal True
@@ -328,6 +394,7 @@ screen shelter_playback(clip):
     timer 0.03 repeat True action If(renpy.get_screen("shelter_protocol"), NullAction(), If(
         elapsed >= 0.5 and not renpy.music.get_playing(channel="shelter_video"),
         Return(True), SetScreenVariable("elapsed", elapsed + 0.03)))
+    use shelter_hold_skip([Stop("shelter_video"), Return("skipped")])
     use shelter_protocol_button
 
 # Both native and HTML playback land on the same decoded end frame first.
@@ -402,6 +469,124 @@ screen shelter_player_speech(voice_key, caption=None):
     timer 0.03 repeat True action If(renpy.get_screen("shelter_protocol"), NullAction(), If(
         elapsed >= 0.5 and not renpy.music.get_playing(channel="shelter_player"),
         Return(True), SetScreenVariable("elapsed", elapsed + 0.03)))
+    use shelter_hold_skip([Stop("shelter_player"), Return("skipped")])
+    use shelter_protocol_button
+
+# One continuous Margad response movie with two interactive pause points.
+screen shelter_margad_answer1_playback():
+    modal True
+    default stage = 0
+    default stage_elapsed = 0.0
+
+    add shelter_movie_frame("margad", "answer1", "start") xysize (1920, 1080)
+    add shelter_margad_answer1_movie xysize (1920, 1080)
+    use shelter_actions(enabled=False)
+
+    key "dismiss" action NullAction()
+    key "skip" action NullAction()
+    key "toggle_skip" action NullAction()
+    key "rollback" action NullAction()
+    on "hide" action [Stop("shelter_player"), Function(renpy.music.set_pause, False, channel="shelter_video")]
+
+    $ video_position = renpy.music.get_pos(channel="shelter_video")
+    $ player_position = renpy.music.get_pos(channel="shelter_player")
+
+    if stage == 0 and video_position is not None and 1.073 <= video_position < 11.525:
+        frame:
+            background Solid("#080707dd")
+            xalign 0.5
+            ypos 710
+            xsize 1344
+            padding (35, 22)
+            text MARGAD_LINES["answer1"] style "shelter_text" text_align 0.5 xalign 0.5
+    elif stage == 3 and video_position is not None and 13.140 <= video_position < 16.414:
+        frame:
+            background Solid("#080707dd")
+            xalign 0.5
+            ypos 710
+            xsize 1344
+            padding (35, 22)
+            text MARGAD_LINES["answer1_part2"] style "shelter_text" text_align 0.5 xalign 0.5
+    elif stage == 6 and video_position is not None and 17.740 <= video_position < 22.040:
+        frame:
+            background Solid("#080707dd")
+            xalign 0.5
+            ypos 710
+            xsize 1344
+            padding (35, 22)
+            text MARGAD_LINES["answer1_part3"] style "shelter_text" text_align 0.5 xalign 0.5
+
+    if stage == 1:
+        textbutton MARGAD_QUESTION1_PART2:
+            style "shelter_button"
+            text_style "shelter_button_text"
+            text_size 27
+            text_text_align 0.5
+            xalign 0.5
+            ypos 670
+            xysize (850, 112)
+            action [
+                Play("shelter_player", MARGAD_SUPPLIED_PLAYER_VOICES["question1_part2"][0]),
+                SetScreenVariable("stage_elapsed", 0.0),
+                SetScreenVariable("stage", 2)]
+    elif stage == 4:
+        textbutton MARGAD_QUESTION1_PART3:
+            style "shelter_button"
+            text_style "shelter_button_text"
+            text_size 27
+            text_text_align 0.5
+            xalign 0.5
+            ypos 670
+            xysize (850, 112)
+            action [
+                Play("shelter_player", MARGAD_SUPPLIED_PLAYER_VOICES["question1_part3"][0]),
+                SetScreenVariable("stage_elapsed", 0.0),
+                SetScreenVariable("stage", 5)]
+    elif stage in (2, 5):
+        $ voice_key = "question1_part2" if stage == 2 else "question1_part3"
+        $ voice_cue = MARGAD_SUPPLIED_PLAYER_VOICES[voice_key]
+        $ voice_caption = MARGAD_QUESTION1_PART2 if stage == 2 else MARGAD_QUESTION1_PART3
+        if player_position is not None and voice_cue[1] <= player_position < voice_cue[2]:
+            frame:
+                background Solid("#080707dd")
+                xalign 0.5
+                ypos 710
+                xsize 1344
+                padding (35, 22)
+                text voice_caption style "shelter_text" text_align 0.5 xalign 0.5
+
+    if not renpy.get_screen("shelter_protocol"):
+        if stage == 0:
+            timer 0.03 repeat True action If(
+                video_position is not None and video_position >= 11.525,
+                [Function(renpy.music.set_pause, True, channel="shelter_video"), SetScreenVariable("stage", 1)],
+                NullAction())
+        elif stage == 2:
+            timer 0.03 repeat True action If(
+                stage_elapsed >= 0.3 and not renpy.music.get_playing(channel="shelter_player"),
+                [Function(renpy.music.set_pause, False, channel="shelter_video"), SetScreenVariable("stage_elapsed", 0.0), SetScreenVariable("stage", 3)],
+                SetScreenVariable("stage_elapsed", stage_elapsed + 0.03))
+        elif stage == 3:
+            timer 0.03 repeat True action If(
+                video_position is not None and video_position >= 16.414,
+                [Function(renpy.music.set_pause, True, channel="shelter_video"), SetScreenVariable("stage", 4)],
+                NullAction())
+        elif stage == 5:
+            timer 0.03 repeat True action If(
+                stage_elapsed >= 0.3 and not renpy.music.get_playing(channel="shelter_player"),
+                [Function(renpy.music.set_pause, False, channel="shelter_video"), SetScreenVariable("stage_elapsed", 0.0), SetScreenVariable("stage", 6)],
+                SetScreenVariable("stage_elapsed", stage_elapsed + 0.03))
+        elif stage == 6:
+            timer 0.03 repeat True action If(
+                stage_elapsed >= 0.5 and not renpy.music.get_playing(channel="shelter_video"),
+                Return(True),
+                SetScreenVariable("stage_elapsed", stage_elapsed + 0.03))
+
+    use shelter_hold_skip([
+        Stop("shelter_player"),
+        Function(renpy.music.set_pause, False, channel="shelter_video"),
+        Stop("shelter_video"),
+        Return("skipped")])
     use shelter_protocol_button
 
 screen shelter_question_choices():
@@ -535,6 +720,32 @@ label shelter_clip(clip):
     scene expression shelter_video_end(clip) as shelter_hold
     return
 
+label shelter_margad_answer1_conversation:
+    window hide None
+    $ _skipping = False
+    scene expression Transform(shelter_movie_frame("margad", "answer1", "start"), xysize=(1920, 1080)) as shelter_hold
+    with Dissolve(0.16)
+    if renpy.emscripten:
+        $ shelter_web_begin(
+            "Video/margad/Chotgor hariult 1.webm",
+            ((1.073, 11.525, "", MARGAD_LINES["answer1"]),
+             (13.140, 16.414, "", MARGAD_LINES["answer1_part2"]),
+             (17.740, 22.040, "", MARGAD_LINES["answer1_part3"])),
+            poster=shelter_movie_frame("margad", "answer1", "start"),
+            end_time=22.040,
+            end_poster=shelter_movie_frame("margad", "answer1_part3", "end"),
+            interjections=(
+                (11.525, MARGAD_QUESTION1_PART2, MARGAD_SUPPLIED_PLAYER_VOICES["question1_part2"]),
+                (16.414, MARGAD_QUESTION1_PART3, MARGAD_SUPPLIED_PLAYER_VOICES["question1_part3"])))
+        call screen shelter_web_wait
+    else:
+        call screen shelter_margad_answer1_playback
+    $ shelter_still = "answer1_part3"
+    scene expression Transform(shelter_movie_frame("margad", "answer1_part3", "end"), xysize=(1920, 1080)) as shelter_hold
+    call screen shelter_clip_handoff("answer1_part3")
+    scene expression shelter_video_end("answer1_part3") as shelter_hold
+    return
+
 label shelter_encounter:
     play music "<volume 0.18>audio/Audio/shuum.mp3" fadeout 0.6 fadein 1.0
     $ quick_menu = False
@@ -580,14 +791,10 @@ label shelter_handle_choice:
             jump shelter_decision_phase
         $ shelter_asked.append(shelter_choice)
         if shelter_visitor == "margad" and shelter_choice == 0:
-            # Margad's first answer alternates three player lines with three
-            # portions of one supplied response movie.
+            # The first line starts one continuous response movie. Its two
+            # follow-up questions are buttons shown while that movie is paused.
             call shelter_player_line("question1", MARGAD_QUESTION1_PART1)
-            call shelter_clip("answer1")
-            call shelter_player_line("question1_part2", MARGAD_QUESTION1_PART2)
-            call shelter_clip("answer1_part2")
-            call shelter_player_line("question1_part3", MARGAD_QUESTION1_PART3)
-            call shelter_clip("answer1_part3")
+            call shelter_margad_answer1_conversation
         elif shelter_visitor == "naraa" and shelter_choice == 1:
             # Naraa's second question is a four-part conversation.
             # Keep the same scene and do not show the decision buttons between lines.

@@ -6,11 +6,19 @@ import vm from "node:vm";
 class Element {
   constructor() {
     this.hidden = true;
-    this.style = {};
+    this.style = { setProperty(name, value) { this[name] = value; } };
     this.dataset = {};
     this.listeners = {};
     this.children = [];
-    this.classList = { toggle() {} };
+    this.classes = new Set();
+    this.classList = {
+      toggle: (name, force) => {
+        if (force === undefined) return this.classes.has(name) ? this.classes.delete(name) : this.classes.add(name);
+        return force ? this.classes.add(name) : this.classes.delete(name);
+      },
+      add: name => this.classes.add(name),
+      remove: name => this.classes.delete(name),
+    };
     this.currentTime = 0;
     this.complete = true;
     this.naturalWidth = 1920;
@@ -44,6 +52,8 @@ const element = name => {
 };
 let serial = 0;
 const frames = new Map();
+let timerSerial = 0;
+const timers = new Map();
 const nextFrame = () => {
   const pending = [...frames.values()]; frames.clear();
   pending.forEach(fn => fn());
@@ -53,6 +63,8 @@ const context = {
   document: { getElementById: element, createElement: () => new Element(), addEventListener() {} },
   requestAnimationFrame(fn) { frames.set(++serial, fn); return serial; },
   cancelAnimationFrame(id) { frames.delete(id); },
+  setTimeout(fn) { timers.set(++timerSerial, fn); return timerSerial; },
+  clearTimeout(id) { timers.delete(id); },
   AbortController, URL, Blob, encodeURI,
   fetch: async () => ({ ok: true, blob: async () => new Blob(["test"]) }),
 };
@@ -192,13 +204,20 @@ assert.match(css, /#story-video\{[^}]*background:transparent/);
 console.log("PASS: encounter overlay backgrounds cannot cover the canvas in black.");
 
 api.start({ ...options, intro: true }); await flush();
-element("video-skip").listeners.click();
+const pointer = { pointerId: 1, preventDefault() {} };
+element("video-skip").listeners.pointerdown(pointer);
+assert.equal(api.finished, false, "A short press must not skip");
+element("video-skip").listeners.pointerup(pointer);
+assert.equal(api.finished, false, "Releasing early cancels the hold");
+element("video-skip").listeners.pointerdown(pointer);
+[...timers.values()][0](); timers.clear();
 assert.equal(api.finished, true);
+assert.equal(element("video-end-frame").hidden, false, "A held skip lands on the exact end poster");
 api.close();
 api.start(options); await flush(); nextFrame(); nextFrame();
 assert.equal(root.hidden, false);
 assert.equal(api.finished, false);
-console.log("PASS: skipping the intro cannot hide the first encounter.");
+console.log("PASS: skip requires a full hold and cannot hide the next encounter.");
 api.close(); nextFrame(); nextFrame();
 
 api.start({ ...options, armed: true,
@@ -208,3 +227,30 @@ assert.deepEqual(element("video-actions").children.map(item => item.children[1].
   ["Эрэгтэйг буудах", "Эмэгтэйг буудах"]);
 api.close(); nextFrame(); nextFrame();
 console.log("PASS: two-person encounter keeps the correct target labels during web playback.");
+
+const margadInterjections = [
+  { pauseAt: 11.525, text: "Наадах чинь баг юм бол яагаад ам нь хөдлөөд байгаа юм.",
+    audio: "game/audio/margad/part2.wav", cueStart: 0.1, cueEnd: 2.6 },
+  { pauseAt: 16.414, text: "Ийм тэнэг түүхэнд чинь итгэнэ гэж бодоо юу?",
+    audio: "game/audio/margad/part3.wav", cueStart: 0.1, cueEnd: 2.1 },
+];
+const playerVoice = element("video-player-voice");
+const interjection = element("video-interjection");
+api.start({ ...options, cues: [], interjections: margadInterjections }); await flush();
+video.currentTime = 11.53; nextFrame();
+assert.equal(video.paused, true, "Margad's movie pauses on the same decoder");
+assert.equal(interjection.hidden, false);
+assert.equal(interjection.textContent, margadInterjections[0].text);
+interjection.listeners.click(); await flush();
+assert.equal(interjection.hidden, true);
+assert.equal(playerVoice.paused, false, "The selected player line plays over the paused movie");
+playerVoice.listeners.ended(); await flush();
+assert.equal(video.paused, false, "The same movie resumes after the player line");
+video.currentTime = 16.42; nextFrame();
+assert.equal(video.paused, true);
+assert.equal(interjection.textContent, margadInterjections[1].text);
+interjection.listeners.click(); await flush();
+playerVoice.listeners.ended(); await flush();
+assert.equal(video.paused, false);
+api.close(); nextFrame(); nextFrame();
+console.log("PASS: Margad follow-up buttons pause and resume one continuous movie.");

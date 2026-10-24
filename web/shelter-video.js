@@ -8,6 +8,8 @@
   const caption = document.getElementById("video-caption");
   const speaker = document.getElementById("caption-speaker");
   const words = document.getElementById("caption-words");
+  const interjection = document.getElementById("video-interjection");
+  const playerVoice = document.getElementById("video-player-voice");
   const skip = document.getElementById("video-skip");
   const pause = document.getElementById("video-pause");
   const mute = document.getElementById("video-mute");
@@ -22,6 +24,27 @@
   let errored = false;
   let download = null, objectUrl = null;
   let firstFrame = null;
+  let skipHoldTimer = null;
+  let interjectionIndex = 0, interjectionActive = false;
+
+  function cancelSkipHold() {
+    if (skipHoldTimer !== null) clearTimeout(skipHoldTimer);
+    skipHoldTimer = null;
+    skip.classList.remove("holding");
+    skip.textContent = "1 СЕК ДАРЖ АЛГАСАХ";
+  }
+
+  function beginSkipHold(event) {
+    if (!active || api.finished || skipHoldTimer !== null) return;
+    event.preventDefault();
+    skip.setPointerCapture?.(event.pointerId);
+    skip.classList.add("holding");
+    skip.textContent = "АЛГАСАЖ БАЙНА…";
+    skipHoldTimer = setTimeout(() => {
+      skipHoldTimer = null;
+      finish(true);
+    }, 1000);
+  }
 
   function revealVideo(current) {
     if (!active || api.finished || current !== sequence || video.readyState < 2) return;
@@ -51,6 +74,38 @@
     requestAnimationFrame(() => requestAnimationFrame(() => revealVideo(current)));
   }
 
+  function stopPlayerVoice() {
+    playerVoice.pause();
+    playerVoice.removeAttribute("src");
+    playerVoice.load();
+  }
+
+  function showInterjection(item) {
+    interjectionActive = true;
+    video.pause();
+    pause.disabled = true;
+    caption.hidden = true;
+    cueIndex = -2;
+    interjection.textContent = item.text;
+    interjection.hidden = false;
+  }
+
+  async function playInterjection() {
+    if (!interjectionActive || api.finished) return;
+    const item = (spec.interjections || [])[interjectionIndex];
+    if (!item) return;
+    interjection.hidden = true;
+    playerVoice.src = encodeURI(item.audio);
+    playerVoice.currentTime = 0;
+    playerVoice.volume = video.volume;
+    playerVoice.muted = video.muted;
+    try {
+      await playerVoice.play();
+    } catch (error) {
+      interjection.hidden = false;
+    }
+  }
+
   function releaseVideo() {
     video.style.opacity = "0";
     if (firstFrame !== null) video.cancelVideoFrameCallback?.(firstFrame);
@@ -60,6 +115,9 @@
     video.pause();
     video.removeAttribute("src");
     video.load();
+    stopPlayerVoice();
+    interjection.hidden = true;
+    interjectionActive = false;
     if (objectUrl) URL.revokeObjectURL(objectUrl);
     objectUrl = null;
   }
@@ -153,6 +211,25 @@
     if (!active || api.finished) return;
     if (guideOpen) { frame = requestAnimationFrame(updateCaption); return; }
     const time = video.currentTime;
+    const nextInterjection = (spec.interjections || [])[interjectionIndex];
+    if (!interjectionActive && nextInterjection && time >= nextInterjection.pauseAt) {
+      showInterjection(nextInterjection);
+      frame = requestAnimationFrame(updateCaption);
+      return;
+    }
+    if (interjectionActive) {
+      const voiceTime = playerVoice.currentTime;
+      const speaking = interjection.hidden && !playerVoice.paused &&
+        nextInterjection && nextInterjection.cueStart <= voiceTime && voiceTime < nextInterjection.cueEnd;
+      caption.hidden = !speaking;
+      if (speaking) {
+        speaker.textContent = "";
+        words.textContent = nextInterjection.text;
+        words.style.fontSize = "";
+      }
+      frame = requestAnimationFrame(updateCaption);
+      return;
+    }
     if (spec.endTime && time >= spec.endTime) {
       finish();
       return;
@@ -179,16 +256,20 @@
     frame = requestAnimationFrame(updateCaption);
   }
 
-  function finish() {
+  function finish(skipped = false) {
     if (!active || api.finished) return;
+    cancelSkipHold();
     api.finished = true;
     download?.abort();
     video.pause();
+    stopPlayerVoice();
+    interjection.hidden = true;
+    interjectionActive = false;
     loading.hidden = true;
     prompt.hidden = true;
     caption.hidden = true;
     // The trimmed clip's end poster also covers a stale cached, untrimmed MP4.
-    if (spec.endTime && endFrame.complete && endFrame.naturalWidth) {
+    if ((skipped || spec.endTime) && spec.endPoster && endFrame.complete && endFrame.naturalWidth) {
       endFrame.hidden = false;
     }
     cancelAnimationFrame(frame);
@@ -205,16 +286,20 @@
       api.finished = false;
       spec = options;
       cueIndex = -2;
+      interjectionIndex = 0;
+      interjectionActive = false;
       errored = false;
+      cancelSkipHold();
       root.hidden = false;
       endFrame.hidden = true;
       if (options.endPoster) endFrame.src = encodeURI(options.endPoster);
       else endFrame.removeAttribute("src");
       root.classList.toggle("intro", options.intro);
       caption.hidden = true;
+      interjection.hidden = true;
       prompt.hidden = true;
       loading.hidden = false;
-      skip.hidden = !options.intro;
+      skip.hidden = false;
       guide.hidden = options.intro;
       actions.hidden = options.intro;
       actions.replaceChildren();
@@ -259,6 +344,7 @@
     },
     close() {
       const closing = ++sequence;
+      cancelSkipHold();
       active = false;
       guideOpen = guideRequested = false;
       cancelAnimationFrame(frame);
@@ -272,7 +358,13 @@
     },
   };
 
-  skip.addEventListener("click", () => { if (spec?.intro) finish(); });
+  skip.addEventListener("pointerdown", beginSkipHold);
+  skip.addEventListener("pointerup", cancelSkipHold);
+  skip.addEventListener("pointercancel", cancelSkipHold);
+  skip.addEventListener("pointerleave", cancelSkipHold);
+  skip.addEventListener("lostpointercapture", cancelSkipHold);
+  skip.addEventListener("click", event => event.preventDefault());
+  interjection.addEventListener("click", playInterjection);
   guide.addEventListener("click", () => {
     if (!active || api.finished || spec?.intro || guideOpen) return;
     guideWasPaused = video.paused;
@@ -282,6 +374,7 @@
   });
   resume.addEventListener("click", play);
   pause.addEventListener("click", () => {
+    if (interjectionActive) return;
     if (video.paused) play();
     else {
       video.pause();
@@ -290,10 +383,19 @@
   });
   mute.addEventListener("click", () => {
     video.muted = !video.muted;
+    playerVoice.muted = video.muted;
     mute.textContent = video.muted ? "Дуугүй" : "Дуутай";
     mute.setAttribute("aria-pressed", String(video.muted));
   });
-  video.addEventListener("ended", finish);
+  video.addEventListener("ended", () => finish(false));
+  playerVoice.addEventListener("ended", () => {
+    if (!active || api.finished || !interjectionActive) return;
+    caption.hidden = true;
+    interjectionIndex++;
+    interjectionActive = false;
+    pause.disabled = false;
+    play();
+  });
   video.addEventListener("loadeddata", revealLegacyVideo);
   video.addEventListener("playing", () => {
     if (!active || api.finished) return;

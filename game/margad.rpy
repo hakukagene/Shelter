@@ -14,13 +14,13 @@ define MARGAD_CLIPS = {
 }
 
 define MARGAD_QUESTIONS = [
-    "Чи cosplayer юм бол яагаад багаа тайлахгүй байгаа юм бэ?",
+    "Чи Cosplayer юм бол яагаад багаа тайлахгүй байгаа юм бэ?",
     "Чи тэгээд ямар киноны юу гэдэг дүрийн өмсгөл өмссөн юм бэ?",
     "Наад цус чинь жинхэнэ үү?",
 ]
 
-define MARGAD_QUESTION1_PART1 = "Чи cosplayer юм бол яагаад багаа тайлахгүй байгаа юм бэ?"
-define MARGAD_QUESTION1_PART2 = "Наадах чинь баг юм бол яагаад ам нь хөдлөөд байгаа юм?"
+define MARGAD_QUESTION1_PART1 = "Чи Cosplayer юм бол яагаад багаа тайлахгүй байгаа юм бэ?"
+define MARGAD_QUESTION1_PART2 = "Наадах чинь баг юм бол яагаад ам нь хөдлөөд байгаа юм."
 define MARGAD_QUESTION1_PART3 = "Ийм тэнэг түүхэнд чинь итгэнэ гэж бодоо юу?"
 
 define MARGAD_LINES = {
