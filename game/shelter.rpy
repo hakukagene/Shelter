@@ -306,14 +306,6 @@ screen shelter_hold_skip(complete_action):
     default hold_active = False
     default hold_progress = 0.0
 
-    key "mousedown_1" action If(
-        hold_hovered,
-        SetScreenVariable("hold_active", True),
-        NullAction())
-    key "mouseup_1" action [
-        SetScreenVariable("hold_active", False),
-        SetScreenVariable("hold_progress", 0.0)]
-
     timer 0.04 repeat True action If(
         hold_active,
         If(
@@ -330,7 +322,14 @@ screen shelter_hold_skip(complete_action):
         padding (22, 13)
         background Frame("gui/shelter/idle.png", 16, 16)
         hover_background Frame("gui/shelter/hover.png", 16, 16)
-        action NullAction()
+        # The button consumes mouse-down events before screen-level `key`
+        # handlers can see them. Use its alternate keysym for press and its
+        # normal action for release, which also maps Android touch correctly.
+        alternate_keysym "mousedown_1"
+        alternate If(hold_hovered, SetScreenVariable("hold_active", True), NullAction())
+        action [
+            SetScreenVariable("hold_active", False),
+            SetScreenVariable("hold_progress", 0.0)]
         hovered SetScreenVariable("hold_hovered", True)
         unhovered [
             SetScreenVariable("hold_hovered", False),
