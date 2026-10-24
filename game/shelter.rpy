@@ -47,6 +47,14 @@ define SHELTER_CLOCK_START = 23 * 60 + 10
 init 1 python:
     import math
 
+    class ShelterSkipMouseArea(renpy.display.behavior.MouseArea):
+        """Do not treat modal timer events as a pointer leaving Skip."""
+        def event(self, ev, x, y, st):
+            import pygame
+            if ev.type not in (pygame.MOUSEMOTION, pygame.MOUSEBUTTONDOWN, pygame.MOUSEBUTTONUP):
+                return None
+            return super(ShelterSkipMouseArea, self).event(ev, x, y, st)
+
     renpy.music.register_channel("shelter_knock", mixer="sfx", loop=False, stop_on_mute=False)
     SHELTER_VISITORS = {
         "margad": {"clips": MARGAD_CLIPS, "questions": MARGAD_QUESTIONS,
@@ -368,13 +376,12 @@ screen shelter_hold_skip(complete_action):
             xsize 118
             text_align 0.5
             outlines [(1, "#000c", 0, 1)]
-        mousearea:
-            area (0, 0, 180, 180)
-            hovered SetScreenVariable("hold_hovered", True)
-            unhovered [
+        add ShelterSkipMouseArea(
+            hovered=SetScreenVariable("hold_hovered", True),
+            unhovered=[
                 SetScreenVariable("hold_hovered", False),
                 SetScreenVariable("hold_active", False),
-                SetScreenVariable("hold_progress", 0.0)]
+                SetScreenVariable("hold_progress", 0.0)]) xysize (180, 180)
 
 
 
