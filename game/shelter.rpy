@@ -332,17 +332,17 @@ screen shelter_hold_skip(complete_action):
     # Register raw mouse handlers only over Skip or during its active hold,
     # otherwise they swallow the release needed by conversation buttons.
     if hold_hovered or hold_active:
-        key "mousedown_1" action SetScreenVariable("hold_active", True)
+        key "mousedown_1" action SetLocalVariable("hold_active", True)
         key "mouseup_1" action [
-            SetScreenVariable("hold_active", False),
-            SetScreenVariable("hold_progress", 0.0)]
+            SetLocalVariable("hold_active", False),
+            SetLocalVariable("hold_progress", 0.0)]
 
     timer 0.04 repeat True action If(
         hold_active,
         If(
             hold_progress >= 1.0,
             complete_action,
-            SetScreenVariable("hold_progress", hold_progress + 0.04)),
+            SetLocalVariable("hold_progress", hold_progress + 0.04)),
         NullAction())
 
     fixed:
@@ -356,16 +356,16 @@ screen shelter_hold_skip(complete_action):
             xysize=(180, 180),
             matrixcolor=(BrightnessMatrix(0.14) if hold_hovered else IdentityMatrix()))
 
-        # The dark track remains visible at rest. Twenty-five bright pieces
-        # then replace it clockwise, matching the 0.04-second hold timer.
-        for segment in range(25):
-            $ segment_angle = -90.0 + segment * 14.4
-            $ segment_filled = hold_progress >= float(segment + 1) / 25.0
-            add Solid("#ffe13b" if segment_filled else "#514c3f"):
-                xysize (5, 13)
-                xpos int(90 + math.cos(math.radians(segment_angle)) * 76 - 2.5)
-                ypos int(90 + math.sin(math.radians(segment_angle)) * 76 - 6.5)
-                at Transform(rotate=segment_angle + 90.0)
+        # Linear progress is separate from the icon so the fill is readable.
+        bar:
+            value StaticValue(min(hold_progress, 1.0), 1.0)
+            xpos 10
+            ypos 184
+            xsize 160
+            ysize 10
+            left_bar Solid("#ffe13b")
+            right_bar Solid("#514c3f")
+            thumb None
 
         text ("АЛГАСАХ" if hold_active else "1 СЕК ДАР"):
             font SHELTER_BOLD
@@ -377,11 +377,11 @@ screen shelter_hold_skip(complete_action):
             text_align 0.5
             outlines [(1, "#000c", 0, 1)]
         add ShelterSkipMouseArea(
-            hovered=SetScreenVariable("hold_hovered", True),
+            hovered=SetLocalVariable("hold_hovered", True),
             unhovered=[
-                SetScreenVariable("hold_hovered", False),
-                SetScreenVariable("hold_active", False),
-                SetScreenVariable("hold_progress", 0.0)]) xysize (180, 180)
+                SetLocalVariable("hold_hovered", False),
+                SetLocalVariable("hold_active", False),
+                SetLocalVariable("hold_progress", 0.0)]) xysize (180, 180)
 
 
 
