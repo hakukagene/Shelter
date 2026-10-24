@@ -209,6 +209,8 @@ init python:
     build.classify('game/ganzo_tests.rpyc', None)
     build.classify('game/naraa_tests.rpy', None)
     build.classify('game/naraa_tests.rpyc', None)
+    build.classify('game/margad_tests.rpy', None)
+    build.classify('game/margad_tests.rpyc', None)
     # The desktop game uses the VP9/Opus derivative; retain the MP4 as source.
     build.classify('game/Video/Introvideo/Intro.mp4', None)
     build.classify('game/Video/Bayra/*.mp4', None)

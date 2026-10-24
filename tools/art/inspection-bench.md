@@ -32,7 +32,7 @@ Tag edit prompt:
 | Existing visitors | Preserve dedicated recordings; missing rejection uses `audio/Chingune/MaralHuuh.wav`, missing admission uses `audio/Chingune/ChinbaOruulah.wav` |
 | deeremchin survivor | Singular fallback for either surviving person; retain the dedicated plural rejection when both are present |
 
-Audio-only IDs `baatra`, `ganba`, `ganzo`, `hulan`, `margad`, `naraa`, `tsermaa`, `tuguldur`, `undral` are registered for future encounters. No missing character/video/story was fabricated. Margad question 1 part 2 and Naraa question 2 parts 1/2 remain explicit extra cue keys for their eventual branching scripts; they are not blindly concatenated.
+Audio-only IDs `baatra`, `hulan`, `tsermaa`, `tuguldur`, `undral` are registered for future encounters. No missing character/video/story was fabricated. Margad's three-part first question and Naraa's split second question use explicit cue keys in their branching encounter scripts; they are not blindly concatenated.
 
 Anu's bag request is tracked independently of answered question 3. Closing/reopening inspection does not repeat that request or consume the drawing response. Starting a new run resets this state. Existing saved inspection progress is retained.
 

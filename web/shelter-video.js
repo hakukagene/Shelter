@@ -83,6 +83,23 @@
       if (objectUrl) URL.revokeObjectURL(objectUrl);
       objectUrl = URL.createObjectURL(blob);
       video.src = objectUrl;
+      if (spec.startTime != null) {
+        if (video.readyState < 1) {
+          await new Promise((resolve, reject) => {
+            video.addEventListener("loadedmetadata", resolve, { once: true });
+            video.addEventListener("error", reject, { once: true });
+          });
+        }
+        if (!active || api.finished || current !== sequence) return;
+        video.currentTime = spec.startTime;
+        if (video.seeking) {
+          await new Promise((resolve, reject) => {
+            video.addEventListener("seeked", resolve, { once: true });
+            video.addEventListener("error", reject, { once: true });
+          });
+        }
+      }
+      if (!active || api.finished || current !== sequence) return;
       prepareFirstFrame(current);
       await play();
     } catch (error) {

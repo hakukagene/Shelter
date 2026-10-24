@@ -18,7 +18,8 @@ OUT = ROOT / "game/images/transitions"
 CONSTANTS = {"Chinba": "CHINBA_CLIPS", "Maral": "SHELTER_CLIPS",
              "Swat": "SWAT_CLIPS", "Bayra": "BAYRA_CLIPS", "anu": "ANU_CLIPS",
              "deeremchin": "DEEREMCHIN_CLIPS", "ganba": "GANBA_CLIPS",
-             "ganzo": "GANZO_CLIPS", "naraa": "NARAA_CLIPS"}
+             "ganzo": "GANZO_CLIPS", "naraa": "NARAA_CLIPS",
+             "margad": "MARGAD_CLIPS"}
 
 
 def digest(path):
@@ -42,6 +43,11 @@ def playback_ends():
     return ast.literal_eval(re.search(r"^define SHELTER_CLIP_ENDS = (\{.*?\})", script, re.M | re.S)[1])
 
 
+def playback_starts():
+    script = (ROOT / "game/shelter.rpy").read_text(encoding="utf-8-sig")
+    return ast.literal_eval(re.search(r"^define SHELTER_CLIP_STARTS = (\{.*?\})", script, re.M | re.S)[1])
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--check", action="store_true")
@@ -51,6 +57,7 @@ def main():
     args = parser.parse_args()
     manifest = OUT / "manifest.json"
     previous = json.loads(manifest.read_text()) if manifest.exists() else {}
+    starts = playback_starts()
     ends = playback_ends()
 
     def process(job):
@@ -60,11 +67,12 @@ def main():
             if stream.read(64).startswith(b"version https://git-lfs.github.com/spec/v1"):
                 raise RuntimeError(str(source) + ": run git lfs pull first")
         fingerprint = digest(source)
+        start_time = starts.get(key)
         end_time = ends.get(key)
         folder = OUT / visitor
         targets = {edge: folder / (clip + "-" + edge + ".jpg") for edge in ("start", "end")}
         old = previous.get(key, {})
-        ready = old.get("source_sha256") == fingerprint and old.get("end_time") == end_time and all(
+        ready = old.get("source_sha256") == fingerprint and old.get("start_time") == start_time and old.get("end_time") == end_time and all(
             path.exists() and digest(path) == old.get(edge + "_sha256") for edge, path in targets.items())
         if not ready:
             if args.check:
@@ -74,7 +82,9 @@ def main():
                 command = ["ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-threads", "2"]
                 # Reverse only the last second, so the exported end is the
                 # actual final video frame, not duration-minus-an-arbitrary-offset.
-                if edge == "end":
+                if edge == "start" and start_time is not None:
+                    command += ["-ss", str(start_time)]
+                elif edge == "end":
                     command += ["-ss", str(max(0, end_time - 1)), "-to", str(end_time)] if end_time else ["-sseof", "-1"]
                 command += ["-i", str(source), "-an"]
                 if edge == "end":
@@ -85,7 +95,8 @@ def main():
             subprocess.run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-xerror",
                             "-threads", "2", "-i", str(source), "-map", "0:v:0", "-map", "0:a?",
                             "-f", "null", "-"], check=True)
-        data = {"source": str(source.relative_to(ROOT / "game")), "source_sha256": fingerprint, "end_time": end_time}
+        data = {"source": str(source.relative_to(ROOT / "game")), "source_sha256": fingerprint,
+                "start_time": start_time, "end_time": end_time}
         data.update({edge + "_sha256": digest(path) for edge, path in targets.items()})
         print(key + (": checked + decoded" if args.audit else ": checked"), flush=True)
         return key, data
