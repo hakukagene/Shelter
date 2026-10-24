@@ -201,6 +201,8 @@ console.log("PASS: legacy browser waits for loaded frame data and paint.");
 const css = await readFile(new URL("../web/shelter-web.css", import.meta.url), "utf8");
 assert.match(css, /#shelter-video\{[^}]*background:transparent/);
 assert.match(css, /#story-video\{[^}]*background:transparent/);
+assert.match(css, /\.skip-ring-track\{stroke:#514c3f/);
+assert.match(css, /\.skip-ring-progress\{[^}]*stroke-dashoffset:295\.31/);
 console.log("PASS: encounter overlay backgrounds cannot cover the canvas in black.");
 
 api.start({ ...options, intro: true }); await flush();

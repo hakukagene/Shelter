@@ -22,10 +22,12 @@ body{height:100vh;height:100dvh}
 #video-skip>img{position:absolute;inset:0;width:180px;height:180px;pointer-events:none}
 #video-skip>span{position:absolute;z-index:2;top:107px;left:31px;width:118px;text-align:center;font:700 15px Shelter,sans-serif;text-shadow:0 1px 2px #000}
 #video-skip>svg{position:absolute;z-index:3;inset:5px;width:170px;height:170px;transform:rotate(-90deg);overflow:visible;pointer-events:none}
-#video-skip circle{fill:none;stroke:#ffe13b;stroke-width:3;stroke-linecap:round;stroke-dasharray:295.31;stroke-dashoffset:295.31;filter:drop-shadow(0 0 3px #ffd21c)}
+#video-skip circle{fill:none;stroke-width:3;stroke-linecap:round}
+#video-skip .skip-ring-track{stroke:#514c3f}
+#video-skip .skip-ring-progress{stroke:#ffe13b;stroke-dasharray:295.31;stroke-dashoffset:295.31;filter:drop-shadow(0 0 3px #ffd21c)}
 #video-skip:hover>img,#video-skip:focus-visible>img{filter:brightness(1.14)}
 #video-skip.holding{color:#fff}
-#video-skip.holding circle{animation:skip-circle-fill 1s linear forwards}
+#video-skip.holding .skip-ring-progress{animation:skip-circle-fill 1s linear forwards}
 @keyframes skip-circle-fill{from{stroke-dashoffset:295.31}to{stroke-dashoffset:0}}
 #video-caption{position:absolute;left:50%;transform:translateX(-50%);bottom:240px;width:1344px;box-sizing:border-box;padding:22px 36px;background:#080707dd;font-size:30px;line-height:1.3;text-align:center}
 .intro #video-caption{bottom:64px;width:1520px;white-space:nowrap;font-size:36px}
