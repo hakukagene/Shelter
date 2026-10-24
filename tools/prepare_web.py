@@ -55,6 +55,16 @@ def main():
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(source, target)
 
+    # The persistent HTML movie plays Margad's selected player lines directly.
+    # Copy these two small files outside Ren'Py's packed game archive.
+    for relative in (
+        Path("audio/margad/margad asuult1 2heseg.wav"),
+        Path("audio/margad/margad asuult1 3heseg.wav"),
+    ):
+        target = destination / "game" / relative
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(ROOT / "game" / relative, target)
+
     ui = destination / "shelter-ui"
     ui.mkdir(exist_ok=True)
     for filename in ("button.png", "selected.png"):

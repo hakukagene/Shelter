@@ -3,6 +3,8 @@
     <video id="story-video" playsinline webkit-playsinline preload="metadata" disablepictureinpicture></video>
     <img id="video-end-frame" hidden alt="">
     <div id="video-caption" hidden><span id="caption-speaker"></span><span id="caption-words"></span></div>
+    <button id="video-interjection" class="metal" type="button" hidden></button>
+    <audio id="video-player-voice" preload="auto"></audio>
     <div id="video-actions" aria-hidden="true"></div>
     <button id="video-guide" class="metal" type="button" aria-label="Тоглоомын заавар" title="Тоглоомын заавар"><img src="shelter-ui/rules.svg" alt=""></button>
     <div id="video-loading" role="status">Ачаалж байна…</div>
@@ -13,8 +15,8 @@
     <div id="video-controls">
       <button id="video-pause" class="metal" type="button" aria-label="Түр зогсоох">Ⅱ</button>
       <button id="video-mute" class="metal" type="button" aria-pressed="false">Дуутай</button>
-      <button id="video-skip" class="metal" type="button">Алгасах ››</button>
     </div>
+    <button id="video-skip" class="metal" type="button">1 СЕК ДАРЖ АЛГАСАХ</button>
   </div>
 </div>
 <div id="rotate-hint"><span aria-hidden="true">↻</span>Утсаа хөндлөн эргүүлж тоглоорой.</div>

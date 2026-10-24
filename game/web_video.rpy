@@ -4,7 +4,8 @@ init python:
     import json as shelter_web_json
 
     def shelter_web_begin(path, cues=(), intro=False, poster=None, armed=False,
-                          start_time=None, end_time=None, end_poster=None):
+                          start_time=None, end_time=None, end_poster=None,
+                          interjections=()):
         payload = {
             "src": "game/" + path.rsplit(".", 1)[0] + ".mp4",
             "cues": cues,
@@ -15,6 +16,11 @@ init python:
             "startTime": start_time,
             "endTime": end_time,
             "endPoster": "game/" + end_poster if end_poster else None,
+            "interjections": [
+                {"pauseAt": item[0], "text": item[1],
+                 "audio": "game/" + item[2][0],
+                 "cueStart": item[2][1], "cueEnd": item[2][2]}
+                for item in interjections],
             "volume": preferences.get_volume("voice"),
             "muted": preferences.get_mute("voice"),
         }

@@ -18,11 +18,16 @@ body{height:100vh;height:100dvh}
 #video-controls{position:absolute;right:40px;top:28px;display:flex;gap:16px}
 #video-pause{width:108px;font-family:Arial,sans-serif}
 #video-mute{width:190px}
-#video-skip{width:320px}
+#video-skip{position:absolute;right:48px;bottom:42px;width:330px;overflow:hidden}
+#video-skip::after{content:"";position:absolute;left:42px;bottom:17px;width:0;height:8px;background:#c8944f;box-shadow:0 0 8px #c8944faa;pointer-events:none}
+#video-skip.holding{color:#fff;border-image-source:url("shelter-ui/selected.png")}
+#video-skip.holding::after{animation:skip-hold-fill 1s linear forwards}
+@keyframes skip-hold-fill{from{width:0}to{width:246px}}
 #video-caption{position:absolute;left:50%;transform:translateX(-50%);bottom:240px;width:1344px;box-sizing:border-box;padding:22px 36px;background:#080707dd;font-size:30px;line-height:1.3;text-align:center}
 .intro #video-caption{bottom:64px;width:1520px;white-space:nowrap;font-size:36px}
 #caption-speaker{font-weight:700;color:#d9aa83}
 #caption-words{display:inline-block}
+#video-interjection{position:absolute;left:50%;transform:translateX(-50%);top:670px;width:850px;font-size:27px;line-height:1.2}
 #video-actions{position:absolute;top:880px;left:50%;transform:translateX(-50%);display:flex;gap:24px}
 .inactive-action{position:relative;width:180px;height:180px;filter:grayscale(1) brightness(.65)}
 .inactive-action img{width:100%;height:100%}
