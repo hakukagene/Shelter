@@ -5,6 +5,8 @@ init python:
     import math
 
     SHOOTING_TEST_CAPACITY = 8
+    SHOOTING_TEST_FIRE_SEQUENCE = (2, 3, 4, 5, 6, 7, 8, 9, 10, 0)
+    SHOOTING_TEST_RELOAD_SEQUENCE = (10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 0)
     SHOOTING_TEST_TARGETS = ((520, 420), (960, 360), (1370, 430))
     # Individual transparent PNGs, split before packaging; no runtime cropping.
     SHOOTING_TEST_FRAMES = [
@@ -97,12 +99,14 @@ init python:
             elapsed = max(0.0, now-self.started)
             frame = 0
             if self.mode == "fire":
-                sequence = (2,3,4,5,6,7,8,9,0)
+                sequence = SHOOTING_TEST_FIRE_SEQUENCE
                 frame = sequence[min(len(sequence)-1,int(elapsed/self.shot_duration*len(sequence)))]
             elif self.mode == "reload":
-                sequence = (11,12,13,14,15,16,17,18,19)
+                sequence = SHOOTING_TEST_RELOAD_SEQUENCE
                 frame = sequence[min(len(sequence)-1,int(elapsed/self.reload_duration*len(sequence)))]
-            gun = renpy.render(Transform(SHOOTING_TEST_FRAMES[frame], zoom=2.65),1920,1080,st,at)
+            # Uploaded frames share a 360px-high canvas (204/205px wide).
+            # Use a single canvas size, including reload, to prevent scale jumps.
+            gun = renpy.render(Transform(SHOOTING_TEST_FRAMES[frame], xysize=(544, 954)),1920,1080,st,at)
             gw, gh = gun.get_size()
             # Align the idle sprite's muzzle horizontally with the aim point.
             gun_x = self.aim[0] - gw/2 - 50
