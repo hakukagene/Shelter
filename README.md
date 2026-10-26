@@ -21,6 +21,22 @@ of the same artwork. Ren'Py embeds it in Windows executables when choosing
 **Build Distributions**; rebuild an existing Windows release to update its
 executable icon.
 
+## Standalone handgun prototype
+
+Choose **Буудлагын туршилт** from the main menu to start the separate
+`shelter_shooting_test` label in `game/shooting_test.rpy`. Click/tap a paper
+target or use the **Буудах** button / Space. R or **Цэнэглэх** reloads the
+eight-round magazine. Esc or **Буцах** returns to the menu.
+
+The handgun animation plays 20 separate transparent PNGs from
+`game/images/shooting_test/frames/`, with no runtime cropping. The original sheet
+is retained in `tools/art/shooting-test/handgun-sheet.png`; regenerate the frames
+with `tools/split_shooting_test_frames.py`. The supplied bunker door background
+is copied intact under `game/images/shooting_test/`. Small procedural
+placeholder sound effects can be rebuilt with `tools/prepare_shooting_test_audio.py`.
+The native test suite is `shelter_shooting_checks`; its screenshots are under
+`tmp/shooting-tests/`.
+
 ## Android APK
 
 Android uses the author's supplied bunker-door `icon.ico` artwork through the
@@ -204,7 +220,7 @@ Maral has no supplied bag and Orgil says he lost his. Their questions stay uncha
 Click an object to enlarge it; drag to rotate the **2D illustration**, use the
 mouse wheel or +/− buttons to zoom, and use its action to inspect/read it.
 Left/right arrow keys also rotate; =/− keys zoom. Touch users can tap the same
-large buttons. This does not reveal a modeled 3D reverse side.
+large buttons. The center viewer uses the original artwork, with in-plane rotation.
 “Тавих” puts the selected item down; “ҮЗЛЭГ ДУУСГАХ” or Escape closes inspection.
 Checked-item progress survives reopening and save/load, and resets for a new game.
 Inspection does not change admissions, deaths, visitor counts, or classifications.
@@ -217,7 +233,8 @@ crop rectangles, per-visitor inventory, and interactions live in
 Anu's open notebook uses `game/images/inspection/anu-notebook.webp`, a standalone
 transparent prop made from the supplied `game/images/anu/zurag.jpg`. The drawing
 is blended across the aged pages and center fold, including its red lock arrow
-and handwritten “Түгжээ”. The closed notebook and other atlas objects are unchanged.
+and handwritten “Түгжээ”. The original atlas artwork supplies the other enlarged
+props and small inventory thumbnails.
 The source and generation prompt are documented in `tools/art/anu-notebook.md`.
 
 The campaign counters retain 43 civilians, 30 monsters, a target of 40 rescued

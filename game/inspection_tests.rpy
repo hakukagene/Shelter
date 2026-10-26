@@ -13,11 +13,15 @@ testsuite shelter_inspection_checks:
         run SetVariable("shelter_asked", [])
         run SetVariable("shelter_inspection_progress", {})
         run SetVariable("shelter_inspection_requests", [])
+        run SetVariable("shelter_inspection_views", {})
         run SetVariable("shelter_outcomes", {})
         run SetVariable("shelter_visitors_seen", 0)
         run SetVariable("shelter_admitted", 0)
         run SetVariable("shelter_civilians_killed", 0)
         run SetVariable("quick_menu", False)
+
+    testcase original_art_assets:
+        assert eval (all(renpy.loadable("images/inspection/" + spec[0]) for spec in SHELTER_INSPECTION_SPRITES.values()))
 
     testcase chinba_inspect_reopen_save_load:
         run SetVariable("shelter_visitor", "Chinba")
@@ -46,6 +50,8 @@ testsuite shelter_inspection_checks:
         run Function(renpy.load, "inspection-test")
         pause until screen "shelter_inspection" timeout 5
         assert eval (len(shelter_inspection_progress["Chinba"]) == 3)
+        assert eval (renpy.get_screen("shelter_inspection").scope["viewer"].angle != 0)
+        assert eval (renpy.get_screen("shelter_inspection").scope["selected_item"] == "schedule")
         click "ҮЗЛЭГ ДУУСГАХ"
         pause until screen "shelter_decision" timeout 5
         click "Үүргэвч дотрохоо харуул."

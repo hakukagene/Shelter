@@ -395,7 +395,8 @@ screen main_menu():
         for caption, menu_key, menu_action in [
             ("Эхлэх", "start", Start())] + ([
             ("Үргэлжлүүлэх", "continue", FileLoad(SHELTER_CHECKPOINT_SLOT, slot=True))] if midpoint_available else []) + [
-            ("Тохиргоо", "settings", ShowMenu("preferences"))] + ([] if renpy.variant("web") else [
+            ("Тохиргоо", "settings", ShowMenu("preferences")),
+            ("Буудлагын туршилт", "shooting_test", Start("shelter_shooting_test"))] + ([] if renpy.variant("web") else [
             ("Гарах", "quit", Quit(confirm=True))]):
             button:
                 xysize (460, 82)

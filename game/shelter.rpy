@@ -765,8 +765,8 @@ label shelter_margad_answer1_conversation:
         $ shelter_web_begin(
             "Video/margad/Chotgor hariult 1.webm",
             ((1.073, 11.525, "", MARGAD_LINES["answer1"]),
-             (13.140, 16.414, "", MARGAD_LINES["answer1_part2"]),
-             (17.740, 22.040, "", MARGAD_LINES["answer1_part3"])),
+            (13.140, 16.414, "", MARGAD_LINES["answer1_part2"]),
+            (17.740, 22.040, "", MARGAD_LINES["answer1_part3"])),
             poster=shelter_movie_frame("margad", "answer1", "start"),
             end_time=22.040,
             end_poster=shelter_movie_frame("margad", "answer1_part3", "end"),
@@ -797,6 +797,7 @@ label shelter_encounter:
     $ shelter_story_minutes = SHELTER_CLOCK_START
     $ shelter_inspection_progress = {}
     $ shelter_inspection_requests = []
+    $ shelter_inspection_views = {}
     $ shelter_checkpoint_created = False
     $ shelter_checkpoint_written = False
     jump shelter_visit_start

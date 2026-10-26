@@ -2,6 +2,7 @@
 # Assets use alpha atlases or standalone cutouts; each prop stays separate.
 default shelter_inspection_progress = {}
 default shelter_inspection_requests = []
+default shelter_inspection_views = {}
 
 init python:
     import pygame
@@ -39,7 +40,8 @@ init python:
             "detail": "Захиалга хүргэх хуваарь байна. Чинбаа хүргэлт хийж явсан гэж хэлсэн.",
         },
         "notebook": {
-            "name": "Зургийн дэвтэр", "action": "Зургийн тухай асуух ",
+            "name": "Зургийн дэвтэр", "action": "Дэвтрийг нээх",
+            "close_action": "Дэвтрийг хаах",
             "description": "Анугийн сургуулийн цүнхэнд байсан жижиг дэвтэр.",
             "detail": "Сүүлийн хуудсанд энэ хорогдох байрны хаалга, дотор талын дугуй түгжээг зуржээ.",
 
@@ -82,6 +84,12 @@ init python:
     def shelter_inspection_done(visitor, item):
         return item in shelter_inspection_progress.get(visitor, ())
 
+    def shelter_inspection_saved_selection(visitor):
+        sprite = shelter_inspection_views.get(visitor, {}).get("sprite")
+        if sprite in SHELTER_INSPECTIONS[visitor]["items"]:
+            return sprite
+        return "business_bag" if visitor == "Bayra" else None
+
     def shelter_inspection_mark(visitor, item):
         global shelter_inspection_progress
         if not shelter_inspection_done(visitor, item):
@@ -89,38 +97,54 @@ init python:
                 **{visitor: tuple(shelter_inspection_progress.get(visitor, ())) + (item,)})
 
     class ShelterInspectionView(renpy.Displayable):
-        """A draggable 2D prop viewer, also usable with buttons and keys.
+        """Original 2D artwork with in-plane rotation and zoom.
 
-        No render or texture objects are retained, so save/load is supported.
-        It rotates the illustration in its plane, not a fabricated 3D backside.
+        Camera state and selected prop are retained in the store for save/load.
         """
-        def __init__(self, sprite=None, **kwargs):
+        def __init__(self, sprite=None, visitor=None, **kwargs):
             super(ShelterInspectionView, self).__init__(**kwargs)
-            self.sprite = sprite
-            self.angle = 0.0
-            self.magnification = 1.0
+            self.visitor = visitor or shelter_visitor
+            saved = shelter_inspection_views.get(self.visitor, {})
+            self.sprite = saved.get("sprite", sprite)
+            # Migrate inspection saves from the removed turntable viewer.
+            old_turntable = "projection" in saved
+            self.angle = 0.0 if old_turntable else saved.get("angle", 0.0)
+            self.magnification = 1.0 if old_turntable else saved.get("magnification", 1.0)
             self.drag_x = None
             self.drag_angle = 0.0
+
+        def remember(self):
+            # Called-screen displayables are rebuilt on load. Save camera data
+            # in the store, like checked-item progress, rather than the renderer.
+            global shelter_inspection_views
+            visitor = getattr(self, "visitor", shelter_visitor)
+            state = {"sprite": self.sprite, "angle": self.angle,
+                "magnification": self.magnification}
+            shelter_inspection_views = dict(shelter_inspection_views, **{visitor: state})
 
         def choose(self, sprite):
             self.sprite = sprite
             self.angle = 0.0
             self.magnification = 1.0
             self.drag_x = None
+            self.remember()
             renpy.redraw(self, 0)
 
         def turn(self, amount):
             self.angle = (self.angle + amount) % 360
+            self.remember()
             renpy.redraw(self, 0)
 
         def zoom(self, amount):
             self.magnification = min(1.6, max(0.75, self.magnification + amount))
+            self.remember()
             renpy.redraw(self, 0)
 
         def reset(self):
             self.angle = 0.0
             self.magnification = 1.0
             self.drag_x = None
+            self.remember()
             renpy.redraw(self, 0)
 
         def render(self, width, height, st, at):
@@ -146,6 +170,7 @@ init python:
                 raise renpy.IgnoreEvent()
             if ev.type == pygame.MOUSEMOTION and self.drag_x is not None:
                 self.angle = (self.drag_angle + (x - self.drag_x) * 0.5) % 360
+                self.remember()
                 renpy.redraw(self, 0)
                 raise renpy.IgnoreEvent()
             if ev.type == pygame.MOUSEBUTTONUP and ev.button == 1 and self.drag_x is not None:
@@ -183,9 +208,9 @@ screen inspection_plate(caption, icon, command, enabled=True, width=500):
 
 screen shelter_inspection(visitor):
     modal True
-    default selected_item = "business_bag" if visitor == "Bayra" else None
+    default selected_item = shelter_inspection_saved_selection(visitor)
     default revealed = False
-    default viewer = ShelterInspectionView(SHELTER_INSPECTIONS[visitor]["bag"])
+    default viewer = ShelterInspectionView(SHELTER_INSPECTIONS[visitor]["bag"], visitor=visitor)
     $ bag = SHELTER_INSPECTIONS[visitor]
     $ checked = sum(shelter_inspection_done(visitor, item) for item in bag["items"])
     $ selected = SHELTER_INSPECTION_ITEMS.get(selected_item)
@@ -293,19 +318,28 @@ screen shelter_inspection(visitor):
         xysize (510, 94)
         if selected:
             if selected_item == "notebook":
-                if 2 not in shelter_asked:
+                if not revealed:
                     use inspection_plate(
-                        "Зургийн тухай асуух",
+                        selected["action"],
+                        "inspect",
+                        [
+                            Function(shelter_inspection_mark, visitor, selected_item),
+                            SetScreenVariable("revealed", True),
+                        ],
+                        width=510
+                    )
+                elif 2 not in shelter_asked:
+                    use inspection_plate(
+                        "Энэ зургийн тухай асуух",
                         "inspect",
                         Return("ask_drawing"),
                         width=510
                     )
                 else:
                     use inspection_plate(
-                        "Шалгасан",
+                        selected["close_action"],
                         "check",
-                        NullAction(),
-                        enabled=False,
+                        SetScreenVariable("revealed", False),
                         width=510
                     )
             else:
@@ -387,7 +421,7 @@ label shelter_inspect_belongings:
     $ renpy.retain_after_load()
     call screen shelter_inspection(shelter_visitor) with Dissolve(0.2)
     if _return == "ask_drawing" and shelter_visitor == "anu":
-        call shelter_player_line("notebook", "Чи энэ зургийг зурсан уу?") from _call_shelter_player_line_1
+        call shelter_player_line("drawing", "Чи энэ зургийг зурсан уу?") from _call_shelter_player_line_1
         call shelter_clip("answer3") from _call_shelter_clip_1
         $ shelter_asked.append(2)
     return
