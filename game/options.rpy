@@ -197,6 +197,8 @@ init python:
     build.classify('game/inspection_tests.rpyc', None)
     build.classify('game/shooting_test_checks.rpy', None)
     build.classify('game/shooting_test_checks.rpyc', None)
+    build.classify('game/shooting_sprite_export.rpy', None)
+    build.classify('game/shooting_sprite_export.rpyc', None)
     build.classify('game/transition_tests.rpy', None)
     build.classify('game/transition_tests.rpyc', None)
     build.classify('game/deeremchin_tests.rpy', None)

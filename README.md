@@ -26,16 +26,54 @@ executable icon.
 Choose **Буудлагын туршилт** from the main menu to start the separate
 `shelter_shooting_test` label in `game/shooting_test.rpy`. Click/tap a paper
 target or use the **Буудах** button / Space. R or **Цэнэглэх** reloads the
-eight-round magazine. Esc or **Буцах** returns to the menu.
+magazine (currently seven rounds). Esc or **Буцах** returns to the menu.
 
-The handgun animation plays 20 separate transparent PNGs from
-`game/images/shooting_test/frames/`, with no runtime cropping. The original sheet
-is retained in `tools/art/shooting-test/handgun-sheet.png`; regenerate the frames
-with `tools/split_shooting_test_frames.py`. The supplied bunker door background
-is copied intact under `game/images/shooting_test/`. Small procedural
-placeholder sound effects can be rebuilt with `tools/prepare_shooting_test_audio.py`.
-The native test suite is `shelter_shooting_checks`; its screenshots are under
-`tmp/shooting-tests/`.
+Runtime sprites are in `game/images/shooting_test/sequence/`: one idle PNG,
+ten firing PNGs, and **45 reload PNGs at 25 FPS** (1.8 seconds, 40ms per frame).
+They have a shared transparent 600×500 canvas and a fixed pivot; the first and
+last reload files match idle exactly to avoid an endpoint jump. The 43 interior
+reload images are distinct. Handling, recoil, short pose dissolves and a new
+sleeve extension are baked into the files, rather than recomposed during play.
+These are offline animation frames built from the archived photographic poses,
+not 45 separately painted anatomical poses. The old runtime sprites are removed.
+
+Source poses remain under `tools/art/shooting-test/source-poses/`. The sleeve
+extension was generated as a standalone transparent clothing asset with built-in
+imagegen; its prompt is `tools/art/shooting-test/sleeve-extension.md`. Rebuild the
+PNG sequence using the Ren'Py test command `test shelter_sprite_export`, then
+restart the game so it discovers the new files. The development exporter is
+`game/shooting_sprite_export.rpy`, excluded from release builds. Validate the
+files with `python tools/check_shooting_sequence.py`.
+
+The native playback suite is `shelter_shooting_checks`; screenshots, including
+the repaired rack sleeve, are under `tmp/shooting-tests/`. Sprites are preloaded,
+GPU transforms and small target/reticle textures are reused, and state completion
+uses event deadlines instead of a repeating screen timer. Gameplay can redraw at
+60 Hz while weapon animation holds each PNG for 40ms. The cadence test reports
+render timing rather than a guarantee of GPU FPS on every device. The shared
+gun pivot stays at (960,1080); aim tilts the barrel up to 12 degrees left/right.
+The supplied door background remains under `game/images/shooting_test/`.
+Procedural sound effects can be rebuilt with `tools/prepare_shooting_test_audio.py`.
+
+The sandbox also spawns a frontal creature: it runs from the street to the
+window, then repeatedly bangs on the steel door. Twelve independent generated
+sprites are under `game/images/shooting_test/monster/`; source and prompt are
+`tools/art/shooting-test/monster-sheet.png` and `monster.md`. Rebuild these with
+`python tools/prepare_shooting_monster.py`. Pane clipping keeps the steel frame
+in front of the creature. Each impact triggers the existing metal-door knock
+and a short door shake on a separate sound channel. Three aimed hits make it
+fade away; another approaches shortly afterward. **Дахин дайруулах** / T
+restarts the approach. This feature remains inside the standalone test label.
+The creature now follows three perspective lanes inside the marked road
+trapezoid. Successive approaches cycle left/center/right with a smooth diagonal
+lane change. Feet move from y=520 to y=604 while sprite height grows from 72 to
+288 pixels, keeping the near head at y=316. The selected lane appears above the
+restart button; hit detection uses the same moving position and scale.
+Debug overlays start enabled in the sandbox. **D** / **Debug** toggles them:
+green is the street boundary, blue traces the three actual curved routes,
+red outlines the full monster hitbox, and yellow shows the hittable parts after
+clipping against the glass panes. The overlay and shooting share the same
+`hit_bounds` / `hit_rectangles` geometry; steel mullions remain non-hittable.
 
 ## Android APK
 

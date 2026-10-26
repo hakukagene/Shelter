@@ -33,7 +33,7 @@ def main():
         return sum((.32 * randomizer.uniform(-1, 1) + .13 * math.sin(2 * math.pi * 1700 * (t - at)))
             * math.exp(-(t - at) * 100) for at in moments if t >= at)
     save('shot.wav', .38, shot)
-    save('reload.wav', 1.32, lambda t: clicks(t, (.08, .48, .91, 1.13)))
+    save('reload.wav', 1.8, lambda t: clicks(t, (.20, .62, .99, 1.38, 1.54)))
     save('empty.wav', .13, lambda t: clicks(t, (0,)))
     print('Prepared three procedural prototype sound effects.')
 
