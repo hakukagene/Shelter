@@ -631,14 +631,6 @@
     "start_sha256": "8adccc4bf3dcf9c2384b63613974ac94ff741e7f9cc5ad65ef89aa0417d78bf0",
     "end_sha256": "6b911ba642d8f8cc6e1cea6841b0959935bdf931ae9457d2cf2c044144ef0022"
   },
-  "naraa/answer2_part2": {
-    "source": "Video/naraa/Naraa Hariult 2.2.webm",
-    "source_sha256": "bf7210e5790cdabdb2bb79964dba0076304fb6e3be99d1470416807e2351038f",
-    "start_time": null,
-    "end_time": null,
-    "start_sha256": "23635be8254745bc7aedc4a9bc9e4d4108a2519e19e3e5fe1d079412d0b22b4d",
-    "end_sha256": "53c475a7467ee47cf65b2a5d36d4b90e62608938cdd9822d3900f7493ea9215b"
-  },
   "naraa/answer3": {
     "source": "Video/naraa/Naraa Hariult 3.webm",
     "source_sha256": "1f3ac5009594826547e85ff2d40ea614fc06cb3a96508443a647fb768ea5b33a",
