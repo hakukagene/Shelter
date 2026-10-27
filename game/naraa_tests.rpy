@@ -27,6 +27,15 @@ testsuite shelter_naraa_transition_checks:
         keysym "K_F9"
         pause until screen "shelter_decision" timeout 5
 
+    testcase continuous_second_response:
+        assert eval (set(NARAA_CLIPS) == {"intro", "answer1", "answer2", "answer3", "aim", "lower", "shoot", "admit", "reject"})
+        assert eval (all(renpy.loadable("Video/naraa/" + filename) for filename, duration in NARAA_CLIPS.values()))
+        click "Чамайг яагаад би оруулах ёстой вэ?"
+        pause until screen "shelter_video" timeout 10
+        pause until screen "shelter_decision" timeout 90
+        assert eval (shelter_asked == [1] and shelter_still == "answer2")
+        assert not screen "shelter_followup_question"
+
     testcase exact_posters_aim_lower_and_admit:
         run Function(shelter_test_watch_frames)
         $ renpy.test.shelter_capture_frames = True
@@ -55,3 +64,4 @@ testsuite shelter_naraa_transition_checks:
         pause until screen "shelter_result" timeout 25
         assert eval (shelter_outcomes == {"naraa": choice} and shelter_visitors_seen == 1)
         assert eval (shelter_civilian_mistakes() == 1 and shelter_civilians_killed == int(choice == "shoot"))
+
