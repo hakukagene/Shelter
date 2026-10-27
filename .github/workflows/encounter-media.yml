@@ -8,6 +8,9 @@ on:
       - 'game/Video/deeremchin/*.webm'
       - 'game/Video/ganba/*.webm'
       - 'game/Video/ganzo/*.webm'
+      - 'game/Video/naraa/*.webm'
+      - 'game/naraa.rpy'
+      - 'tools/prepare_naraa_media.py'
       - 'tools/prepare_transition_frames.py'
       - 'game/deeremchin.rpy'
       - 'game/ganba.rpy'
@@ -32,14 +35,17 @@ jobs:
           git lfs pull --include='game/Video/**/*.webm,game/Video/Bayra/*.mp4,game/Video/anu/*.mp4'
       - name: Convert playback videos and extract stills
         run: |
+          python3 tools/prepare_naraa_media.py
           python3 tools/prepare_encounter_media.py
           python3 tools/prepare_transition_frames.py --audit
       - name: Commit playback assets through Git LFS
         run: |
           git add -- game/Video/Bayra/*.webm game/Video/anu/*.webm game/images/Bayra/frames/*.jpg game/images/anu/frames/*.jpg
+          git add -- game/naraa.rpy
           git add -- game/images/transitions game/images/encounter-media-manifest.json
           if git diff --cached --quiet; then exit 0; fi
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git commit -m 'Build encounter playback assets'
           git push origin HEAD
+
