@@ -832,6 +832,9 @@ label shelter_handle_choice:
             # follow-up questions are buttons shown while that movie is paused.
             call shelter_player_line("question1", MARGAD_QUESTION1_PART1)
             call shelter_margad_answer1_conversation
+        elif shelter_visitor == "naraa" and shelter_choice == 1:
+            call shelter_player_line("question2_part1", NARAA_QUESTIONS[1])
+            call shelter_naraa_answer2_conversation
         else:
             call shelter_player_line("question%d" % (shelter_choice + 1), shelter_data("questions")[shelter_choice]) from _call_shelter_player_line_2
             call shelter_clip("answer%d" % (shelter_choice + 1)) from _call_shelter_clip_3
@@ -898,4 +901,3 @@ label shelter_next_visitor:
     $ renpy.music.stop(channel="shelter_knock")
     $ shelter_visitor = shelter_next_visitor_id()
     jump shelter_visit_start
-

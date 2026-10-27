@@ -27,11 +27,20 @@ testsuite shelter_naraa_transition_checks:
         keysym "K_F9"
         pause until screen "shelter_decision" timeout 5
 
-    testcase continuous_second_response:
+    testcase paused_second_response:
         assert eval (set(NARAA_CLIPS) == {"intro", "answer1", "answer2", "answer3", "aim", "lower", "shoot", "admit", "reject"})
         assert eval (all(renpy.loadable("Video/naraa/" + filename) for filename, duration in NARAA_CLIPS.values()))
         click "Чамайг яагаад би оруулах ёстой вэ?"
-        pause until screen "shelter_playback" timeout 10
+        pause until screen "shelter_naraa_answer2_playback" timeout 10
+        pause until eval (renpy.get_screen("shelter_naraa_answer2_playback").scope["stage"] == 1) timeout 15
+        assert eval (renpy.music.get_pause(channel="shelter_video"))
+        $ paused_at = renpy.music.get_pos(channel="shelter_video")
+        pause 0.6
+        assert eval (abs(renpy.music.get_pos(channel="shelter_video") - paused_at) < 0.1)
+        click expression NARAA_QUESTION2_FOLLOWUP
+        assert eval (renpy.music.get_pause(channel="shelter_video"))
+        pause until eval (renpy.get_screen("shelter_naraa_answer2_playback").scope["stage"] == 3) timeout 10
+        assert eval (not renpy.music.get_pause(channel="shelter_video"))
         pause until screen "shelter_decision" timeout 90
         assert eval (shelter_asked == [1] and shelter_still == "answer2")
         assert not screen "shelter_followup_question"
@@ -64,4 +73,3 @@ testsuite shelter_naraa_transition_checks:
         pause until screen "shelter_result" timeout 25
         assert eval (shelter_outcomes == {"naraa": choice} and shelter_visitors_seen == 1)
         assert eval (shelter_civilian_mistakes() == 1 and shelter_civilians_killed == int(choice == "shoot"))
-
