@@ -262,3 +262,28 @@ playerVoice.listeners.ended(); await flush();
 assert.equal(video.paused, false);
 api.close(); nextFrame(); nextFrame();
 console.log("PASS: Margad follow-up buttons pause and resume one continuous movie.");
+
+const naraaScript = await readFile(new URL("../game/naraa.rpy", import.meta.url), "utf8");
+const naraaPause = Number(naraaScript.match(/^define NARAA_ANSWER2_PAUSE = ([\d.]+)/m)[1]);
+const naraaQuestion = JSON.parse(naraaScript.match(/^define NARAA_QUESTION2_FOLLOWUP = (".*")/m)[1]);
+api.start({ ...options, src: "game/Video/naraa/Naraa Hariult 2.mp4", cues: [],
+  interjections: [{ pauseAt: naraaPause, text: naraaQuestion,
+    audio: "game/audio/naraa/naraa asuult2 2heseg.wav", cueStart: 0.103, cueEnd: 4.247 }] });
+await flush();
+video.currentTime = naraaPause - 0.1; nextFrame();
+assert.equal(video.paused, false);
+video.currentTime = naraaPause + 0.01; nextFrame();
+assert.equal(video.paused, true);
+assert.equal(interjection.textContent, naraaQuestion);
+const naraaPausedAt = video.currentTime;
+interjection.listeners.click(); await flush();
+assert.equal(video.paused, true, "Naraa waits throughout the player question");
+assert.equal(playerVoice.paused, false);
+assert.equal(video.currentTime, naraaPausedAt, "The movie is not restarted or sought");
+playerVoice.listeners.ended(); await flush();
+assert.equal(video.paused, false);
+assert.equal(video.currentTime, naraaPausedAt);
+video.currentTime += 0.1; nextFrame();
+assert.equal(interjection.hidden, true, "The follow-up is asked only once");
+api.close(); nextFrame(); nextFrame();
+console.log("PASS: Naraa pauses for one selected player question and resumes from the same time.");

@@ -41,3 +41,84 @@ define NARAA_SPEECH_WINDOWS = {
 
 # Naraa's question recordings are registered in player_voices.rpy.
 
+# Initial split point from the former first-response clip. Tune against the
+# replacement soundtrack if its first line ends earlier/later.
+define NARAA_ANSWER2_PAUSE = 5.008
+define NARAA_QUESTION2_FOLLOWUP = "Тиймээ гэхдээ би чамайг энгийн хүн гэж яагаад итгэх ёстой гэж?"
+define NARAA_ANSWER2_FIRST = "Наадах чинь хорогдох байр юм биш үү. Орж хорогдоё л доо."
+define NARAA_ANSWER2_SECOND = "Би тийм ч энгийн хүн биш л дээ. За л даа, ийм сайхан хүүхнийг үх гээд орхино гэж үү? Намайг оруулбал би хариуг чинь барина шүү. Яаж гэдгийг нь чи мэдэж байгаа биз дээ айн? кк"
+
+screen shelter_naraa_answer2_playback():
+    modal True
+    default stage = 0
+    default stage_elapsed = 0.0
+    add shelter_movie_frame("naraa", "answer2", "start") xysize (1920, 1080)
+    add shelter_movie_for("naraa", "answer2") xysize (1920, 1080)
+    use shelter_actions(enabled=False)
+    key "dismiss" action NullAction()
+    key "skip" action NullAction()
+    key "toggle_skip" action NullAction()
+    key "rollback" action NullAction()
+    on "hide" action [Stop("shelter_player"), Function(renpy.music.set_pause, False, channel="shelter_video")]
+
+    $ video_position = renpy.music.get_pos(channel="shelter_video")
+    $ voice_cue = shelter_player_voice("question2_part2", "naraa")
+    if stage == 1:
+        textbutton NARAA_QUESTION2_FOLLOWUP:
+            style "shelter_button"
+            text_style "shelter_button_text"
+            text_size 27
+            text_text_align 0.5
+            xalign 0.5
+            ypos 670
+            xysize (850, 112)
+            action [Play("shelter_player", voice_cue[0]), SetScreenVariable("stage_elapsed", 0.0), SetScreenVariable("stage", 2)]
+    elif stage == 2 or (stage in (0, 3) and video_position is not None):
+        frame:
+            background Solid("#080707dd")
+            xalign 0.5
+            ypos 710
+            xsize 1344
+            padding (35, 22)
+            text (NARAA_QUESTION2_FOLLOWUP if stage == 2 else NARAA_ANSWER2_FIRST if stage == 0 else NARAA_ANSWER2_SECOND) style "shelter_text" size 30 text_align 0.5 xalign 0.5
+
+    if not renpy.get_screen("shelter_protocol"):
+        if stage == 0:
+            timer 0.03 repeat True action If(
+                video_position is not None and video_position >= NARAA_ANSWER2_PAUSE,
+                [Function(renpy.music.set_pause, True, channel="shelter_video"), SetScreenVariable("stage", 1)],
+                Function(renpy.restart_interaction))
+        elif stage == 2:
+            timer 0.03 repeat True action If(
+                stage_elapsed >= 0.3 and not renpy.music.get_playing(channel="shelter_player"),
+                [Function(renpy.music.set_pause, False, channel="shelter_video"), SetScreenVariable("stage_elapsed", 0.0), SetScreenVariable("stage", 3)],
+                SetScreenVariable("stage_elapsed", stage_elapsed + 0.03))
+        elif stage == 3:
+            timer 0.03 repeat True action If(
+                stage_elapsed >= 0.5 and not renpy.music.get_playing(channel="shelter_video"),
+                Return(True), SetScreenVariable("stage_elapsed", stage_elapsed + 0.03))
+
+    use shelter_hold_skip([Stop("shelter_player"), Function(renpy.music.set_pause, False, channel="shelter_video"), Stop("shelter_video"), Return("skipped")])
+    use shelter_protocol_button
+
+label shelter_naraa_answer2_conversation:
+    window hide None
+    $ _skipping = False
+    scene expression Transform(shelter_movie_frame("naraa", "answer2", "start"), xysize=(1920, 1080)) as shelter_hold
+    with Dissolve(0.16)
+    if renpy.emscripten:
+        $ shelter_web_begin(
+            "Video/naraa/" + NARAA_CLIPS["answer2"][0],
+            ((0.0, NARAA_ANSWER2_PAUSE, "", NARAA_ANSWER2_FIRST),
+             (NARAA_ANSWER2_PAUSE, NARAA_CLIPS["answer2"][1], "", NARAA_ANSWER2_SECOND)),
+            poster=shelter_movie_frame("naraa", "answer2", "start"),
+            end_poster=shelter_movie_frame("naraa", "answer2", "end"),
+            interjections=((NARAA_ANSWER2_PAUSE, NARAA_QUESTION2_FOLLOWUP, shelter_player_voice("question2_part2", "naraa")),))
+        call screen shelter_web_wait
+    else:
+        call screen shelter_naraa_answer2_playback
+    $ shelter_still = "answer2"
+    scene expression Transform(shelter_movie_frame("naraa", "answer2", "end"), xysize=(1920, 1080)) as shelter_hold
+    call screen shelter_clip_handoff("answer2")
+    scene expression shelter_video_end("answer2") as shelter_hold
+    return
