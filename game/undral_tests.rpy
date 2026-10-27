@@ -27,10 +27,10 @@ testsuite shelter_undral_checks:
         pause until screen "shelter_decision" timeout 5
 
     testcase questions_aim_lower_and_shoot:
+        parameter question = [0, 1, 2]
         assert eval ("undral" in SHELTER_VISITOR_ORDER and not SHELTER_CIVILIANS["undral"])
         assert eval (all(renpy.loadable("Video/undral/" + filename) for filename, duration in UNDRAL_CLIPS.values()))
         assert eval (all(renpy.loadable(path) for path in UNDRAL_POSTERS.values()))
-        parameter question = [0, 1, 2]
         click expression UNDRAL_QUESTIONS[question]
         pause until screen "shelter_player_speech" timeout 5
         assert eval (shelter_player_voice("question%d" % (question + 1), "undral") is not None)
