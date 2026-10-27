@@ -35,12 +35,12 @@ init python:
 
         def save(name, pose, angle=0, blend_time=0):
             posed = Transform(pose, rotate=angle, xpos=600, ypos=656,
-                              xanchor=.5, yanchor=.656, transform_anchor=True)
+                            xanchor=.5, yanchor=.656, transform_anchor=True)
             stage = Fixed(posed, xysize=(1200,1000))
             # Half resolution keeps all 56 decoded sprites around 64 MB.
             displayable = Transform(stage, xysize=(600,500))
             renpy.render_to_file(displayable, os.path.join(output,name),
-                                 width=600,height=500,st=blend_time,resize=True)
+                                width=600,height=500,st=blend_time,resize=True)
 
         renpy.start_predict(*poses)
         save("idle.png",poses[0])

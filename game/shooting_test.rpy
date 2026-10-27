@@ -170,7 +170,7 @@ init python:
             self.empty_until = 0
             tx, ty = SHOOTING_TEST_TARGETS[self.target_index]
             if self.monster.hit_test(self.aim,now):
-                self.monster.take_hit(now)
+                self.monster.take_hit(now,self.aim)
                 self.hits += 1
                 self.hit_until = now+.22
             elif (self.aim[0]-tx)**2 + (self.aim[1]-ty)**2 <= 39**2:
@@ -216,6 +216,8 @@ init python:
                 return "Сум дууслаа — R эсвэл «Цэнэглэх»"
             if self.monster.state == "strike":
                 return "Мангас хаалга цохиж байна — онилоод буудаарай!"
+            if self.monster.state == "windup":
+                return "Мангас хаалганд туллаа!"
             if self.monster.state == "approach":
                 return "Мангас ойртож байна!"
             return "Цаасан байг онилоод дарж буудаарай"
@@ -303,7 +305,7 @@ screen shelter_shooting_sandbox():
         style "shooting_test_button"
         xpos 1530 ypos 730
         action Function(sandbox.monster.restart)
-    text "Чиглэл: [SHOOTING_MONSTER_ROUTE_NAMES[sandbox.monster.route_index]]" font SHELTER_FONT size 24 color "#cabb9d" xpos 1530 ypos 684
+    text "Чиглэл: [SHOOTING_MONSTER_ROUTE_NAMES[sandbox.monster.route_index]] · Солилт: [sandbox.monster.completed_changes]/[sandbox.monster.lane_changes]" font SHELTER_FONT size 24 color "#cabb9d" xpos 1530 ypos 684
     textbutton "Цэнэглэх · R":
         id "shooting_test_reload"
         style "shooting_test_button"
@@ -333,11 +335,13 @@ label shelter_shooting_test:
     stop music fadeout .25
     $ renpy.start_predict(*SHOOTING_TEST_FRAMES)
     $ renpy.start_predict(*SHOOTING_MONSTER_FRAMES)
+    $ renpy.start_predict(*SHOOTING_MONSTER_BLOOD_FRAMES)
     $ renpy.start_predict(SHOOTING_TEST_BACKGROUND)
     $ renpy.pause(predict=True)
     call screen shelter_shooting_sandbox
     $ renpy.stop_predict(*SHOOTING_TEST_FRAMES)
     $ renpy.stop_predict(*SHOOTING_MONSTER_FRAMES)
+    $ renpy.stop_predict(*SHOOTING_MONSTER_BLOOD_FRAMES)
     $ renpy.stop_predict(SHOOTING_TEST_BACKGROUND)
     $ renpy.music.stop(channel="shooting_test_sfx")
     $ renpy.music.stop(channel="shooting_test_monster")

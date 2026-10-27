@@ -56,19 +56,34 @@ The supplied door background remains under `game/images/shooting_test/`.
 Procedural sound effects can be rebuilt with `tools/prepare_shooting_test_audio.py`.
 
 The sandbox also spawns a frontal creature: it runs from the street to the
-window, then repeatedly bangs on the steel door. Twelve independent generated
-sprites are under `game/images/shooting_test/monster/`; source and prompt are
-`tools/art/shooting-test/monster-sheet.png` and `monster.md`. Rebuild these with
+window, then repeatedly bangs on the steel door. Eight run sprites and eight
+replacement alternating-fist sprites are under `game/images/shooting_test/monster/`.
+The source/prompt pairs are `tools/art/shooting-test/monster-sheet.png` / `monster.md`
+and `monster-alternating-sheet.png` / `monster-alternating.md`. Rebuild these with
 `python tools/prepare_shooting_monster.py`. Pane clipping keeps the steel frame
 in front of the creature. Each impact triggers the existing metal-door knock
 and a short door shake on a separate sound channel. Three aimed hits make it
 fade away; another approaches shortly afterward. **Дахин дайруулах** / T
 restarts the approach. This feature remains inside the standalone test label.
-The creature now follows three perspective lanes inside the marked road
-trapezoid. Successive approaches cycle left/center/right with a smooth diagonal
-lane change. Feet move from y=520 to y=604 while sprite height grows from 72 to
-288 pixels, keeping the near head at y=316. The selected lane appears above the
-restart button; hit detection uses the same moving position and scale.
+The old four simultaneous-fist runtime images have been deleted. The new cycle
+uses 24 timeline ticks at 25 FPS, with screen-left and screen-right contacts at
+ticks 6 and 18. Each contact triggers its own knock and shake, 480ms apart.
+Nonfatal hits do not rewind the approach clock, shrink the monster or interrupt
+its stride/windup/strike timing. Successful hits trigger a restrained eight-frame
+crimson particle burst at the aiming position, clipped behind the steel door
+with the creature. Sprites are under `game/images/shooting_test/blood/`; source
+and imagegen prompt are `tools/art/shooting-test/blood-hit-sheet.png` and
+`blood-hit.md`. Rebuild with `python tools/prepare_blood_hit.py`. Effects play at
+25 FPS for 0.32 seconds, expire automatically and also appear on the fatal hit.
+The creature follows three perspective lanes inside `SHOOTING_MONSTER_ROAD`.
+Every approach alternates between two and three smooth adjacent-lane changes;
+successive attacks end left/center/right. Feet reach the actual polygon's near
+edge (currently y=900), rather than a separate hardcoded y=604. Sprite size grows
+with the new depth while the near head stays at y=316. Forward motion slows at
+the edge, followed by a 200ms raised-fist windup and then door strikes. The HUD
+shows completed/total lane changes. Debug routes rebuild for the current plan,
+highlight its selected route, and finish at the same green edge as the creature.
+Hit detection uses the same moving position and scale.
 Debug overlays start enabled in the sandbox. **D** / **Debug** toggles them:
 green is the street boundary, blue traces the three actual curved routes,
 red outlines the full monster hitbox, and yellow shows the hittable parts after
