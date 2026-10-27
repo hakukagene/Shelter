@@ -6,12 +6,17 @@ init python:
         Transform("images/shooting_test/monster/monster-%02d.png" % index, xysize=(720,720))
         for index in range(8)
     ] + [
-        Transform("images/shooting_test/monster/strike-%02d.png" % index,xysize=(720,720))
+        Transform("images/shooting_test/monster/claw-%02d.png" % index,xysize=(720,720),
+                xzoom=-1 if index in (4,6) else 1)
         for index in range(8)
     ]
     SHOOTING_MONSTER_STRIKE_FPS = 25
-    SHOOTING_MONSTER_STRIKE_TIMELINE = (0,0,0,1,1,1,2,2,2,3,3,3,4,4,4,4,4,4,5,5,5,6,6,7)
+    SHOOTING_MONSTER_STRIKE_TIMELINE = (0,0,0,1,1,1,2,2,2,3,3,3,4,4,4,5,5,5,6,6,6,7,7,7)
     SHOOTING_MONSTER_CONTACT_TICKS = (6,18)
+    SHOOTING_DOOR_MAX_HP = 100
+    SHOOTING_MONSTER_DAMAGE = 10
+    SHOOTING_MONSTER_BODY_DAMAGE = 1.0
+    SHOOTING_MONSTER_HEAD_DAMAGE = 1.5
     SHOOTING_MONSTER_BLOOD_FRAMES = [
         Transform("images/shooting_test/blood/blood-%02d.png" % index,xysize=(160,160))
         for index in range(8)
@@ -19,7 +24,7 @@ init python:
     SHOOTING_MONSTER_BLOOD_DURATION = 8/25.0
     # Trapezoid traced from the user's marked street area in logical pixels.
     # Both movement and debug paths derive their floor depth from this shape.
-    SHOOTING_MONSTER_ROAD = ((855,550),(1060,550),(1800,900),(100,900))
+    SHOOTING_MONSTER_ROAD = ((855,550),(1060,550),(1900,1000),(20,1000))
     SHOOTING_MONSTER_LANES_FAR = (885,960,1035)
     SHOOTING_MONSTER_LANES_NEAR = (610,970,1420)
     SHOOTING_MONSTER_ROUTE_NAMES = ("Зүүн", "Гол", "Баруун")
@@ -72,21 +77,73 @@ init python:
                 canvas.circle(color,route[-1],5)
             return result
 
+    class ShelterDoorHealth(object):
+        def __init__(self):
+            self.hp = SHOOTING_DOOR_MAX_HP
+            self.impacts = 0
+            self.kills = 0
+
+    class ShelterMonsterCrowd(renpy.Displayable):
+        def __init__(self,owner):
+            super(ShelterMonsterCrowd,self).__init__()
+            self.owner = owner
+
+        def visit(self):
+            return self.owner.monsters
+
+        def render(self,width,height,st,at):
+            result = renpy.Render(1920,1080)
+            now = time.perf_counter()
+            for monster in sorted(self.owner.monsters,key=lambda item:item.geometry(now)[1]):
+                result.blit(renpy.render(monster,1920,1080,st,at),(0,0))
+            renpy.redraw(self,.04)
+            return result
+
     class ShelterDoorMonster(renpy.Displayable):
         approach_duration = 4.0
         windup_duration = .20
         strike_duration = len(SHOOTING_MONSTER_STRIKE_TIMELINE)/25.0
         strike_beat = strike_duration/2.0
 
-        def __init__(self,**kwargs):
+        def __init__(self,door=None,auto_respawn=True,**kwargs):
             super(ShelterDoorMonster,self).__init__(**kwargs)
-            self.kills = 0
-            self.impacts = 0
+            self.door = door if door is not None else ShelterDoorHealth()
+            self.auto_respawn = auto_respawn
             self.route_index = -1
             self.approach_count = 0
             self.death_frames = [Transform(SHOOTING_MONSTER_FRAMES[8],alpha=(8-index)/8.0)
                                 for index in range(9)]
             self.restart(delay=1.2)
+            # Reuse a fixed set of transforms; brightness changes on the GPU,
+            # without making additional PNGs or per-frame displayables.
+            self.lit_frames = [Transform(frame,function=self.light_transform)
+                            for frame in SHOOTING_MONSTER_FRAMES]
+            self.lit_death_frames = [Transform(frame,function=self.light_transform)
+                                    for frame in self.death_frames]
+
+        @property
+        def door_hp(self):
+            return self.door.hp
+
+        @door_hp.setter
+        def door_hp(self,value):
+            self.door.hp = value
+
+        @property
+        def impacts(self):
+            return self.door.impacts
+
+        @impacts.setter
+        def impacts(self,value):
+            self.door.impacts = value
+
+        @property
+        def kills(self):
+            return self.door.kills
+
+        @kills.setter
+        def kills(self,value):
+            self.door.kills = value
 
         def restart(self,delay=0,route=None,changes=None):
             now = time.perf_counter()
@@ -105,14 +162,31 @@ init python:
             self.hit_until = 0
             self.respawn_at = 0
             self.hp = 3
+            self.last_hit_zone = None
             self.blood_events = []
+            self.breach_geometry = None
             renpy.music.stop(channel="shooting_test_monster")
             renpy.redraw(self,0)
 
         def visit(self):
-            return SHOOTING_MONSTER_FRAMES+self.death_frames+SHOOTING_MONSTER_BLOOD_FRAMES
+            return self.lit_frames+self.lit_death_frames+SHOOTING_MONSTER_BLOOD_FRAMES
+
+        def light_at(self,now):
+            progress = max(0,min(1,(now-self.approach_started)/self.approach_duration))
+            depth = progress*progress*(3-2*progress)
+            return .10+.90*depth
+
+        def light_transform(self,transform,st,at):
+            light = self.light_at(time.perf_counter())
+            transform.matrixcolor = TintMatrix(Color(rgb=(light,light,light)))
+            return .04
+
+        def blood_size(self,size):
+            return max(60,min(264,size*.44))
 
         def geometry(self,now):
+            if self.state == "breached" and self.breach_geometry is not None:
+                return self.breach_geometry
             progress = max(0,min(1,(now-self.approach_started)/self.approach_duration))
             return self.geometry_at_progress(progress)
 
@@ -152,6 +226,8 @@ init python:
             return x,foot,foot-head
 
         def frame_at(self,now):
+            if self.state == "breached":
+                return 10 if self.last_impact_hand == "left" else 14
             if self.state == "windup":
                 return 8
             if self.state == "strike":
@@ -166,6 +242,14 @@ init python:
             changed = False
             self.blood_events = [event for event in self.blood_events
                                 if now-event[0] < SHOOTING_MONSTER_BLOOD_DURATION]
+            if self.door_hp <= 0:
+                if self.state not in ("gone","breached"):
+                    self.breach_geometry = self.geometry(now)
+                    self.state = "breached"
+                    self.next_impact = float("inf")
+                    changed = True
+                renpy.redraw(self,0)
+                return changed
             if self.state == "waiting" and now >= self.approach_started:
                 self.state = "approach"
                 changed = True
@@ -188,14 +272,20 @@ init python:
             if self.state == "strike" and now >= self.next_impact:
                 # Schedule the next beat from its deadline, not from render time.
                 missed = int((now-self.next_impact)/self.strike_beat)+1
-                self.last_impact_hand = ("left","right")[(self.strike_impact_index+missed-1)%2]
-                self.strike_impact_index += missed
+                landed = min(missed,(self.door_hp+SHOOTING_MONSTER_DAMAGE-1)//SHOOTING_MONSTER_DAMAGE)
+                self.last_impact_hand = ("left","right")[(self.strike_impact_index+landed-1)%2]
+                self.strike_impact_index += landed
                 self.next_impact += missed*self.strike_beat
-                self.impacts += 1
+                self.impacts += landed
+                self.door_hp = max(0,self.door_hp-landed*SHOOTING_MONSTER_DAMAGE)
+                if self.door_hp == 0:
+                    self.breach_geometry = self.geometry(now)
+                    self.state = "breached"
+                    self.next_impact = float("inf")
                 self.impact_until = now+.16
                 renpy.music.play("audio/Audio/door .wav",channel="shooting_test_monster",loop=False)
                 changed = True
-            if self.state == "gone" and now >= self.respawn_at:
+            if self.auto_respawn and self.state == "gone" and now >= self.respawn_at:
                 self.restart(delay=.8)
                 changed = True
             renpy.redraw(self,0)
@@ -207,8 +297,7 @@ init python:
             x,foot,size = self.geometry(now)
             return x-.26*size,foot-.97*size,.52*size,.75*size
 
-        def hit_rectangles(self,now):
-            bounds = self.hit_bounds(now)
+        def clip_hit_bounds(self,bounds):
             if bounds is None:
                 return ()
             left,top,width,height = bounds
@@ -219,6 +308,23 @@ init python:
                 if x2 > x1 and y2 > y1:
                     rectangles.append((x1,y1,x2-x1,y2-y1))
             return tuple(rectangles)
+
+        def hit_rectangles(self,now):
+            return self.clip_hit_bounds(self.hit_bounds(now))
+
+        def head_rectangles(self,now):
+            if self.hit_bounds(now) is None:
+                return ()
+            x,foot,size = self.geometry(now)
+            return self.clip_hit_bounds((x-.12*size,foot-.97*size,.24*size,.22*size))
+
+        def hit_zone(self,aim,now):
+            if not self.hit_test(aim,now):
+                return None
+            if any(x <= aim[0] < x+w and y <= aim[1] < y+h
+                for x,y,w,h in self.head_rectangles(now)):
+                return "head"
+            return "body"
 
         def hit_test(self,aim,now):
             return any(x <= aim[0] < x+w and y <= aim[1] < y+h
@@ -236,14 +342,23 @@ init python:
                 rect = (int(rx-x)+3,int(ry-y)+3,max(1,int(rw)),max(1,int(rh)))
                 canvas.rect((255,215,60,48),rect)
                 canvas.rect((255,215,60,255),rect,2)
+            for rx,ry,rw,rh in self.head_rectangles(now):
+                rect = (int(rx-x)+3,int(ry-y)+3,max(1,int(rw)),max(1,int(rh)))
+                canvas.rect((255,125,230,65),rect)
+                canvas.rect((255,125,230,255),rect,2)
             return result,(x-3,y-3)
 
         def take_hit(self,now,point=None):
-            self.hp -= 1
-            self.hit_until = now+.32
             x,foot,size = self.geometry(now)
             px,py = point if point is not None else (x,foot-.65*size)
-            self.blood_events.append((now,px,py,max(30,min(132,size*.22))))
+            zone = self.hit_zone((px,py),now)
+            if zone is None:
+                return None
+            self.last_hit_zone = zone
+            damage = SHOOTING_MONSTER_HEAD_DAMAGE if zone == "head" else SHOOTING_MONSTER_BODY_DAMAGE
+            self.hp = max(0,self.hp-damage)
+            self.hit_until = now+.32
+            self.blood_events.append((now,px,py,self.blood_size(size)))
             self.blood_events = self.blood_events[-4:]
             if self.hp <= 0:
                 self.state = "gone"
@@ -254,6 +369,7 @@ init python:
                 renpy.music.stop(channel="shooting_test_monster")
             # Nonfatal hits never reset progress, gait, windup or strike clocks.
             renpy.redraw(self,0)
+            return zone
 
         def render(self,width,height,st,at):
             result = renpy.Render(1920,1080)
@@ -263,15 +379,19 @@ init python:
                 # transform anchor inheritance from its cached source poses.
                 now = math.floor(time.perf_counter()*25)/25.0
                 x,foot,size = self.geometry(now)
-                source = SHOOTING_MONSTER_FRAMES[self.frame_at(now)]
+                pose_index = self.frame_at(now)
+                source = self.lit_frames[pose_index]
                 if self.state == "gone":
                     fade = max(0,min(8,int((now-(self.respawn_at-2.9))/.4*8)))
-                    source = self.death_frames[fade]
+                    source = self.lit_death_frames[fade]
                 image = renpy.render(source,720,720,st,at)
-                scaled = renpy.Render(int(math.ceil(size)),int(math.ceil(size)))
+                # The claw atlas reserves 11% above the crown for raised hands.
+                # Keep crown/feet at the same world positions as the run poses.
+                draw_size = size/.89 if pose_index >= 8 or self.state == "gone" else size
+                scaled = renpy.Render(int(math.ceil(draw_size)),int(math.ceil(draw_size)))
                 scaled.blit(image,(0,0))
-                scaled.zoom(size/720.0,size/720.0)
-                result.blit(scaled,(x-size/2,foot-size))
+                scaled.zoom(draw_size/720.0,draw_size/720.0)
+                result.blit(scaled,(x-draw_size/2,foot-draw_size))
                 for started,px,py,effect_size in self.blood_events:
                     age = max(0,now-started)
                     if age >= SHOOTING_MONSTER_BLOOD_DURATION:

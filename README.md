@@ -70,12 +70,42 @@ uses 24 timeline ticks at 25 FPS, with screen-left and screen-right contacts at
 ticks 6 and 18. Each contact triggers its own knock and shake, 480ms apart.
 Nonfatal hits do not rewind the approach clock, shrink the monster or interrupt
 its stride/windup/strike timing. Successful hits trigger a restrained eight-frame
-crimson particle burst at the aiming position, clipped behind the steel door
+crimson particle burst at the aiming position, doubled in diameter (60–264 logical
+pixels according to distance), clipped behind the steel door
 with the creature. Sprites are under `game/images/shooting_test/blood/`; source
 and imagegen prompt are `tools/art/shooting-test/blood-hit-sheet.png` and
 `blood-hit.md`. Rebuild with `python tools/prepare_blood_hit.py`. Effects play at
 25 FPS for 0.32 seconds, expire automatically and also appear on the fatal hit.
+The creature smoothly emerges from shadow: RGB brightness increases from 10%
+at the far end to 100% at the door, using the same smooth depth curve as movement.
+Reusable GPU color transforms preserve sprite transparency and leave blood/HUD
+brightness unchanged.
 The creature follows three perspective lanes inside `SHOOTING_MONSTER_ROAD`.
+Aiming now selects 35 authored perspective poses (7 yaw × 5 pitch) from
+`images/shooting_test/aim35/`, each with idle and firing versions: 70 PNGs total.
+Both crosshair axes ease toward their targets; frame selection updates at 25 FPS.
+One opaque sprite is drawn at a time, with no gun rotation or silhouette dissolve.
+The wrist base remains fixed. The existing 45-frame reload is retained.
+Sources and built-in imagegen prompts are in `tools/art/shooting-test/aim35/`.
+Export with `python tools/prepare_aim35.py`; it splits and resizes the atlas cells,
+detects row gutters, preserves alpha, and verifies 70 distinct exported PNGs.
+The door starts with 100 HP. Each alternating claw swipe deals 10 damage at its
+contact tick, including elapsed contacts if an update is delayed. At zero HP,
+attacks and firing stop. T / restart restores the door; automatic monster respawn
+preserves accumulated damage. The HUD shows door HP and a health bar.
+Waves repeat 1, 2, 1, 3 creatures. Each creature has its own route, stride, hitbox,
+three-hit health and blood effect; the whole crowd shares door HP and totals.
+Head hits deal 1.5 health and body hits deal 1 health against 3 total health:
+two headshots or three body shots kill a creature. Mixed hits accumulate on the
+same health pool. The smaller pink head region scales with the creature and is
+clipped by the same glass panes as body hits; steel bars never count as hits.
+Only the nearest overlapping creature takes a bullet. A cleared wave advances
+after the final death delay; HP remains depleted between waves. T resets to the
+first solo wave and restores door HP. N / the next-wave button previews the next
+formation. Creatures are depth sorted and clipped behind the door together.
+The replacement open-claw poses are `images/shooting_test/monster/claw-*.png`.
+Source atlases and built-in imagegen prompts are `tools/art/shooting-test/aim-directions*`
+and `monster-claw*`; export with `python tools/prepare_directional_claw_sprites.py`.
 Every approach alternates between two and three smooth adjacent-lane changes;
 successive attacks end left/center/right. Feet reach the actual polygon's near
 edge (currently y=900), rather than a separate hardcoded y=604. Sprite size grows
