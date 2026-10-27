@@ -19,7 +19,7 @@ CONSTANTS = {"Chinba": "CHINBA_CLIPS", "Maral": "SHELTER_CLIPS",
              "Swat": "SWAT_CLIPS", "Bayra": "BAYRA_CLIPS", "anu": "ANU_CLIPS",
              "deeremchin": "DEEREMCHIN_CLIPS", "ganba": "GANBA_CLIPS",
              "ganzo": "GANZO_CLIPS", "naraa": "NARAA_CLIPS",
-             "margad": "MARGAD_CLIPS"}
+             "margad": "MARGAD_CLIPS", "undral": "UNDRAL_CLIPS"}
 
 
 def digest(path):
@@ -48,13 +48,13 @@ def playback_starts():
     return ast.literal_eval(re.search(r"^define SHELTER_CLIP_STARTS = (\{.*?\})", script, re.M | re.S)[1])
 
 
-def naraa_posters(clip):
-    # Share the runtime's two authored images; never generate Naraa stills.
-    script = (ROOT / "game/naraa.rpy").read_text(encoding="utf-8-sig")
+def authored_posters(visitor, clip):
+    # Share each visitor's authored images without generating duplicate stills.
+    script = (ROOT / "game" / (visitor + ".rpy")).read_text(encoding="utf-8-sig")
     def table(name):
         return ast.literal_eval(re.search(r"^define " + name + r" = (\{.*?\})", script, re.M | re.S)[1])
-    posters = table("NARAA_POSTERS")
-    states = table("NARAA_POSTER_STATES")[clip]
+    posters = table(visitor.upper() + "_POSTERS")
+    states = table(visitor.upper() + "_POSTER_STATES")[clip]
     return {edge: ROOT / "game" / posters[state]
             for edge, state in zip(("start", "end"), states)}
 
@@ -82,15 +82,15 @@ def main():
         end_time = ends.get(key)
         folder = OUT / visitor
         targets = {edge: folder / (clip + "-" + edge + ".jpg") for edge in ("start", "end")}
-        if visitor == "naraa":
-            targets = naraa_posters(clip)
+        if visitor in ("naraa", "undral"):
+            targets = authored_posters(visitor, clip)
             for path in targets.values():
                 if not path.is_file():
-                    raise RuntimeError(str(path) + ": missing authored Naraa image")
+                    raise RuntimeError(str(path) + ": missing authored visitor image")
         old = previous.get(key, {})
         ready = old.get("source_sha256") == fingerprint and old.get("start_time") == start_time and old.get("end_time") == end_time and all(
             path.exists() and digest(path) == old.get(edge + "_sha256") for edge, path in targets.items())
-        if not ready and visitor != "naraa":
+        if not ready and visitor not in ("naraa", "undral"):
             if args.check:
                 raise RuntimeError(key + ": missing/stale transition frames; run this tool without --check")
             folder.mkdir(parents=True, exist_ok=True)
@@ -114,7 +114,7 @@ def main():
         data = {"source": str(source.relative_to(ROOT / "game")), "source_sha256": fingerprint,
                 "start_time": start_time, "end_time": end_time}
         data.update({edge + "_sha256": digest(path) for edge, path in targets.items()})
-        if visitor == "naraa":
+        if visitor in ("naraa", "undral"):
             data.update({edge + "_image": str(path.relative_to(ROOT / "game"))
                          for edge, path in targets.items()})
             if args.check and old != data:
@@ -130,7 +130,7 @@ def main():
         manifest.write_text(json.dumps(previous, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     elif not args.visitor and set(previous) != set(result):
         raise RuntimeError("Transition manifest has missing or obsolete clip entries")
-    print("Verified", len(result), "playable clips and", len(result)*2, "transition frames")
+    print("Verified", len(result), "playable clips and", len(result)*2, "poster references")
 
 
 if __name__ == "__main__":

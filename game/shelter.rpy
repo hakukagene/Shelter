@@ -29,9 +29,9 @@ define SHELTER_CIVILIAN_TARGET = 40
 define SHELTER_MAX_CIVILIAN_DEATHS = 2
 define SHELTER_MAX_CIVILIAN_MISTAKES = 2
 # Available roster, also the original sequence for saves predating random order.
-define SHELTER_VISITOR_ORDER = ("Chinba", "Maral", "Swat", "Bayra", "anu", "deeremchin", "ganba", "ganzo", "naraa", "margad")
+define SHELTER_VISITOR_ORDER = ("Chinba", "Maral", "Swat", "Bayra", "anu", "deeremchin", "ganba", "ganzo", "naraa", "margad", "undral")
 default shelter_run_order = None
-define SHELTER_CIVILIANS = {"Chinba": True, "Maral": False, "Swat": True, "Bayra": True, "anu": False, "ganba": True, "ganzo": True, "naraa": True, "margad": False}
+define SHELTER_CIVILIANS = {"Chinba": True, "Maral": False, "Swat": True, "Bayra": True, "anu": False, "ganba": True, "ganzo": True, "naraa": True, "margad": False, "undral": False}
 # Armor stops the bullet: Orgil leaves alive after being shot.
 define SHELTER_NONLETHAL_SHOOT = ("Swat",)
 default shelter_outcomes = {}
@@ -57,6 +57,8 @@ init 1 python:
 
     renpy.music.register_channel("shelter_knock", mixer="sfx", loop=False, stop_on_mute=False)
     SHELTER_VISITORS = {
+        "undral": {"clips": UNDRAL_CLIPS, "questions": UNDRAL_QUESTIONS,
+                "lines": UNDRAL_LINES, "windows": UNDRAL_SPEECH_WINDOWS, "voices": {}},
         "margad": {"clips": MARGAD_CLIPS, "questions": MARGAD_QUESTIONS,
                 "lines": MARGAD_LINES, "windows": MARGAD_SPEECH_WINDOWS,
                 "voices": MARGAD_SUPPLIED_PLAYER_VOICES},
@@ -179,6 +181,8 @@ init 1 python:
             if clip in ("intro", "answer1_part3", "answer2", "answer3", "lower"):
                 return shelter_movie_frame(visitor, "answer1", "start")
             return shelter_movie_frame(visitor, clip, "end")
+        if visitor == "undral":
+            return shelter_undral_poster(clip)
         if visitor == "naraa":
             return shelter_naraa_poster(clip)
         if visitor in ("ganba", "ganzo"):
@@ -228,6 +232,8 @@ init 1 python:
         renpy.show("shelter_hold", what=shelter_video_end(shelter_still))
 
     def shelter_movie_frame(visitor, clip, edge):
+        if visitor == "undral":
+            return shelter_undral_poster(clip, edge)
         if visitor == "naraa":
             return shelter_naraa_poster(clip, edge)
         return "images/transitions/" + visitor + "/" + clip + "-" + edge + ".jpg"
@@ -871,7 +877,7 @@ label shelter_resolve_visitor:
         $ shelter_mistakes = shelter_civilian_mistakes()
         call screen shelter_result("ТА ХОЖИГДЛОО", "Та [shelter_mistakes] энгийн хүнийг хөнөөсөн эсвэл хөөж явуулсан. Зөвшөөрөгдөх алдааны дээд хэмжээ 2.")
     elif shelter_admitted_monster():
-        $ shelter_monster_ending = "Эмэгтэй чөтгөр болон хувирч, тан руу дайрлаа." if shelter_visitor == "deeremchin" else "Ану чөтгөр болон хувирч, тан руу дайрлаа." if shelter_visitor == "anu" else "Маргад шууд тан руу дайрлаа." if shelter_visitor == "margad" else "Маралын дүр аймшигтайгаар хувирч, тэр чөтгөрийн инээдээр инээн тан руу дайрлаа."
+        $ shelter_monster_ending = "Хүүхэд чөтгөр болон хувирч, тан руу дайрлаа." if shelter_visitor == "undral" else "Эмэгтэй чөтгөр болон хувирч, тан руу дайрлаа." if shelter_visitor == "deeremchin" else "Ану чөтгөр болон хувирч, тан руу дайрлаа." if shelter_visitor == "anu" else "Маргад шууд тан руу дайрлаа." if shelter_visitor == "margad" else "Маралын дүр аймшигтайгаар хувирч, тэр чөтгөрийн инээдээр инээн тан руу дайрлаа."
         call screen shelter_result("ТА АЮУЛЫГ ДОТОГШ ОРУУЛЛАА", shelter_monster_ending)
     elif shelter_status == "win":
         call screen shelter_result("ТА ХОЖЛОО", "Та [SHELTER_CIVILIAN_TARGET] энгийн иргэнийг хорогдох байранд оруулж аварлаа.")
