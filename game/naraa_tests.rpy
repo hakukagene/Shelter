@@ -31,7 +31,7 @@ testsuite shelter_naraa_transition_checks:
         assert eval (set(NARAA_CLIPS) == {"intro", "answer1", "answer2", "answer3", "aim", "lower", "shoot", "admit", "reject"})
         assert eval (all(renpy.loadable("Video/naraa/" + filename) for filename, duration in NARAA_CLIPS.values()))
         click "Чамайг яагаад би оруулах ёстой вэ?"
-        pause until screen "shelter_video" timeout 10
+        pause until screen "shelter_playback" timeout 10
         pause until screen "shelter_decision" timeout 90
         assert eval (shelter_asked == [1] and shelter_still == "answer2")
         assert not screen "shelter_followup_question"
