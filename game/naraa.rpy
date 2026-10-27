@@ -64,7 +64,7 @@ define NARAA_SPEECH_WINDOWS = {
 
 # Initial split point from the former first-response clip. Tune against the
 # replacement soundtrack if its first line ends earlier/later.
-define NARAA_ANSWER2_PAUSE = 5.008
+define NARAA_ANSWER2_PAUSE = 6.1
 define NARAA_QUESTION2_FOLLOWUP = "Тиймээ гэхдээ би чамайг энгийн хүн гэж яагаад итгэх ёстой гэж?"
 define NARAA_ANSWER2_FIRST = "Наадах чинь хорогдох байр юм биш үү. Орж хорогдоё л доо."
 define NARAA_ANSWER2_SECOND = "Би тийм ч энгийн хүн биш л дээ. За л даа, ийм сайхан хүүхнийг үх гээд орхино гэж үү? Намайг оруулбал би хариуг чинь барина шүү. Яаж гэдгийг нь чи мэдэж байгаа биз дээ айн? кк"
@@ -131,7 +131,7 @@ label shelter_naraa_answer2_conversation:
         $ shelter_web_begin(
             "Video/naraa/" + NARAA_CLIPS["answer2"][0],
             ((0.0, NARAA_ANSWER2_PAUSE, "", NARAA_ANSWER2_FIRST),
-             (NARAA_ANSWER2_PAUSE, NARAA_CLIPS["answer2"][1], "", NARAA_ANSWER2_SECOND)),
+            (NARAA_ANSWER2_PAUSE, NARAA_CLIPS["answer2"][1], "", NARAA_ANSWER2_SECOND)),
             poster=shelter_movie_frame("naraa", "answer2", "start"),
             end_poster=shelter_movie_frame("naraa", "answer2", "end"),
             interjections=((NARAA_ANSWER2_PAUSE, NARAA_QUESTION2_FOLLOWUP, shelter_player_voice("question2_part2", "naraa")),))

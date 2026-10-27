@@ -19,7 +19,7 @@ init python:
     SHOOTING_MONSTER_BLOOD_DURATION = 8/25.0
     # Trapezoid traced from the user's marked street area in logical pixels.
     # Both movement and debug paths derive their floor depth from this shape.
-    SHOOTING_MONSTER_ROAD = ((855,520),(1060,520),(1800,900),(100,900))
+    SHOOTING_MONSTER_ROAD = ((855,550),(1060,550),(1800,900),(100,900))
     SHOOTING_MONSTER_LANES_FAR = (885,960,1035)
     SHOOTING_MONSTER_LANES_NEAR = (610,970,1420)
     SHOOTING_MONSTER_ROUTE_NAMES = ("Зүүн", "Гол", "Баруун")
