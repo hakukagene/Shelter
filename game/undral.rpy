@@ -1,15 +1,15 @@
 # Undral, 25: monster. Source text: the supplied Shelter character script.
 # The media workflow refreshes durations from the actual WebMs.
 define UNDRAL_CLIPS = {
-    "intro": ("Undral ehlel.webm", 1.000),
-    "answer1": ("Undral hariult1.webm", 1.000),
-    "answer2": ("Undral hariult2.webm", 1.000),
-    "answer3": ("Undral hariult3.webm", 1.000),
-    "aim": ("Undral garaa orgoh.webm", 1.000),
-    "lower": ("Undral garaa buulgah.webm", 1.000),
-    "shoot": ("Undral buuduulah.webm", 1.000),
-    "reject": ("Undral hoogdoh.webm", 1.000),
-    "admit": ("Undral oruulah.webm", 1.000),
+    "intro": ("Undral ehlel.webm", 20.841),
+    "answer1": ("Undral hariult1.webm", 36.133),
+    "answer2": ("Undral hariult2.webm", 21.258),
+    "answer3": ("Undral hariult3.webm", 13.674),
+    "aim": ("Undral garaa orgoh.webm", 3.049),
+    "lower": ("Undral garaa buulgah.webm", 3.049),
+    "shoot": ("Undral buuduulah.webm", 5.716),
+    "reject": ("Undral hoogdoh.webm", 12.383),
+    "admit": ("Undral oruulah.webm", 7.049),
 }
 
 define UNDRAL_QUESTIONS = [
