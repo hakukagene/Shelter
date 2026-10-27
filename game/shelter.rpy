@@ -180,11 +180,7 @@ init 1 python:
                 return shelter_movie_frame(visitor, "answer1", "start")
             return shelter_movie_frame(visitor, clip, "end")
         if visitor == "naraa":
-            # Use only frames decoded from Naraa's movies. The standalone art
-            # differs from the footage and used to flash between every clip.
-            if clip in ("intro", "answer1", "answer2", "answer2_part2", "answer3", "lower"):
-                return shelter_movie_frame(visitor, "answer1", "start")
-            return shelter_movie_frame(visitor, clip, "end")
+            return shelter_naraa_poster(clip)
         if visitor in ("ganba", "ganzo"):
             if clip in ("intro", "answer1", "answer2", "answer3", "lower"):
                 return shelter_movie_frame(visitor, "answer1", "start")
@@ -232,6 +228,8 @@ init 1 python:
         renpy.show("shelter_hold", what=shelter_video_end(shelter_still))
 
     def shelter_movie_frame(visitor, clip, edge):
+        if visitor == "naraa":
+            return shelter_naraa_poster(clip, edge)
         return "images/transitions/" + visitor + "/" + clip + "-" + edge + ".jpg"
 
     def shelter_movie_start_image(visitor, clip):
