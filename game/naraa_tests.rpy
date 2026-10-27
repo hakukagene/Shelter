@@ -52,11 +52,11 @@ testsuite shelter_naraa_transition_checks:
         assert eval (all(renpy.loadable(shelter_movie_frame("naraa", clip, edge)) for clip in NARAA_CLIPS for edge in ("start", "end")))
         click "Буу онилох"
         pause until screen "shelter_decision" timeout 20
-        assert eval (shelter_still == "aim" and shelter_wait_image("aim") == "images/transitions/naraa/aim-end.jpg")
+        assert eval (shelter_still == "aim" and shelter_wait_image("aim") == NARAA_POSTERS["aim"])
         screenshot "../../tmp/naraa/armed.png"
         click "Буугаа буулгах"
         pause until screen "shelter_decision" timeout 10
-        assert eval (shelter_wait_image(shelter_still) == "images/transitions/naraa/answer1-start.jpg")
+        assert eval (shelter_wait_image(shelter_still) == NARAA_POSTERS["idle"])
         screenshot "../../tmp/naraa/lowered.png"
         click "Оруулах"
         pause until screen "shelter_result" timeout 25

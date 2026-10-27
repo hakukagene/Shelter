@@ -48,6 +48,17 @@ def playback_starts():
     return ast.literal_eval(re.search(r"^define SHELTER_CLIP_STARTS = (\{.*?\})", script, re.M | re.S)[1])
 
 
+def naraa_posters(clip):
+    # Share the runtime's two authored images; never generate Naraa stills.
+    script = (ROOT / "game/naraa.rpy").read_text(encoding="utf-8-sig")
+    def table(name):
+        return ast.literal_eval(re.search(r"^define " + name + r" = (\{.*?\})", script, re.M | re.S)[1])
+    posters = table("NARAA_POSTERS")
+    states = table("NARAA_POSTER_STATES")[clip]
+    return {edge: ROOT / "game" / posters[state]
+            for edge, state in zip(("start", "end"), states)}
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--check", action="store_true")
@@ -71,10 +82,15 @@ def main():
         end_time = ends.get(key)
         folder = OUT / visitor
         targets = {edge: folder / (clip + "-" + edge + ".jpg") for edge in ("start", "end")}
+        if visitor == "naraa":
+            targets = naraa_posters(clip)
+            for path in targets.values():
+                if not path.is_file():
+                    raise RuntimeError(str(path) + ": missing authored Naraa image")
         old = previous.get(key, {})
         ready = old.get("source_sha256") == fingerprint and old.get("start_time") == start_time and old.get("end_time") == end_time and all(
             path.exists() and digest(path) == old.get(edge + "_sha256") for edge, path in targets.items())
-        if not ready:
+        if not ready and visitor != "naraa":
             if args.check:
                 raise RuntimeError(key + ": missing/stale transition frames; run this tool without --check")
             folder.mkdir(parents=True, exist_ok=True)
@@ -98,6 +114,11 @@ def main():
         data = {"source": str(source.relative_to(ROOT / "game")), "source_sha256": fingerprint,
                 "start_time": start_time, "end_time": end_time}
         data.update({edge + "_sha256": digest(path) for edge, path in targets.items()})
+        if visitor == "naraa":
+            data.update({edge + "_image": str(path.relative_to(ROOT / "game"))
+                         for edge, path in targets.items()})
+            if args.check and old != data:
+                raise RuntimeError(key + ": stale authored-poster manifest; run this tool without --check")
         print(key + (": checked + decoded" if args.audit else ": checked"), flush=True)
         return key, data
 

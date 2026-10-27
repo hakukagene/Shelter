@@ -1,5 +1,26 @@
 # Naraa - civilian encounter. Media supplied in game/Video/naraa/.
 # Durations were measured from the supplied VP9/Opus WebMs.
+define NARAA_POSTERS = {
+    "idle": "images/naraa/Naraa Idle.jpg",
+    "aim": "images/naraa/Naraa garaa orgov.png",
+}
+define NARAA_POSTER_STATES = {
+    "intro": ("idle", "idle"),
+    "answer1": ("idle", "idle"),
+    "answer2": ("idle", "idle"),
+    "answer3": ("idle", "idle"),
+    "aim": ("idle", "aim"),
+    "lower": ("aim", "idle"),
+    "shoot": ("aim", "aim"),
+    "admit": ("idle", "idle"),
+    "reject": ("idle", "idle"),
+}
+
+init python:
+    def shelter_naraa_poster(clip, edge="end"):
+        states = NARAA_POSTER_STATES.get(clip, ("idle", "idle"))
+        return NARAA_POSTERS[states[0 if edge == "start" else 1]]
+
 define NARAA_CLIPS = {
     "intro": ("Naraa Ehlel.webm", 12.368),
     "answer1": ("Naraa Hariult 1.webm", 38.968),
