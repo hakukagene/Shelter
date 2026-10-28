@@ -19,6 +19,7 @@ body{height:100vh;height:100dvh}
 #video-pause{width:108px;font-family:Arial,sans-serif}
 #video-mute{width:190px}
 #video-skip{position:absolute;right:48px;bottom:38px;width:96px;height:96px;padding:0;border:0;border-radius:50%;background:transparent;color:#e8dfca;cursor:pointer;touch-action:none;-webkit-tap-highlight-color:transparent}
+#video-skip::before{content:"";position:absolute;inset:4px;border-radius:50%;background:#100e0de6;pointer-events:none}
 #video-skip .skip-ring{position:absolute;left:0;top:0;width:96px;height:96px;pointer-events:none;fill:none}
 #video-skip .skip-ring-track{stroke:#514c3f;stroke-width:4}
 #video-skip .skip-ring-progress{stroke:#ffd38c;stroke-width:4;stroke-dasharray:100;stroke-dashoffset:100;transform:rotate(-90deg);transform-origin:32px 32px}

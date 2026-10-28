@@ -98,6 +98,7 @@ init 1 python:
         def render(self, width, height, st, at):
             result = renpy.Render(64, 64)
             canvas = result.canvas()
+            canvas.circle("#100e0de6", (32, 32), 29)
             canvas.circle("#514c3f", (32, 32), 27, 4)
             if self.progress > 0.0:
                 steps = max(1, int(96 * self.progress))
