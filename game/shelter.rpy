@@ -56,6 +56,27 @@ init 1 python:
             return super(ShelterSkipMouseArea, self).event(ev, x, y, st)
 
     renpy.music.register_channel("shelter_knock", mixer="sfx", loop=False, stop_on_mute=False)
+
+    class ShelterSkipRing(renpy.Displayable):
+        """Clockwise hold progress and chevrons, drawn without raster assets."""
+        def __init__(self, progress=0.0, **kwargs):
+            super(ShelterSkipRing, self).__init__(**kwargs)
+            self.progress = max(0.0, min(1.0, progress))
+
+        def render(self, width, height, st, at):
+            result = renpy.Render(64, 64)
+            canvas = result.canvas()
+            canvas.circle("#514c3f", (32, 32), 27, 4)
+            if self.progress > 0.0:
+                steps = max(1, int(96 * self.progress))
+                points = [(32 + 27 * math.cos(-math.pi / 2 + 2 * math.pi * self.progress * i / steps),
+                           32 + 27 * math.sin(-math.pi / 2 + 2 * math.pi * self.progress * i / steps))
+                          for i in range(steps + 1)]
+                canvas.lines("#ffd38c", False, points, 4)
+            canvas.lines("#e8dfca", False, [(22, 24), (30, 32), (22, 40)], 3)
+            canvas.lines("#e8dfca", False, [(33, 24), (41, 32), (33, 40)], 3)
+            return result
+
     SHELTER_VISITORS = {
         "undral": {"clips": UNDRAL_CLIPS, "questions": UNDRAL_QUESTIONS,
                 "lines": UNDRAL_LINES, "windows": UNDRAL_SPEECH_WINDOWS, "voices": {}},
@@ -353,39 +374,31 @@ screen shelter_hold_skip(complete_action):
         id "shelter_hold_skip"
         xalign 0.975
         yalign 0.965
-        xysize (180, 180)
+        xysize (340, 108)
 
-        add Transform(
-            "gui/shelter/actions/reject.png",
-            xysize=(180, 180),
-            matrixcolor=(BrightnessMatrix(0.14) if hold_hovered else IdentityMatrix()))
+        # Reuse the main menu/settings metal plate instead of the reject icon.
+        add Frame("gui/shelter/metal/selected.png" if hold_hovered or hold_active else "gui/shelter/metal/button.png", 28, 24) xysize (340, 108)
+        add ShelterSkipRing(hold_progress) xpos 20 ypos 22
 
-        # Linear progress is separate from the icon so the fill is readable.
-        bar:
-            value StaticValue(min(hold_progress, 1.0), 1.0)
-            xpos 10
-            ypos 184
-            xsize 160
-            ysize 10
-            left_bar Solid("#ffe13b")
-            right_bar Solid("#514c3f")
-            thumb None
-
-        text ("АЛГАСАХ" if hold_active else "1 СЕК ДАР"):
+        text "АЛГАСАХ":
             font SHELTER_BOLD
-            size 15
+            size 28
             color ("#ffffff" if hold_active else "#e8dfca")
-            xalign 0.5
-            ypos 107
-            xsize 118
-            text_align 0.5
+            xpos 100
+            ypos 24
             outlines [(1, "#000c", 0, 1)]
+        text ("ДАРЖ БАРЬ" if hold_active else "1 СЕК ДАР"):
+            font SHELTER_FONT
+            size 18
+            color "#d7cbb7"
+            xpos 100
+            ypos 60
         add ShelterSkipMouseArea(
             hovered=SetLocalVariable("hold_hovered", True),
             unhovered=[
                 SetLocalVariable("hold_hovered", False),
                 SetLocalVariable("hold_active", False),
-                SetLocalVariable("hold_progress", 0.0)]) xysize (180, 180)
+                SetLocalVariable("hold_progress", 0.0)]) xysize (340, 108)
 
 
 

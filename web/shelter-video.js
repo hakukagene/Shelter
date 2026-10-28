@@ -41,7 +41,7 @@
     event.preventDefault();
     skip.setPointerCapture?.(event.pointerId);
     skip.classList.add("holding");
-    skipLabel.textContent = "АЛГАСАХ";
+    skipLabel.textContent = "ДАРЖ БАРЬ";
     skipHoldTimer = setTimeout(() => {
       skipHoldTimer = null;
       finish(true);
