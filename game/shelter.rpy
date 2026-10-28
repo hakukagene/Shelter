@@ -47,13 +47,45 @@ define SHELTER_CLOCK_START = 23 * 60 + 10
 init 1 python:
     import math
 
-    class ShelterSkipMouseArea(renpy.display.behavior.MouseArea):
-        """Do not treat modal timer events as a pointer leaving Skip."""
+    class ShelterSkipMouseArea(renpy.Displayable):
+        """Handle hold events only inside Skip; never install global mouse keys."""
+        def __init__(self, hovered, unhovered, pressed, released,
+                     inside=False, active=False, **kwargs):
+            super(ShelterSkipMouseArea, self).__init__(**kwargs)
+            self.on_hover = hovered
+            self.on_leave = unhovered
+            self.on_press = pressed
+            self.on_release = released
+            self.inside = inside
+            self.active = active
+
+        def render(self, width, height, st, at):
+            return renpy.Render(340, 108)
+
         def event(self, ev, x, y, st):
             import pygame
             if ev.type not in (pygame.MOUSEMOTION, pygame.MOUSEBUTTONDOWN, pygame.MOUSEBUTTONUP):
                 return None
-            return super(ShelterSkipMouseArea, self).event(ev, x, y, st)
+            inside = 0 <= x < 340 and 0 <= y < 108
+            if not inside:
+                if self.inside or self.active:
+                    self.inside = False
+                    self.active = False
+                    renpy.run(self.on_leave)
+                # Outside presses/releases belong to the other screen controls.
+                return None
+            if not self.inside:
+                self.inside = True
+                renpy.run(self.on_hover)
+            if ev.type == pygame.MOUSEBUTTONDOWN and ev.button == 1:
+                self.active = True
+                renpy.run(self.on_press)
+                raise renpy.IgnoreEvent()
+            if ev.type == pygame.MOUSEBUTTONUP and ev.button == 1 and self.active:
+                self.active = False
+                renpy.run(self.on_release)
+                raise renpy.IgnoreEvent()
+            return None
 
     renpy.music.register_channel("shelter_knock", mixer="sfx", loop=False, stop_on_mute=False)
 
@@ -351,17 +383,8 @@ screen shelter_hold_skip(complete_action):
     default hold_active = False
     default hold_progress = 0.0
 
-    # MouseArea does not consume the press like Button does, so raw left-click
-    # down/up events reliably reach these handlers on desktop and touch builds.
-    # A key displayable consumes matching events even with NullAction.
-    # Register raw mouse handlers only over Skip or during its active hold,
-    # otherwise they swallow the release needed by conversation buttons.
-    if hold_hovered or hold_active:
-        key "mousedown_1" action SetLocalVariable("hold_active", True)
-        key "mouseup_1" action [
-            SetLocalVariable("hold_active", False),
-            SetLocalVariable("hold_progress", 0.0)]
-
+    # The local displayable hit-tests every press/release. No global mouse
+    # key bindings can remain active after the pointer leaves this control.
     timer 0.04 repeat True action If(
         hold_active,
         If(
@@ -394,7 +417,11 @@ screen shelter_hold_skip(complete_action):
             xpos 100
             ypos 60
         add ShelterSkipMouseArea(
+            inside=hold_hovered,
+            active=hold_active,
             hovered=SetLocalVariable("hold_hovered", True),
+            pressed=[SetLocalVariable("hold_hovered", True), SetLocalVariable("hold_active", True)],
+            released=[SetLocalVariable("hold_active", False), SetLocalVariable("hold_progress", 0.0)],
             unhovered=[
                 SetLocalVariable("hold_hovered", False),
                 SetLocalVariable("hold_active", False),
