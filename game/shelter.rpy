@@ -60,13 +60,13 @@ init 1 python:
             self.active = active
 
         def render(self, width, height, st, at):
-            return renpy.Render(340, 108)
+            return renpy.Render(96, 96)
 
         def event(self, ev, x, y, st):
             import pygame
             if ev.type not in (pygame.MOUSEMOTION, pygame.MOUSEBUTTONDOWN, pygame.MOUSEBUTTONUP):
                 return None
-            inside = 0 <= x < 340 and 0 <= y < 108
+            inside = (x - 48) ** 2 + (y - 48) ** 2 <= 44 ** 2
             if not inside:
                 if self.inside or self.active:
                     self.inside = False
@@ -397,25 +397,9 @@ screen shelter_hold_skip(complete_action):
         id "shelter_hold_skip"
         xalign 0.975
         yalign 0.965
-        xysize (340, 108)
+        xysize (96, 96)
 
-        # Reuse the main menu/settings metal plate instead of the reject icon.
-        add Frame("gui/shelter/metal/selected.png" if hold_hovered or hold_active else "gui/shelter/metal/button.png", 28, 24) xysize (340, 108)
-        add ShelterSkipRing(hold_progress) xpos 20 ypos 22
-
-        text "АЛГАСАХ":
-            font SHELTER_BOLD
-            size 28
-            color ("#ffffff" if hold_active else "#e8dfca")
-            xpos 100
-            ypos 24
-            outlines [(1, "#000c", 0, 1)]
-        text ("ДАРЖ БАРЬ" if hold_active else "1 СЕК ДАР"):
-            font SHELTER_FONT
-            size 18
-            color "#d7cbb7"
-            xpos 100
-            ypos 60
+        add Transform(ShelterSkipRing(hold_progress), zoom=1.5)
         add ShelterSkipMouseArea(
             inside=hold_hovered,
             active=hold_active,
@@ -425,7 +409,7 @@ screen shelter_hold_skip(complete_action):
             unhovered=[
                 SetLocalVariable("hold_hovered", False),
                 SetLocalVariable("hold_active", False),
-                SetLocalVariable("hold_progress", 0.0)]) xysize (340, 108)
+                SetLocalVariable("hold_progress", 0.0)]) xysize (96, 96)
 
 
 
