@@ -16,11 +16,6 @@ define NARAA_POSTER_STATES = {
     "reject": ("idle", "idle"),
 }
 
-init python:
-    def shelter_naraa_poster(clip, edge="end"):
-        states = NARAA_POSTER_STATES.get(clip, ("idle", "idle"))
-        return NARAA_POSTERS[states[0 if edge == "start" else 1]]
-
 define NARAA_CLIPS = {
     "intro": ("Naraa Ehlel.webm", 12.368),
     "answer1": ("Naraa Hariult 1.webm", 38.968),
@@ -60,7 +55,21 @@ define NARAA_SPEECH_WINDOWS = {
     "admit": (0.0, NARAA_CLIPS["admit"][1]),
 }
 
-# Naraa's question recordings are registered in player_voices.rpy.
+define NARAA_SUPPLIED_PLAYER_VOICES = {
+    'question1': ('audio/naraa/naraa asuult1.wav', 0, 1.354),
+    'question2_part1': ('audio/naraa/naraa asuult2 1heseg.wav', 0, 1.407),
+    'question2_part2': ('audio/naraa/naraa asuult2 2heseg.wav', 0.103, 4.247),
+    'question2': ('audio/naraa/naraa asuult2.wav', 0, 2.006),
+    'question3': ('audio/naraa/naraa asuult3.wav', 0.136, 1.502),
+}
+
+init 1 python:
+    # The second answer pauses for a follow-up question, so it is a conversation.
+    shelter_register_visitor("naraa", roster_position=8, civilian=True,
+        clips=NARAA_CLIPS, questions=NARAA_QUESTIONS, lines=NARAA_LINES,
+        windows=NARAA_SPEECH_WINDOWS, supplied_voices=NARAA_SUPPLIED_PLAYER_VOICES,
+        stills="posters", posters=NARAA_POSTERS, poster_states=NARAA_POSTER_STATES,
+        conversations={1: "shelter_naraa_answer2_conversation"})
 
 # Initial split point from the former first-response clip. Tune against the
 # replacement soundtrack if its first line ends earlier/later.
@@ -123,6 +132,7 @@ screen shelter_naraa_answer2_playback():
     use shelter_protocol_button
 
 label shelter_naraa_answer2_conversation:
+    call shelter_player_line("question2_part1", NARAA_QUESTIONS[1]) from _call_shelter_player_line_10
     window hide None
     $ _skipping = False
     scene expression Transform(shelter_movie_frame("naraa", "answer2", "start"), xysize=(1920, 1080)) as shelter_hold

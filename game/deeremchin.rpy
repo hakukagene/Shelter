@@ -85,31 +85,43 @@ init python:
                 shelter_record_deeremchin_person("man", "lost" if choice == "reject" else choice)
                 shelter_record_deeremchin_person("woman", choice)
 
-    def shelter_can_ask_questions():
-        return shelter_visitor != "deeremchin" or shelter_deeremchin_survivor() is None
+    def shelter_deeremchin_can_ask():
+        return shelter_deeremchin_survivor() is None
 
-    def shelter_can_aim():
-        return shelter_visitor != "deeremchin" or (
-            shelter_deeremchin_survivor() is None and all(i in shelter_asked for i in range(3)))
+    def shelter_deeremchin_can_aim():
+        return shelter_deeremchin_survivor() is None and all(i in shelter_asked for i in range(3))
 
-    def shelter_action_choices(armed=False):
-        if armed:
-            if shelter_visitor == "deeremchin":
-                return [("Эрэгтэйг буудах", "shoot_man", "shoot"),
-                        ("Эмэгтэйг буудах", "shoot_woman", "shoot")]
-            return [("Буудах", "shoot", "shoot"), ("Буугаа буулгах", "lower", "lower")]
-        return [("Хөөх", "reject", "reject"), ("Оруулах", "admit", "admit")]
+    def shelter_deeremchin_admitted_monster():
+        return shelter_deeremchin_outcomes.get("woman") == "admit"
 
-    def shelter_clip_is_terminal(clip):
-        return clip in ("shoot", "admit", "reject", "man_admit", "man_reject", "woman_admit", "woman_reject")
+    def shelter_deeremchin_rejected_civilians():
+        # The civilian man counts as lost when the pair is expelled.
+        return int(shelter_deeremchin_outcomes.get("man") in ("reject", "lost"))
 
-    def shelter_clip_is_armed(clip):
-        return clip in ("aim", "shoot", "lower", "shoot_man", "shoot_woman")
+    def shelter_deeremchin_fatal_shots():
+        return sum(choice == "shoot" for choice in shelter_deeremchin_outcomes.values())
 
-    def shelter_admitted_monster():
-        if shelter_visitor == "deeremchin":
-            return shelter_deeremchin_outcomes.get("woman") == "admit"
-        return shelter_choice == "admit" and not SHELTER_CIVILIANS[shelter_visitor]
+init 1 python:
+    # The pair is one encounter but two checked people; per-person outcomes
+    # live in shelter_deeremchin_outcomes, so civilian is None here.
+    shelter_register_visitor("deeremchin", roster_position=5, civilian=None,
+        clips=DEEREMCHIN_CLIPS, questions=DEEREMCHIN_QUESTIONS, lines=DEEREMCHIN_LINES,
+        windows=DEEREMCHIN_SPEECH_WINDOWS, voices=DEEREMCHIN_PLAYER_VOICES,
+        # Match the actual video framing; never reintroduce a shot person.
+        idle_still=("answer3", "start"), idle_clips=("intro", "answer1", "answer2", "answer3"),
+        monster_ending="Эмэгтэй чөтгөр болон хувирч, тан руу дайрлаа.",
+        armed_actions=(("Эрэгтэйг буудах", "shoot_man", "shoot"),
+                       ("Эмэгтэйг буудах", "shoot_woman", "shoot")),
+        final_choices=("admit", "reject", "shoot_man", "shoot_woman"), visits=2,
+        choice_label="shelter_deeremchin_handle_choice",
+        hooks={
+            "can_ask": shelter_deeremchin_can_ask,
+            "can_aim": shelter_deeremchin_can_aim,
+            "admitted_monster": shelter_deeremchin_admitted_monster,
+            "record_outcome": shelter_finish_deeremchin,
+            "rejected_civilians": shelter_deeremchin_rejected_civilians,
+            "fatal_shots": shelter_deeremchin_fatal_shots,
+        })
 
 label shelter_deeremchin_handle_choice:
     if isinstance(shelter_choice, int) and shelter_can_ask_questions():

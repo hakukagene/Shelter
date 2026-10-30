@@ -1,7 +1,7 @@
 from PIL import Image, ImageDraw, ImageFilter
 from pathlib import Path
 import numpy as np
-out=Path('game/gui/shelter/metal');out.mkdir(parents=True,exist_ok=True)
+out=Path(__file__).resolve().parent.parent/'game/gui/shelter/metal';out.mkdir(parents=True,exist_ok=True)
 rng=np.random.default_rng(42)
 def metal(name,w,h,red=False):
  noise=rng.normal(0,4,(h,w,1));base=np.array([43,38,35] if not red else [91,20,19])

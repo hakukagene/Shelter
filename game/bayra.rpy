@@ -24,3 +24,13 @@ define BAYRA_PLAYER_VOICES = {
     "question2": ("audio/Bayra/asuult2.wav", 0.191, 2.004),
     "question3": ("audio/Bayra/asuult3.wav", 0.171, 1.571),
 }
+
+init 1 python:
+    # Long monologues sit higher and smaller so they clear the action row.
+    shelter_register_visitor("Bayra", roster_position=3, civilian=True,
+        clips=BAYRA_CLIPS, questions=BAYRA_QUESTIONS, lines=BAYRA_LINES,
+        windows=BAYRA_SPEECH_WINDOWS, voices=BAYRA_PLAYER_VOICES,
+        stills="frames", idle_still="idle",
+        # Old Bayra saves can still contain split-clip still names.
+        still_aliases={"arrival": "arrival_start", "enter": "admit", "leave": "reject"},
+        subtitle_y=580, subtitle_size=24)

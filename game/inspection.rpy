@@ -67,10 +67,14 @@ init python:
             "note": "Үүргэвчний эд зүйл дээр дарж авч үзээрэй."},
         "anu": {"owner": "АНУ", "bag": "school_bag",
             "title": "Сургуулийн цүнх", "items": ("notebook", "rabbit"),
-            "note": "Дэвтрийг нээж үзээрэй. Туулайг цүнхний хажууд тавьсан байна."},
+            "note": "Дэвтрийг нээж үзээрэй. Туулайг цүнхний хажууд тавьсан байна.",
+            # Answer three is about the drawing, asked only after finding it.
+            "drawing_question": "Чи энэ зургийг зурсан уу?"},
         "Bayra": {"owner": "БАЯРАА", "bag": "business_bag",
             "title": "Хаалттай хар цүнх", "items": ("business_bag",),
-            "note": "Цүнхийг зөвхөн гаднаас нь шалгах боломжтой."},
+            "note": "Цүнхийг зөвхөн гаднаас нь шалгах боломжтой.",
+            # The bag stays shut: one item, no tray, a lock instead of a check.
+            "locked": True},
     }
 
     def shelter_has_inspection(visitor, question):
@@ -88,7 +92,8 @@ init python:
         sprite = shelter_inspection_views.get(visitor, {}).get("sprite")
         if sprite in SHELTER_INSPECTIONS[visitor]["items"]:
             return sprite
-        return "business_bag" if visitor == "Bayra" else None
+        bag = SHELTER_INSPECTIONS[visitor]
+        return bag["items"][0] if bag.get("locked") else None
 
     def shelter_inspection_mark(visitor, item):
         global shelter_inspection_progress
@@ -230,7 +235,7 @@ screen shelter_inspection(visitor):
     add viewer xpos 475 ypos 145
 
     # Other items remain within reach, like a small tray to the left of the lamp.
-    if visitor != "Bayra":
+    if not bag.get("locked"):
         vbox:
             xpos 64
             ypos 180
@@ -283,17 +288,17 @@ screen shelter_inspection(visitor):
                 size 27
                 color "#29251d"
                 outlines []
-            text ("Хаалттай" if visitor == "Bayra" else "Шалгасан" if selected_item and shelter_inspection_done(visitor, selected_item) else "Шалгаж байна" if selected_item else "Эд зүйлээ сонгоно уу"):
+            text ("Хаалттай" if bag.get("locked") else "Шалгасан" if selected_item and shelter_inspection_done(visitor, selected_item) else "Шалгаж байна" if selected_item else "Эд зүйлээ сонгоно уу"):
                 font SHELTER_FONT
                 size 23
                 color "#514431"
                 outlines []
-        if visitor == "Bayra":
+        if bag.get("locked"):
             button:
-                id "inspection_item_business_bag"
+                id ("inspection_item_" + bag["items"][0])
                 xysize (460, 178)
                 background None
-                action [SetScreenVariable("selected_item", "business_bag"), SetScreenVariable("revealed", False), Function(viewer.choose, "business_bag")]
+                action [SetScreenVariable("selected_item", bag["items"][0]), SetScreenVariable("revealed", False), Function(viewer.choose, bag["items"][0])]
 
     frame:
         xpos 1395
@@ -303,7 +308,7 @@ screen shelter_inspection(visitor):
         padding (29, 25)
         hbox:
             spacing 17
-            add "gui/shelter/inspection/" + ("lock" if visitor == "Bayra" else "check" if revealed else "info") + ".svg" xysize (47, 47)
+            add "gui/shelter/inspection/" + ("lock" if bag.get("locked") else "check" if revealed else "info") + ".svg" xysize (47, 47)
             text (selected["detail"] if revealed else selected["description"] if selected else bag["note"]):
                 style "inspection_text"
                 size 25
@@ -408,11 +413,12 @@ label shelter_inspect_belongings:
     $ _skipping = False
     # Anu's bag request plays once; her separate drawing question follows only
     # after opening the notebook. Closing early must not consume answer three.
-    if shelter_visitor == "anu" and 2 not in shelter_asked and "anu" not in shelter_inspection_requests:
+    $ shelter_drawing_question = SHELTER_INSPECTIONS[shelter_visitor].get("drawing_question")
+    if shelter_drawing_question and 2 not in shelter_asked and shelter_visitor not in shelter_inspection_requests:
         call shelter_player_line("question3", shelter_data("questions")[2]) from _call_shelter_player_line_8
-        $ shelter_inspection_requests = shelter_inspection_requests + ["anu"]
+        $ shelter_inspection_requests = shelter_inspection_requests + [shelter_visitor]
     # Anu's third answer is about the drawing; find it before asking her.
-    if shelter_visitor != "anu" and 2 not in shelter_asked:
+    if not shelter_drawing_question and 2 not in shelter_asked:
         call shelter_player_line("question3", shelter_data("questions")[2]) from _call_shelter_player_line
         call shelter_clip("answer3") from _call_shelter_clip
         $ shelter_asked.append(2)
@@ -420,8 +426,8 @@ label shelter_inspect_belongings:
     # rolling data back to the beginning of the call-screen statement.
     $ renpy.retain_after_load()
     call screen shelter_inspection(shelter_visitor) with Dissolve(0.2)
-    if _return == "ask_drawing" and shelter_visitor == "anu":
-        call shelter_player_line("drawing", "Чи энэ зургийг зурсан уу?") from _call_shelter_player_line_1
+    if _return == "ask_drawing" and shelter_drawing_question:
+        call shelter_player_line("drawing", shelter_drawing_question) from _call_shelter_player_line_1
         call shelter_clip("answer3") from _call_shelter_clip_1
         $ shelter_asked.append(2)
     return

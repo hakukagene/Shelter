@@ -29,7 +29,7 @@ def digest(path):
 
 def clips():
     # Clip tables live in one character file each. Reading all scripts keeps
-    # this audit utility working as new visitors move out of shelter.rpy.
+    # this audit utility working as visitors are added in their own files.
     script = "\n".join(path.read_text(encoding="utf-8-sig")
                        for path in sorted((ROOT / "game").glob("*.rpy")))
     for visitor, constant in CONSTANTS.items():
@@ -39,12 +39,12 @@ def clips():
 
 
 def playback_ends():
-    script = (ROOT / "game/shelter.rpy").read_text(encoding="utf-8-sig")
+    script = (ROOT / "game/encounter_media.rpy").read_text(encoding="utf-8-sig")
     return ast.literal_eval(re.search(r"^define SHELTER_CLIP_ENDS = (\{.*?\})", script, re.M | re.S)[1])
 
 
 def playback_starts():
-    script = (ROOT / "game/shelter.rpy").read_text(encoding="utf-8-sig")
+    script = (ROOT / "game/encounter_media.rpy").read_text(encoding="utf-8-sig")
     return ast.literal_eval(re.search(r"^define SHELTER_CLIP_STARTS = (\{.*?\})", script, re.M | re.S)[1])
 
 

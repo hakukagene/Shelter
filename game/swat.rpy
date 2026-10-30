@@ -25,3 +25,11 @@ define SWAT_SUPPLIED_PLAYER_VOICES = {
     'question3': ('audio/SwatQuestion/asuult3.wav', 0.257, 2.678),
     'admit': ('audio/SwatQuestion/oruulah.wav', 0.166, 0.656),
 }
+
+init 1 python:
+    # Armor stops the bullet: Orgil leaves alive after being shot.
+    shelter_register_visitor("Swat", roster_position=2, civilian=True,
+        clips=SWAT_CLIPS, questions=SWAT_QUESTIONS, lines=SWAT_LINES,
+        windows=SWAT_SPEECH_WINDOWS, supplied_voices=SWAT_SUPPLIED_PLAYER_VOICES,
+        stills="frames", idle_still="idle", first_still="arrival",
+        subtitle_y=630, subtitle_size=26, nonlethal_shoot=True)

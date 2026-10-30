@@ -42,3 +42,15 @@ define CHINBA_PLAYER_VOICES = {
 define CHINBA_SUPPLIED_PLAYER_VOICES = {
     'question2': ('audio/Chingune/ChinbaAsuult2.wav', 0.686, 1.889),
 }
+
+init 1 python:
+    # Reference-matched frames extracted from the source videos (not the supplied PNGs).
+    # idle: Chinbaa hariult 3, first frame; aim: Chinbaa buuduulah, first frame.
+    shelter_register_visitor("Chinba", roster_position=0, civilian=True,
+        clips=CHINBA_CLIPS, questions=CHINBA_QUESTIONS, lines=CHINBA_LINES,
+        windows=CHINBA_SPEECH_WINDOWS, voices=CHINBA_PLAYER_VOICES,
+        supplied_voices=CHINBA_SUPPLIED_PLAYER_VOICES,
+        stills="frames", idle_still="idle",
+        frame_clips=("intro", "answer1", "answer2", "answer3", "aim", "lower",
+            "arrival", "shoot", "admit", "reject"),
+        first_still="arrival")

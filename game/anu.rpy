@@ -36,3 +36,11 @@ define ANU_SUPPLIED_PLAYER_VOICES = {
     'question3': ('audio/anu/anu asuult3.wav', 0.165, 1.296),
     'drawing': ('audio/anu/anu zurag asuuh.wav', 0.213, 1.179),
 }
+
+init 1 python:
+    shelter_register_visitor("anu", roster_position=4, civilian=False,
+        clips=ANU_CLIPS, questions=ANU_QUESTIONS, lines=ANU_LINES,
+        windows=ANU_SPEECH_WINDOWS, supplied_voices=ANU_SUPPLIED_PLAYER_VOICES,
+        stills="frames", idle_still="idle",
+        still_aliases={"arrival": "arrival_start", "enter": "admit", "leave": "reject"},
+        monster_ending="Ану чөтгөр болон хувирч, тан руу дайрлаа.")

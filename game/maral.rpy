@@ -42,3 +42,12 @@ define SHELTER_PLAYER_VOICES = {
     "reject": ("audio/Chingune/MaralHuuh.wav", 0.395, 1.549),
     "admit": ("audio/Chingune/MaralOruulah.wav", 0.347, 0.879),
 }
+
+init 1 python:
+    # The answer1 still is a close-up; keep the doorway framing between questions.
+    shelter_register_visitor("Maral", roster_position=1, civilian=False,
+        clips=SHELTER_CLIPS, questions=SHELTER_QUESTIONS, lines=SHELTER_LINES,
+        windows=SHELTER_SPEECH_WINDOWS, voices=SHELTER_PLAYER_VOICES,
+        stills="frames", idle_still="intro",
+        frame_clips=("intro", "answer1", "answer2", "answer3", "aim", "lower"),
+        monster_ending="Маралын дүр аймшигтайгаар хувирч, тэр чөтгөрийн инээдээр инээн тан руу дайрлаа.")

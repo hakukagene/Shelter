@@ -1,7 +1,7 @@
 from PIL import Image, ImageDraw
 from pathlib import Path
 import math, random
-out=Path(__file__).parent/'game/gui/shelter/actions'; out.mkdir(parents=True,exist_ok=True)
+out=Path(__file__).resolve().parent.parent/'game/gui/shelter/actions'; out.mkdir(parents=True,exist_ok=True)
 for name,col in [('aim',(193,34,34)),('reject',(192,131,22)),('admit',(25,132,68)),('shoot',(193,34,34)),('lower',(192,131,22))]:
  im=Image.new('RGBA',(320,320)); pix=im.load()
  for y in range(320):
