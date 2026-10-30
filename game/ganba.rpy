@@ -34,3 +34,9 @@ define GANBA_SUPPLIED_PLAYER_VOICES = {
     'question2': ('audio/ganba/ganba asuult2.wav', 0, 1.748),
     'question3': ('audio/ganba/ganba asuult3.wav', 0, 1.038),
 }
+
+init 1 python:
+    shelter_register_visitor("ganba", roster_position=6, civilian=True,
+        clips=GANBA_CLIPS, questions=GANBA_QUESTIONS, lines=GANBA_LINES,
+        windows=GANBA_SPEECH_WINDOWS, supplied_voices=GANBA_SUPPLIED_PLAYER_VOICES,
+        idle_still=("answer1", "start"), subtitle_y=580, subtitle_size=26)

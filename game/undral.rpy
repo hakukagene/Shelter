@@ -49,7 +49,15 @@ define UNDRAL_POSTER_STATES = {
     "admit": ("idle", "idle"),
 }
 
-init python:
-    def shelter_undral_poster(clip, edge="end"):
-        states = UNDRAL_POSTER_STATES.get(clip, ("idle", "idle"))
-        return UNDRAL_POSTERS[states[0 if edge == "start" else 1]]
+define UNDRAL_SUPPLIED_PLAYER_VOICES = {
+    'question1': ('audio/undral/undral asuult1.wav', 0, 1.199),
+    'question2': ('audio/undral/undral asuult2.wav', 0, 1.848),
+    'question3': ('audio/undral/undral asuult3.wav', 0, 0.887),
+}
+
+init 1 python:
+    shelter_register_visitor("undral", roster_position=10, civilian=False,
+        clips=UNDRAL_CLIPS, questions=UNDRAL_QUESTIONS, lines=UNDRAL_LINES,
+        windows=UNDRAL_SPEECH_WINDOWS, supplied_voices=UNDRAL_SUPPLIED_PLAYER_VOICES,
+        stills="posters", posters=UNDRAL_POSTERS, poster_states=UNDRAL_POSTER_STATES,
+        monster_ending="Хүүхэд чөтгөр болон хувирч, тан руу дайрлаа.")

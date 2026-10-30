@@ -39,3 +39,9 @@ define GANZO_SUPPLIED_PLAYER_VOICES = {
     'question2': ('audio/ganzo/ganzo asuult2.wav', 0, 1.068),
     'question3': ('audio/ganzo/ganzo asuult3.wav', 0, 3.583),
 }
+
+init 1 python:
+    shelter_register_visitor("ganzo", roster_position=7, civilian=True,
+        clips=GANZO_CLIPS, questions=GANZO_QUESTIONS, lines=GANZO_LINES,
+        windows=GANZO_SPEECH_WINDOWS, supplied_voices=GANZO_SUPPLIED_PLAYER_VOICES,
+        idle_still=("answer1", "start"), subtitle_y=580, subtitle_size=26)
